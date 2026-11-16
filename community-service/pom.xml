@@ -14,7 +14,7 @@
 	<name>community-service</name>
 	<description>Levi9 Reddit - community-service</description>
 	<properties>
-		<java.version>21</java.version>
+		<java.version>25</java.version>
 		<jacoco.version>0.8.16</jacoco.version>
 	</properties>
 	<dependencies>

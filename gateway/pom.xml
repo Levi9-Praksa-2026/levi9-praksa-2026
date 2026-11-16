@@ -14,7 +14,7 @@
 	<name>gateway</name>
 	<description>Levi9 Reddit - gateway</description>
 	<properties>
-		<java.version>21</java.version>
+		<java.version>25</java.version>
 		<jacoco.version>0.8.16</jacoco.version>
 		<spring-cloud.version>2025.1.4</spring-cloud.version>
 	</properties>
