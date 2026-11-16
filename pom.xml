@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Aggregator only: lets `./mvnw verify` build every service in one go.
+  It is deliberately NOT the parent of the services. Each service inherits spring-boot-starter-parent
+  directly and builds on its own, which is what its Dockerfile relies on.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.levi9.reddit</groupId>
+	<artifactId>levi9-reddit</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>levi9-reddit</name>
+
+	<modules>
+		<module>gateway</module>
+		<module>auth-service</module>
+		<module>community-service</module>
+		<module>post-service</module>
+	</modules>
+</project>

@@ -1,0 +1,64 @@
+# Local run: docker compose up --build
+# React -> gateway -> services -> Postgres. Only the frontend, gateway and Postgres are published to the host.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-reddit}
+      POSTGRES_USER: ${POSTGRES_USER:-reddit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-reddit_local}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  auth-service:
+    build: ./auth-service
+    environment: &db-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-reddit}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-reddit}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-reddit_local}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  community-service:
+    build: ./community-service
+    environment: *db-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  post-service:
+    build: ./post-service
+    environment: *db-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - community-service
+      - post-service
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8080
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+
+volumes:
+  postgres-data:
