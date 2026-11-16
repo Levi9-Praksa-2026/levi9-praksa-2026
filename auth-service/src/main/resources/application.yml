@@ -4,3 +4,17 @@ server:
 spring:
   application:
     name: auth-service
+  datasource:
+    hikari:
+      schema: auth   # connections start in this schema, so native SQL finds the tables too
+  flyway:
+    schemas: auth
+    default-schema: auth
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.default_schema: auth
+      hibernate.jdbc.time_zone: UTC
+      hibernate.query.fail_on_pagination_over_collection_fetch: true

@@ -4,3 +4,17 @@ server:
 spring:
   application:
     name: post-service
+  datasource:
+    hikari:
+      schema: post   # connections start in this schema, so native SQL finds the tables too
+  flyway:
+    schemas: post
+    default-schema: post
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.default_schema: post
+      hibernate.jdbc.time_zone: UTC
+      hibernate.query.fail_on_pagination_over_collection_fetch: true
