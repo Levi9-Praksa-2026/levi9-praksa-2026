@@ -1,0 +1,98 @@
+erDiagram
+    USERS {
+        bigint id PK
+        varchar username UK
+        varchar email UK
+        varchar password_hash
+        varchar first_name
+        varchar last_name
+        varchar role "USER or ADMIN"
+        boolean is_banned
+        text ban_reason "null unless banned"
+        timestamptz banned_at "null unless banned"
+        bigint banned_by FK "admin id, null unless banned"
+        boolean is_deleted
+        timestamptz created_at
+    }
+    REFRESH_TOKENS {
+        bigint id PK
+        bigint user_id FK
+        varchar token_hash UK
+        timestamptz expires_at
+        timestamptz revoked_at
+        timestamptz created_at
+    }
+    COMMUNITIES {
+        bigint id PK
+        varchar name UK "stored without r/"
+        text description
+        bigint creator_id FK
+        boolean is_active
+        int member_count
+        int version
+        timestamptz created_at
+    }
+    COMMUNITY_MEMBERS {
+        bigint community_id PK, FK
+        bigint user_id PK, FK
+        timestamptz joined_at
+    }
+    POSTS {
+        bigint id PK
+        varchar title
+        text content
+        bigint author_id FK
+        varchar author_username
+        bigint community_id FK
+        int score
+        int comment_count
+        int version
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz removed_at
+        bigint removed_by
+    }
+    POST_IMAGES {
+        bigint id PK "also defines display order"
+        bigint post_id FK
+        varchar s3_key
+        timestamptz created_at
+    }
+    POST_VOTES {
+        bigint post_id PK, FK
+        bigint user_id PK, FK
+        smallint value "-1 or +1"
+        timestamptz created_at
+    }
+    COMMENTS {
+        bigint id PK
+        bigint post_id FK
+        bigint author_id FK
+        varchar author_username
+        text content
+        int score
+        timestamptz created_at
+        timestamptz removed_at
+        bigint removed_by
+    }
+    COMMENT_VOTES {
+        bigint comment_id PK, FK
+        bigint user_id PK, FK
+        smallint value "-1 or +1"
+        timestamptz created_at
+    }
+
+    USERS |o--o{ USERS : "bans"
+    USERS ||--o{ REFRESH_TOKENS : "has"
+    USERS ||--o{ COMMUNITIES : "creates"
+    USERS ||--o{ COMMUNITY_MEMBERS : "joins"
+    COMMUNITIES ||--o{ COMMUNITY_MEMBERS : "has"
+    USERS ||--o{ POSTS : "writes"
+    COMMUNITIES ||--o{ POSTS : "contains"
+    POSTS ||--o{ POST_IMAGES : "has max 3"
+    POSTS ||--o{ POST_VOTES : "receives"
+    USERS ||--o{ POST_VOTES : "casts"
+    POSTS ||--o{ COMMENTS : "has"
+    USERS ||--o{ COMMENTS : "writes"
+    COMMENTS ||--o{ COMMENT_VOTES : "receives"
+    USERS ||--o{ COMMENT_VOTES : "casts"
