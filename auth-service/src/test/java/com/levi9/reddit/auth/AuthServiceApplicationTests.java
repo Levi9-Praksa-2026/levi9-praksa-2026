@@ -3,6 +3,8 @@ package com.levi9.reddit.auth;
 import com.levi9.reddit.auth.core.model.RefreshToken;
 import com.levi9.reddit.auth.core.model.User;
 import com.levi9.reddit.auth.core.model.UserRole;
+import com.levi9.reddit.auth.core.service.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import com.levi9.reddit.auth.infrastructure.repository.RefreshTokenRepository;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -27,6 +29,12 @@ class AuthServiceApplicationTests {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Test
     @Transactional
@@ -67,4 +75,26 @@ class AuthServiceApplicationTests {
         assertThat(unbanned.isBanned()).isFalse();
         assertThat(unbanned.getBannedBy()).isNull();
     }
+    @Test
+    @Transactional
+    void deletionPersistsAndRevokesOnlyTheUsersUnrevokedTokens() {
+        Instant now = Instant.parse("2026-01-01T00:00:00Z");
+        User user = userRepository.save(new User("delete-me", "delete@example.test", passwordEncoder.encode("secret"), "First", "Last"));
+        User other = userRepository.save(new User("other", "other@example.test", "hash", "Other", "User"));
+        RefreshToken active = refreshTokenRepository.save(new RefreshToken(user.getId(), "active", now));
+        RefreshToken revoked = refreshTokenRepository.save(new RefreshToken(user.getId(), "revoked", now));
+        revoked.revoke(now);
+        RefreshToken otherToken = refreshTokenRepository.save(new RefreshToken(other.getId(), "other", now));
+        entityManager.flush();
+
+        userService.delete(user.getId(), "secret");
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(userRepository.findById(user.getId()).orElseThrow().isDeleted()).isTrue();
+        assertThat(refreshTokenRepository.findById(active.getId()).orElseThrow().getRevokedAt()).isNotNull();
+        assertThat(refreshTokenRepository.findById(revoked.getId()).orElseThrow().getRevokedAt()).isEqualTo(now);
+        assertThat(refreshTokenRepository.findById(otherToken.getId()).orElseThrow().getRevokedAt()).isNull();
+    }
+
 }

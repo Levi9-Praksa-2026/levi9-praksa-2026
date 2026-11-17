@@ -118,6 +118,10 @@ public class User {
         return createdAt;
     }
 
+    public void delete() {
+        this.deleted = true;
+    }
+
     public void ban(Long adminId, String reason, Instant at) {
         Instant bannedAt = Objects.requireNonNull(at, "at");
         this.bannedBy = Objects.requireNonNull(adminId, "adminId");
