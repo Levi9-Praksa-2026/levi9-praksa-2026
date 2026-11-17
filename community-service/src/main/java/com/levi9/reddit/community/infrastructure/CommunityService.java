@@ -45,7 +45,6 @@ public class CommunityService {
                 community.getId(),
                 community.getName(),
                 community.getDescription(),
-                community.getCreatorId(),
                 community.getMemberCount(),
                 community.getCreatedAt(),
                 posts);

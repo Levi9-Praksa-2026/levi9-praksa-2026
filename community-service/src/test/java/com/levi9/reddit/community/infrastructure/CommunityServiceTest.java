@@ -74,7 +74,6 @@ class CommunityServiceTest {
         assertThat(result.id()).isEqualTo(community.getId());
         assertThat(result.name()).isEqualTo("backend");
         assertThat(result.description()).isEqualTo("Backend discussion");
-        assertThat(result.creatorId()).isEqualTo(42L);
         assertThat(result.memberCount()).isEqualTo(7);
         assertThat(result.createdAt()).isEqualTo(community.getCreatedAt());
         assertThat(result.posts()).containsExactly(post);

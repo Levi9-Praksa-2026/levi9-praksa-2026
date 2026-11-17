@@ -131,7 +131,7 @@ class CommunityServiceApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(community.getId().intValue()))
                 .andExpect(jsonPath("$.description").value("Backend discussion"))
-                .andExpect(jsonPath("$.creatorId").value(42))
+                .andExpect(jsonPath("$.creatorId").doesNotExist())
                 .andExpect(jsonPath("$.memberCount").value(7))
                 .andExpect(jsonPath("$.createdAt").exists())
                 .andExpect(jsonPath("$.posts[0].title").value("Hello"));

@@ -83,14 +83,14 @@ class CommunityControllerTest {
     void getCommunity_returnsEveryDetailAndItsPosts() throws Exception {
         PostResponse post = new PostResponse(11L, "Hello", "Body", 2L, "luka", 1L, 3, 0, CREATED, null);
         given(communityService.getCommunity("backend")).willReturn(new CommunityDetailResponse(
-                1L, "backend", "Backend discussion", 42L, 7, CREATED, List.of(post)));
+                1L, "backend", "Backend discussion", 7, CREATED, List.of(post)));
 
         mockMvc.perform(get("/api/communities/{name}", "backend"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("backend"))
                 .andExpect(jsonPath("$.description").value("Backend discussion"))
-                .andExpect(jsonPath("$.creatorId").value(42))
+                .andExpect(jsonPath("$.creatorId").doesNotExist())
                 .andExpect(jsonPath("$.memberCount").value(7))
                 .andExpect(jsonPath("$.createdAt").exists())
                 .andExpect(jsonPath("$.posts[0].id").value(11))
