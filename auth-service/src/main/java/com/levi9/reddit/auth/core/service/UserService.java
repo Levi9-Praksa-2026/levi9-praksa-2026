@@ -1,15 +1,17 @@
 package com.levi9.reddit.auth.core.service;
 
+import com.levi9.reddit.auth.core.exception.ErrorType;
+import com.levi9.reddit.auth.core.exception.ForbiddenException;
+import com.levi9.reddit.auth.core.exception.NotFoundException;
+import com.levi9.reddit.auth.core.exception.UnauthorizedException;
 import com.levi9.reddit.auth.core.model.User;
 import com.levi9.reddit.auth.core.model.UserRole;
 import com.levi9.reddit.auth.infrastructure.repository.RefreshTokenRepository;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
 import java.time.Instant;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UserService {
@@ -27,12 +29,12 @@ public class UserService {
     public void delete(Long userId, String password) {
         User user = users.findById(userId)
                 .filter(candidate -> !candidate.isDeleted())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorType.USER_NOT_FOUND, "User not found"));
         if (user.getRole() != UserRole.USER) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Administrators cannot delete their accounts");
+            throw new ForbiddenException(ErrorType.ACCOUNT_DELETION_FORBIDDEN, "This account cannot be deleted");
         }
         if (!passwords.matches(password, user.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid password");
+            throw new UnauthorizedException(ErrorType.INVALID_CREDENTIALS, "Invalid password");
         }
         user.delete();
         refreshTokens.revokeAllActiveByUserId(userId, Instant.now());

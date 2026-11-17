@@ -1,15 +1,18 @@
 package com.levi9.reddit.auth.core.service;
 
+import com.levi9.reddit.auth.core.exception.ErrorType;
+import com.levi9.reddit.auth.core.exception.ForbiddenException;
+import com.levi9.reddit.auth.core.exception.NotFoundException;
+import com.levi9.reddit.auth.core.exception.UnauthorizedException;
 import com.levi9.reddit.auth.core.model.User;
+import com.levi9.reddit.auth.core.model.UserRole;
 import com.levi9.reddit.auth.infrastructure.repository.RefreshTokenRepository;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.server.ResponseStatusException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,18 +43,41 @@ class UserServiceTest {
     @Test
     void rejectsWrongPasswordWithoutDeleting() {
         assertThatThrownBy(() -> service.delete(1L, "wrong"))
-                .isInstanceOfSatisfying(ResponseStatusException.class,
-                        error -> assertThat(error.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED));
+                .isInstanceOfSatisfying(UnauthorizedException.class,
+                        error -> assertThat(error.getErrorType()).isEqualTo(ErrorType.INVALID_CREDENTIALS));
         assertThat(user.isDeleted()).isFalse();
         verifyNoInteractions(tokens);
     }
 
     @Test
-    void rejectsMissingOrDeletedUser() {
+    void rejectsAlreadyDeletedUser() {
         user.delete();
         assertThatThrownBy(() -> service.delete(1L, "secret"))
-                .isInstanceOfSatisfying(ResponseStatusException.class,
-                        error -> assertThat(error.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND));
+                .isInstanceOfSatisfying(NotFoundException.class,
+                        error -> assertThat(error.getErrorType()).isEqualTo(ErrorType.USER_NOT_FOUND));
         verifyNoInteractions(tokens);
+    }
+
+    @Test
+    void rejectsUserThatDoesNotExist() {
+        when(users.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.delete(1L, "secret"))
+                .isInstanceOfSatisfying(NotFoundException.class,
+                        error -> assertThat(error.getErrorType()).isEqualTo(ErrorType.USER_NOT_FOUND));
+        verifyNoInteractions(tokens);
+    }
+
+    @Test
+    void rejectsAdministratorWithoutRevokingTokens() {
+        User admin = mock(User.class);
+        when(admin.getRole()).thenReturn(UserRole.ADMIN);
+        when(users.findById(1L)).thenReturn(Optional.of(admin));
+
+        assertThatThrownBy(() -> service.delete(1L, "secret"))
+                .isInstanceOfSatisfying(ForbiddenException.class,
+                        error -> assertThat(error.getErrorType()).isEqualTo(ErrorType.ACCOUNT_DELETION_FORBIDDEN));
+        verifyNoInteractions(tokens);
+        verify(admin, never()).delete();
     }
 }
