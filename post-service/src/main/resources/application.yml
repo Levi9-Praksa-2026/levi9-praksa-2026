@@ -18,3 +18,8 @@ spring:
       hibernate.default_schema: post
       hibernate.jdbc.time_zone: UTC
       hibernate.query.fail_on_pagination_over_collection_fetch: true
+
+app:
+  s3:
+    bucket: ${S3_BUCKET:levddit-post-images}
+    region: ${AWS_REGION:eu-central-1}
