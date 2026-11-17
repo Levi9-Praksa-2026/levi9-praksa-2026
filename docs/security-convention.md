@@ -27,6 +27,10 @@ gateway, community-service and post-service only check them.
 Services check again so they never trust that a request came through the gateway. Only the frontend, gateway and
 Postgres are published to the host; services are reachable only inside the Docker network.
 
+**The gateway does not decide which routes need a login.** It rejects a token that is present but invalid
+(forged, expired, wrong issuer) and lets a request without a token through. Each service's `SecurityConfig` decides
+what is public and what needs a token, so the list of public routes lives in one place: the service that owns them.
+
 Direct service-to-service traffic: services fetching JWKS from auth-service, and `/internal/**` calls, which the
 gateway never exposes.
 
