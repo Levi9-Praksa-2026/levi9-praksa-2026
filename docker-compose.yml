@@ -34,12 +34,19 @@ services:
       postgres:
         condition: service_healthy
 
+  moto:
+    image: motoserver/moto:5.2.5
+
   post-service:
     build: ./post-service
-    environment: *db-env
+    environment:
+      <<: *db-env
+      APP_S3_ENDPOINT: http://moto:5000
     depends_on:
       postgres:
         condition: service_healthy
+      moto:
+        condition: service_started
 
   gateway:
     build: ./gateway
