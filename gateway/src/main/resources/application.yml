@@ -4,3 +4,32 @@ server:
 spring:
   application:
     name: gateway
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: auth-service
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/auth/**,/api/users/**
+            - id: community-service
+              uri: ${COMMUNITY_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/communities/**
+            - id: post-service
+              uri: ${POST_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/posts/**,/api/comments/**
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8081/.well-known/jwks.json}
+          issuer-uri: levddit-auth
+          authorities-claim-name: roles
+          authority-prefix: ROLE_
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000
