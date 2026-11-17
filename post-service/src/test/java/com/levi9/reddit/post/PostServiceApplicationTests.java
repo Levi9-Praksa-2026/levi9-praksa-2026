@@ -9,7 +9,7 @@ import com.levi9.reddit.post.core.model.PostVote;
 import com.levi9.reddit.post.core.model.PostVoteId;
 import com.levi9.reddit.post.infrastructure.repository.CommentRepository;
 import com.levi9.reddit.post.infrastructure.repository.CommentVoteRepository;
-import com.levi9.reddit.post.infrastructure.repository.PostImageRepository;
+import com.levi9.reddit.post.infrastructure.PostImageService;
 import com.levi9.reddit.post.infrastructure.repository.PostRepository;
 import com.levi9.reddit.post.infrastructure.repository.PostVoteRepository;
 import jakarta.persistence.EntityManager;
@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
@@ -30,7 +31,7 @@ class PostServiceApplicationTests {
     private PostRepository postRepository;
 
     @Autowired
-    private PostImageRepository postImageRepository;
+    private PostImageService postImageService;
 
     @Autowired
     private PostVoteRepository postVoteRepository;
@@ -49,7 +50,7 @@ class PostServiceApplicationTests {
     void persistsAndReloadsServiceModels() {
         Instant now = Instant.parse("2026-01-01T00:00:00Z");
         Post post = postRepository.save(new Post("Original title", 42L, "reader", 7L));
-        PostImage image = postImageRepository.save(new PostImage(post.getId(), "posts/example.png"));
+        postImageService.addImage(post.getId(), "posts/example.png");
         PostVoteId postVoteId = new PostVoteId(post.getId(), 43L);
         postVoteRepository.save(new PostVote(postVoteId, (short) 1));
         Comment comment = commentRepository.save(new Comment(post.getId(), 43L, "writer", "A reply"));
@@ -77,9 +78,7 @@ class PostServiceApplicationTests {
         assertThat(stored.getRemovedAt()).isEqualTo(now);
         assertThat(stored.getRemovedBy()).isEqualTo(99L);
 
-        PostImage storedImage = postImageRepository.findById(image.getId()).orElseThrow();
-        assertThat(storedImage.getPostId()).isEqualTo(post.getId());
-        assertThat(storedImage.getS3Key()).isEqualTo("posts/example.png");
+        assertThat(stored.getImages()).extracting(PostImage::getS3Key).containsExactly("posts/example.png");
 
         PostVote postVote = postVoteRepository.findById(postVoteId).orElseThrow();
         assertThat(postVote.getId()).isEqualTo(postVoteId);
@@ -97,5 +96,31 @@ class PostServiceApplicationTests {
         CommentVote commentVote = commentVoteRepository.findById(commentVoteId).orElseThrow();
         assertThat(commentVote.getId()).isEqualTo(commentVoteId);
         assertThat(commentVote.getValue()).isEqualTo((short) -1);
+    }
+
+    @Test
+    @Transactional
+    void managesImageLimitAndDeletesOrphansThroughPost() {
+        Post post = new Post("Images", 42L, "reader", 7L);
+        post.addImage("posts/first.png");
+        postRepository.save(post);
+        postImageService.addImage(post.getId(), "posts/second.png");
+        postImageService.addImage(post.getId(), "posts/third.png");
+        entityManager.flush();
+        entityManager.clear();
+
+        Post stored = postRepository.findById(post.getId()).orElseThrow();
+        assertThat(stored.getImages()).extracting(PostImage::getS3Key)
+                .containsExactly("posts/first.png", "posts/second.png", "posts/third.png");
+        assertThatIllegalStateException().isThrownBy(() -> stored.addImage("posts/fourth.png"));
+
+        Long imageId = stored.getImages().getFirst().getId();
+        assertThat(postImageService.removeImage(post.getId(), imageId)).isEqualTo("posts/first.png");
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(entityManager.find(PostImage.class, imageId)).isNull();
+        assertThat(postRepository.findById(post.getId()).orElseThrow().getImages())
+                .extracting(PostImage::getS3Key).containsExactly("posts/second.png", "posts/third.png");
     }
 }

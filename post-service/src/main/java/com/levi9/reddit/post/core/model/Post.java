@@ -1,18 +1,25 @@
 package com.levi9.reddit.post.core.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
 @Table(name = "posts")
 public class Post {
+    private static final int MAX_IMAGES = 3;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -49,6 +56,10 @@ public class Post {
 
     @Column(name = "removed_by")
     private Long removedBy;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    @OrderBy("id ASC")
+    private List<PostImage> images = new ArrayList<>();
 
     protected Post() {}
 
@@ -105,6 +116,25 @@ public class Post {
 
     public Long getRemovedBy() {
         return removedBy;
+    }
+
+    public List<PostImage> getImages() {
+        return List.copyOf(images);
+    }
+
+    public PostImage addImage(String s3Key) {
+        if (images.size() >= MAX_IMAGES) {
+            throw new IllegalStateException("A post can have at most three images");
+        }
+        PostImage image = new PostImage(this, s3Key);
+        images.add(image);
+        return image;
+    }
+
+    public void removeImage(PostImage image) {
+        if (images.remove(image)) {
+            image.detachFromPost();
+        }
     }
 
     public void edit(String title, String content, Instant at) {
