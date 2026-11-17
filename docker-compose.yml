@@ -1,5 +1,11 @@
 # Local run: docker compose up --build
 # React -> gateway -> services -> Postgres. Only the frontend, gateway and Postgres are published to the host.
+# Database settings shared by every service (merged with <<: *db-env).
+x-db-env: &db-env
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-reddit}
+  SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-reddit}
+  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-reddit_local}
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -19,10 +25,9 @@ services:
 
   auth-service:
     build: ./auth-service
-    environment: &db-env
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-reddit}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-reddit}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-reddit_local}
+    environment:
+      <<: *db-env
+      APP_JWT_GENERATE_KEY: "true"   # local only, see docs/production-changes.md
     depends_on:
       postgres:
         condition: service_healthy

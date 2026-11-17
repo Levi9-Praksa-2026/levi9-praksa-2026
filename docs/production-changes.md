@@ -8,7 +8,8 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 ### JWT signing key
 - **Local:** `APP_JWT_GENERATE_KEY=true` makes auth-service generate a temporary key pair in memory at every
   start. Nothing secret is needed, but every restart invalidates issued access tokens.
-- **Production:** do **not** set `APP_JWT_GENERATE_KEY`. Create one key pair and give auth-service:
+- **Production:** do **not** set `APP_JWT_GENERATE_KEY`. `docker-compose.yml` sets it to `true` for local runs,
+  so a production compose file or environment must leave it out. Create one key pair and give auth-service:
   - `APP_JWT_PRIVATE_KEY`: the contents of `private.pem` (one line or several both work)
   - `APP_JWT_KEY_ID`: a name for the key, for example `2026-11`
 
