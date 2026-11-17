@@ -1,4 +1,4 @@
-package com.levi9.reddit.post.config;
+package com.levi9.reddit.post.infrastructure;
 
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
