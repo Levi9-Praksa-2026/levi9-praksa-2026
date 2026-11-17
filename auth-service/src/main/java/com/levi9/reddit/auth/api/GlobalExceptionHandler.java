@@ -3,6 +3,7 @@ package com.levi9.reddit.auth.api;
 import com.levi9.reddit.auth.core.exception.ConflictException;
 import com.levi9.reddit.auth.core.exception.DomainException;
 import com.levi9.reddit.auth.core.exception.ForbiddenException;
+import com.levi9.reddit.auth.core.exception.NotFoundException;
 import com.levi9.reddit.auth.core.exception.UnauthorizedException;
 import com.levi9.reddit.auth.core.exception.UserBannedException;
 import org.slf4j.Logger;
@@ -73,6 +74,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             case UnauthorizedException _ -> HttpStatus.UNAUTHORIZED;
             case ForbiddenException _ -> HttpStatus.FORBIDDEN;
             case ConflictException _ -> HttpStatus.CONFLICT;
+            case NotFoundException _ -> HttpStatus.NOT_FOUND;
         };
     }
 
