@@ -29,10 +29,14 @@ services:
 
   community-service:
     build: ./community-service
-    environment: *db-env
+    environment:
+      <<: *db-env
+      POST_SERVICE_BASE_URL: ${POST_SERVICE_BASE_URL:-http://post-service:8083}
     depends_on:
       postgres:
         condition: service_healthy
+      post-service:
+        condition: service_started
 
   moto:
     image: motoserver/moto:5.2.5
