@@ -21,3 +21,15 @@ spring:
               uri: ${POST_SERVICE_URL:http://localhost:8083}
               predicates:
                 - Path=/api/posts/**,/api/comments/**
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8081/.well-known/jwks.json}
+          issuer-uri: levddit-auth
+          authorities-claim-name: roles
+          authority-prefix: ROLE_
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000
