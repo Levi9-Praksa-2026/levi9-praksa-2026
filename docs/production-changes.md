@@ -21,6 +21,13 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - Never commit `private.pem`. Store it in the environment settings of the deploy target or a secret store.
 - If neither a key nor the flag is set, auth-service refuses to start. That is on purpose.
 
+## gateway
+
+### CORS origin
+- **Local:** `app.cors.allowed-origins` is `http://localhost:3000`, the frontend container.
+- **Production:** set `APP_CORS_ALLOWED_ORIGINS` to the real frontend URL (the S3 static site or its domain).
+  Never use `*`.
+
 ## Database
 
 ### Credentials
