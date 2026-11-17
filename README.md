@@ -17,7 +17,6 @@ and Spring Data repositories are in `infrastructure.repository`.
 References to records owned by another service are stored as IDs. Memberships
 and votes use a composite key made up of the target ID and user ID. When a
 feature changes a membership or vote and updates a stored count or score, write
-both within the same service transaction. Posts and communities use optimistic
-locking to detect concurrent updates to their records.
+both within the same service transaction.
 
 Run the backend checks with `./mvnw verify` using Java 25 and Docker.

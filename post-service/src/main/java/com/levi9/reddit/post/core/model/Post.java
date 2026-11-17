@@ -6,7 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -38,10 +37,6 @@ public class Post {
 
     @Column(name = "comment_count", nullable = false)
     private int commentCount;
-
-    @Version
-    @Column(nullable = false)
-    private int version;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -94,10 +89,6 @@ public class Post {
 
     public int getCommentCount() {
         return commentCount;
-    }
-
-    public int getVersion() {
-        return version;
     }
 
     public Instant getCreatedAt() {

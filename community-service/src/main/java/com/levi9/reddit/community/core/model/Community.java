@@ -6,7 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -32,10 +31,6 @@ public class Community {
 
     @Column(name = "member_count", nullable = false)
     private int memberCount;
-
-    @Version
-    @Column(nullable = false)
-    private int version;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -69,10 +64,6 @@ public class Community {
 
     public int getMemberCount() {
         return memberCount;
-    }
-
-    public int getVersion() {
-        return version;
     }
 
     public Instant getCreatedAt() {

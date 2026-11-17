@@ -46,7 +46,6 @@ class CommunityServiceApplicationTests {
         assertThat(stored.getCreatorId()).isEqualTo(42L);
         assertThat(stored.getMemberCount()).isEqualTo(1);
         assertThat(stored.isActive()).isFalse();
-        assertThat(stored.getVersion()).isEqualTo(1);
         assertThat(stored.getCreatedAt()).isNotNull();
         CommunityMember member = communityMemberRepository.findById(memberId).orElseThrow();
         assertThat(member.getId()).isEqualTo(memberId);

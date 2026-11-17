@@ -73,7 +73,6 @@ class PostServiceApplicationTests {
         assertThat(stored.getCommunityId()).isEqualTo(7L);
         assertThat(stored.getScore()).isEqualTo(1);
         assertThat(stored.getCommentCount()).isEqualTo(1);
-        assertThat(stored.getVersion()).isEqualTo(1);
         assertThat(stored.getUpdatedAt()).isEqualTo(now);
         assertThat(stored.getRemovedAt()).isEqualTo(now);
         assertThat(stored.getRemovedBy()).isEqualTo(99L);

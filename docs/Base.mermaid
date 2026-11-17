@@ -29,7 +29,6 @@ erDiagram
         bigint creator_id FK
         boolean is_active
         int member_count
-        int version
         timestamptz created_at
     }
     COMMUNITY_MEMBERS {
@@ -46,7 +45,6 @@ erDiagram
         bigint community_id FK
         int score
         int comment_count
-        int version
         timestamptz created_at
         timestamptz updated_at
         timestamptz removed_at
