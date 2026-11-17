@@ -1,20 +1,20 @@
 # levddit
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-25-0B1F4B?logo=openjdk&logoColor=white" alt="Java 25" />
-  <img src="https://img.shields.io/badge/Spring%20Boot-4.1-0B1F4B?logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
-  <img src="https://img.shields.io/badge/Spring%20Cloud-Gateway-0B1F4B?logo=spring&logoColor=white" alt="Spring Cloud Gateway" />
-  <img src="https://img.shields.io/badge/PostgreSQL-17-0B1F4B?logo=postgresql&logoColor=white" alt="PostgreSQL 17" />
-  <img src="https://img.shields.io/badge/Flyway-migrations-0B1F4B?logo=flyway&logoColor=white" alt="Flyway" />
-  <img src="https://img.shields.io/badge/React-19-0B1F4B?logo=react&logoColor=white" alt="React 19" />
-  <img src="https://img.shields.io/badge/Vite-8-0B1F4B?logo=vite&logoColor=white" alt="Vite 8" />
-  <img src="https://img.shields.io/badge/TypeScript-7-0B1F4B?logo=typescript&logoColor=white" alt="TypeScript 7" />
-  <img src="https://img.shields.io/badge/Docker-Compose-0B1F4B?logo=docker&logoColor=white" alt="Docker Compose" />
-  <img src="https://img.shields.io/badge/AWS-S3-0B1F4B" alt="AWS S3" />
-  <img src="https://img.shields.io/badge/Maven-build-0B1F4B?logo=apachemaven&logoColor=white" alt="Maven" />
-  <img src="https://img.shields.io/badge/JUnit-5-0B1F4B?logo=junit5&logoColor=white" alt="JUnit 5" />
-  <img src="https://img.shields.io/badge/Testcontainers-real%20Postgres-0B1F4B" alt="Testcontainers" />
-  <img src="https://img.shields.io/badge/GitHub%20Actions-CI-0B1F4B?logo=githubactions&logoColor=white" alt="GitHub Actions" />
+  <img src="https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white" alt="Java 25" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
+  <img src="https://img.shields.io/badge/Spring%20Cloud-Gateway-6DB33F?logo=spring&logoColor=white" alt="Spring Cloud Gateway" />
+  <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 17" />
+  <img src="https://img.shields.io/badge/Flyway-migrations-CC0200?logo=flyway&logoColor=white" alt="Flyway" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" alt="Vite 8" />
+  <img src="https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white" alt="TypeScript 7" />
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose" />
+  <img src="https://img.shields.io/badge/AWS-S3-FF9900" alt="AWS S3" />
+  <img src="https://img.shields.io/badge/Maven-build-C71A36?logo=apachemaven&logoColor=white" alt="Maven" />
+  <img src="https://img.shields.io/badge/JUnit-5-25A162?logo=junit5&logoColor=white" alt="JUnit 5" />
+  <img src="https://img.shields.io/badge/Testcontainers-real%20Postgres-2496ED" alt="Testcontainers" />
+  <img src="https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?logo=githubactions&logoColor=white" alt="GitHub Actions" />
 </p>
 
 A small Reddit-style app built during the Levi9 Product & Cloud Engineering internship (2026).
@@ -46,16 +46,16 @@ flowchart LR
     end
 
     user --> fe
-    fe -->|/api/**| gw
-    gw -->|/api/auth, /api/users| auth
-    gw -->|/api/communities| comm
-    gw -->|/api/posts, /api/comments| post
-    gw -. fetches public keys<br/>/.well-known/jwks.json .-> auth
+    fe -->|"/api/**"| gw
+    gw -->|"/api/auth, /api/users"| auth
+    gw -->|"/api/communities"| comm
+    gw -->|"/api/posts, /api/comments"| post
+    gw -.->|"fetches public keys<br/>/.well-known/jwks.json"| auth
 
     auth --> sa
     comm --> sc
     post --> sp
-    post -->|post images| s3
+    post -->|"post images"| s3
 
     classDef edge    fill:#ffffff,stroke:#0B1F4B,stroke-width:2px,color:#0B1F4B
     classDef gateway fill:#0B1F4B,stroke:#050f26,stroke-width:2px,color:#ffffff
@@ -87,7 +87,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    f[feature/*] -->|PR| d[develop] -->|release PR| m[main] -->|deploy| aws[(AWS)]
+    f["feature/*"] -->|"PR"| d[develop] -->|"release PR"| m[main] -->|"deploy"| aws[(AWS)]
 
     classDef feature fill:#ffffff,stroke:#0B1F4B,stroke-width:2px,color:#0B1F4B
     classDef develop fill:#2F5FB3,stroke:#163A7A,color:#ffffff
