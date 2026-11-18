@@ -1,25 +1,11 @@
 import type { ReactNode } from 'react'
 import { Button } from '@/shared/ui/Button'
-import { PhotoImg, type Photo } from '@/shared/ui/Media'
 import { cx } from '@/shared/lib/env'
 import { AppLink } from '@/shared/ui/Link'
 import type { ActionItem, LinkItem } from '@/shared/ui/types'
 import { Brand, type BrandProps } from '@/shared/ui/layout/Brand'
-
-/** Row 1, the close. type: the h2 and the big button across the wrap; word: the name set across it;
-    photo: a second photograph (never the hero's) down to the links. */
-export type CloseType =
-  | { type: 'type' }
-  | { type: 'word' }
-  | { type: 'photo'; photo: Photo }
-
-/** Row 2, the footer: columns, a dark band, the lit slab (tech only) or a visit block (a door). */
-export type FooterType = 'columns' | 'dark' | 'statement' | 'visit'
-
-export type FooterColumns =
-  | readonly [FooterColumn]
-  | readonly [FooterColumn, FooterColumn]
-  | readonly [FooterColumn, FooterColumn, FooterColumn, FooterColumn]
+import { SectionHead } from '@/shared/ui/Section'
+import { grid12, screenSection, screenWrap } from '@/shared/ui/layout/screen'
 
 export interface FooterColumn {
   title: string
@@ -28,113 +14,62 @@ export interface FooterColumn {
 
 export interface ClosingProps {
   id?: string
-  close: CloseType
-  footer: FooterType
-  /** The h2: the main action, plainly. */
+  /** The closing ask: the h2, the line under it and the main action set full width. */
   title: string
-  /** One line: the trial, the price, the reply time. */
   line: string
   primary: ActionItem
   brand: BrandProps
-  /** What the company does, in one plain line. */
   lede: string
-  /** One, two or four columns of links that exist: together they fill the eight columns beside the
-      name, so the last one ends on the container's right line. */
-  columns: FooterColumns
-  /** The legal line: the year and the owner ("© 2026 Fundbook Ltd"). */
+  /** Two columns of links beside the name. */
+  columns: readonly [FooterColumn, FooterColumn]
+  /** The legal line: the year and the owner ("© 2026 Levddit"). */
   legal: string
-  legalLinks?: readonly LinkItem[]
-  /** The client's accounts, only when the brief gives them. */
   socials?: ReactNode
-  /** The one credits line for photographs. */
-  credits?: LinkItem
-  /** For `footer: 'visit'`: the address set large and the hours, in place of the columns. */
-  visit?: ReactNode
 }
 
-function CloseRow({ close, title, line, primary, name, headingId }: Pick<ClosingProps, 'close' | 'title' | 'line' | 'primary'> & { name: string; headingId: string }) {
-  const button = (big: boolean) => (
-    <Button href={primary.href} onClick={primary.onClick} arrow size={big ? 'xl' : 'md'} wide={big}>{primary.label}</Button>
-  )
-  if (close.type === 'type') {
-    return (
-      <div className="closing__cta close--type">
-        <div className="section-head">
-          <h2 id={headingId}>{title}</h2>
-          <p>{line}</p>
-        </div>
-        {button(true)}
-      </div>
-    )
-  }
-  const head = (
-    <div className="section-head--split">
-      <div>
-        <h2 id={headingId}>{title}</h2>
-        <p className="t-lead">{line}</p>
-      </div>
-      {button(false)}
-    </div>
-  )
-  if (close.type === 'word') {
-    return (
-      <div className="closing__cta close--word">
-        {head}
-        <p className="close__word" aria-hidden="true">{name}</p>
-      </div>
-    )
-  }
-  return (
-    <div className="closing__cta close--photo">
-      {head}
-      <div className="close__media"><PhotoImg photo={close.photo} /></div>
-    </div>
-  )
-}
+/** A footer link: a 1px underline sweeps in from the left on hover or focus. */
+const footerLink =
+  'pb-0.5 bg-[linear-gradient(currentColor,currentColor),linear-gradient(var(--line-strong),var(--line-strong))] bg-no-repeat ' +
+  '[background-position:right_0_bottom_0,0_100%] [background-size:0%_1px,0%_1px] transition-[background-size,color] duration-120 ease-ui ' +
+  'hover:text-ink hover:duration-150 hover:[background-position:left_0_bottom_0,0_100%] hover:[background-size:100%_1px,100%_1px] ' +
+  'focus-visible:[background-position:left_0_bottom_0,0_100%] focus-visible:[background-size:100%_1px,100%_1px] ' +
+  'max-sm:inline-flex max-sm:min-h-11 max-sm:min-w-11 max-sm:items-center'
 
 /**
- * The page's last section: row 1 the close with the main action,
- * row 2 the footer. Both rows are chosen.
+ * The page's last screen on the inverse ground: row 1 the closing ask with its full-width button,
+ * row 2 the footer (name and lede, two link columns, the legal line).
  */
-export function Closing(props: ClosingProps) {
-  const { id = 'contact', close, footer, brand, lede, columns, legal, legalLinks = [], socials, credits, visit } = props
+export function Closing({ id = 'contact', title, line, primary, brand, lede, columns, legal, socials }: ClosingProps) {
   const headingId = `${id}-h`
   return (
-    <footer
-      id={id}
-      className={cx('footer closing', footer !== 'columns' && `footer--${footer}`, footer === 'dark' && 'ground-inverse')}
-      aria-labelledby={headingId}
-    >
-      <div className="wrap">
-        <CloseRow close={close} title={props.title} line={props.line} primary={props.primary} name={brand.name} headingId={headingId} />
-        <div className="closing__links">
-          {visit ?? (
-            <div className="grid ui-grid">
-              <div className="span-4 stack-4">
-                <Brand {...brand} />
-                <p className="footer__lede">{lede}</p>
-              </div>
-              {columns.map(col => (
-                <div key={col.title} className={`span-${8 / columns.length} footer__col`}>
-                  <h3>{col.title}</h3>
-                  <ul>
-                    {col.links.map(link => (
-                      <li key={link.href + link.label}><AppLink href={link.href}>{link.label}</AppLink></li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+    <footer id={id} className={cx(screenSection, 'ground-inverse')} aria-labelledby={headingId}>
+      <div className={cx(screenWrap, 'grid grid-rows-[minmax(0,1fr)_auto] gap-y-16 max-sm:gap-y-12')}>
+        <div className="flex min-h-0 flex-col gap-8">
+          <SectionHead id={headingId} title={title} lead={line} flush className="[&_h2]:max-w-[20ch]" />
+          <Button href={primary.href} onClick={primary.onClick} arrow size="xl">{primary.label}</Button>
+        </div>
+        <div className="grid gap-12 max-sm:gap-6">
+          <div className={cx(grid12, 'gap-y-12 max-sm:gap-y-6')}>
+            <div className="col-span-full min-w-0 lg:col-span-4 [&>*+*]:mt-4">
+              <Brand {...brand} />
+              <p className="max-w-[30ch] font-display text-[length:var(--t-lead)] leading-[1.25] font-[number:var(--display-weight)] tracking-[var(--display-tracking)]">{lede}</p>
             </div>
-          )}
-          <div className="footer__legal">
-            <span>
-              {legal}
-              {legalLinks.map(link => (
-                <span key={link.href}>{'  '}<AppLink href={link.href}>{link.label}</AppLink></span>
-              ))}
-            </span>
-            <div className="socials">{socials}</div>
-            {credits && <AppLink className="credits" href={credits.href}>{credits.label}</AppLink>}
+            {columns.map(col => (
+              <div key={col.title} className="col-span-full min-w-0 lg:col-span-4">
+                <h3 className="mb-4 font-text text-small leading-[1.4] font-medium tracking-normal text-muted">{col.title}</h3>
+                <ul className="grid gap-3 text-small max-sm:gap-0">
+                  {col.links.map(link => (
+                    <li key={link.href + link.label}>
+                      <AppLink className={footerLink} href={link.href}>{link.label}</AppLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap justify-between gap-x-8 gap-y-4 border-t border-line pt-6 text-label text-muted">
+            <span>{legal}</span>
+            <div className="flex gap-2">{socials}</div>
           </div>
         </div>
       </div>

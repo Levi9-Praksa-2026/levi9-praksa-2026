@@ -11,9 +11,6 @@ export type SiteKind = 'software' | 'gaming' | 'tech' | 'other'
 
 export type Radius = 'sharp' | 'soft' | 'round'
 
-/** `<html data-buttons>`: the chosen button look; the button markup never changes with it. */
-export type ButtonLook = 'solid' | 'pill' | 'tonal' | 'arrow' | 'block'
-
 /** `<html data-ground>`: the lit ground behind panels, frames and the closing band (tech only). */
 export type LitGround = 'sand' | 'sky' | 'sage' | 'painting'
 
@@ -27,8 +24,6 @@ export type Screens = 1 | 2
 /** How a page's sections are sized: `screens` (each one or two screens tall, the default) or `flow`. `<html data-sizing>`. */
 export type Sizing = 'screens' | 'flow'
 
-/** The chosen brand mark beside the name. `wordmark` is the name alone. */
-export type MarkShape = 'wordmark' | 'initial' | 'dots' | 'arc' | 'ring' | 'petal' | 'leaf' | 'stack'
 
 export interface LinkItem {
   label: string

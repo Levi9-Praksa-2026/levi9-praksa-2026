@@ -16,10 +16,36 @@ npm run build   # type check + production build into dist/
 - `src/pages/welcome/` + `welcome/index.html`: the welcome page at `/welcome/`. It is a separate document,
   not a React Router route, so links to it reload the page. The 3D globe (three.js) loads lazily and only there.
 - `src/features/`: feature code shared by several pages, such as posts and communities.
-- `src/shared/`: design system styles, UI primitives, config and helpers. Nothing here imports from `pages` or `features`.
+- `src/shared/`: the theme, UI primitives, config and helpers. Nothing here imports from `pages` or `features`.
 
 Import from `src` with the `@/` alias, for example `import { routes } from '@/shared/config/routes'`.
 All paths live in `src/shared/config/routes.ts`.
+
+## Styling
+
+Tailwind v4 utilities, written on the elements. The stylesheets in `src/shared/styles/`:
+
+- `theme.css`: the Levddit tokens (colours, fonts, type scale, radii, page rhythm) and their Tailwind names.
+  Tailwind's own palette, fonts, sizes and radii are switched off, so only these exist:
+  `bg-surface`, `text-ink`, `text-muted`, `text-accent`, `border-line`, `font-display`, `text-h2`,
+  `rounded-btn`, `px-gut`, `h-nav`, `wrap` (the page column). `text-p-*` / `bg-p-*` are the fixed palette
+  for pieces that look the same on any ground band (post cards). Spacing and breakpoints are Tailwind's
+  (sm 640, md 768, lg 1024, xl 1280).
+- Ground bands: a section with `ground-surface`, `ground-inverse` or `ground-brand` flips the colour roles,
+  so `text-ink` is white on the blue band without any extra class.
+- `base.css`: element defaults only (body, headings, paragraphs, focus ring).
+- `hero-enter.css`: the hero's entrance animation, the one choreographed piece kept as CSS.
+- `features/offices/office-globe.css`: the globe's labels, which three-globe creates outside React.
+
+Rules of thumb:
+- A look that repeats is a component with its classes inside (`Button`, `Section`, `PostCard`),
+  not a CSS class and not `@apply`. Variants are a prop that picks a class string (see `Button.tsx`).
+- No colour or size outside the theme: Tailwind's `bg-white` or `text-gray-500` produce nothing here.
+  A one-off value can be arbitrary (`text-[15px]`), a value that repeats belongs in `theme.css`.
+- States that span components have named variants in `theme.css`: `sheet:` (phone menu open),
+  `item-open:` (a desktop nav menu shown), `expanded:`, `menu-instant:`, `noscript:`.
+- Layout helpers live in `src/shared/ui/layout/screen.ts`: `screenSection`, `screenWrap` (one screen per
+  section) and `grid12` (the 12-column grid; children use `col-span-*` from `lg`).
 
 ## Docker
 

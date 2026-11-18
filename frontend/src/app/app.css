@@ -1,7 +1,0 @@
-/* Forum app screens. The reset, tokens and shared UI come from src/shared/styles/index.css. */
-.app-shell { max-width: 480px; margin: 0 auto; padding: 96px 24px; display: grid; gap: 16px; }
-.app-shell__brand { margin: 0; font-weight: 600; color: var(--p-accent); }
-.app-shell h1 { margin: 0; font-family: var(--font-display); font-weight: var(--display-weight); font-size: 32px; line-height: 40px; letter-spacing: var(--display-tracking); }
-.app-shell__note { margin: 0; color: var(--p-muted); }
-.app-shell__links { margin: 0; display: flex; gap: 24px; flex-wrap: wrap; }
-.app-shell__links a { color: var(--p-accent); text-underline-offset: 3px; }

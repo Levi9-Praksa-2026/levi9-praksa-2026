@@ -2,7 +2,6 @@
  * Levddit welcome page (/welcome/): what the forum is, the four offices, the communities and how to join.
  * Brand from the Levi9 logo (#2b3fa0 on white). The forum itself lives at / (src/app).
  */
-import '@/pages/welcome/welcome.css'
 import { PageShell } from '@/shared/ui/layout/PageShell'
 import { routes } from '@/shared/config/routes'
 import { SAMPLE_COMMUNITIES, SAMPLE_POSTS, SAMPLE_THREAD, samplePost } from '@/features/posts/sample'
@@ -20,7 +19,7 @@ const login = { label: 'Log in', href: routes.login }
 
 export function WelcomePage() {
   return (
-    <PageShell type="software" kind="software" radius="round" buttons="solid" title={site.title} description={site.description}>
+    <PageShell type="software" kind="software" radius="round" title={site.title} description={site.description}>
       <SiteNav items={navItems} register={register} login={login} />
       <main id="top">
         <Hero
