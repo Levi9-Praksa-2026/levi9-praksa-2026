@@ -54,28 +54,7 @@ html:not([data-motion="off"]) .footer ul a:hover { color: var(--ink); }
 /* ---------------------------------------------------------------- navigation */
 /* the nav words take no pill: base.css draws the underline under a word from the left on hover and focus, and
    takes it away to the right; the page you are on keeps its still bar (base.css draws it, at the same inset) */
-@media (min-width: 1024px) {
-  /* the full-width panel: fades and settles 6px in 200ms with its columns together (one surface, read
-     as one); it closes in 120ms. While one menu is open, the next word swaps the panel at once */
-  html:not([data-motion="off"]) .nav__menu {
-    transform: translateY(-6px);
-    transition: opacity var(--m-close) var(--m-ease), transform var(--m-close) var(--m-ease), visibility 0s linear var(--m-close);
-  }
-  html:not([data-motion="off"]) .nav__item:is(:hover, :focus-within) > .nav__menu {
-    transition: opacity var(--m-panel) var(--m-ease) 150ms, transform var(--m-panel) var(--m-ease) 150ms, visibility 0s linear 150ms;
-  }
-  /* .m-menu-open comes on when the first panel starts to show (150ms): from then the next word swaps
-     the panel at once. Duration and delay go to 0, the properties stay listed, so the panel that is
-     still fading in finishes its own 200ms instead of snapping */
-  html:not([data-motion="off"]) .nav.m-menu-open .nav__menu,
-  html:not([data-motion="off"]) .nav.m-menu-open .nav__item:is(:hover, :focus-within) > .nav__menu { transition-duration: 0s; transition-delay: 0s; }
-  html:not([data-motion="off"]) .menu-card .panel { transition: border-color var(--m-out) var(--m-ease); }
-}
 /* the phone sheet slides in 8px and fades */
-@media (max-width: 1023px) {
-  html:not([data-motion="off"]) .nav.is-open .nav__links { transition: opacity var(--m-panel) var(--m-ease), transform var(--m-panel) var(--m-ease); }
-  @starting-style { html:not([data-motion="off"]) .nav.is-open .nav__links { opacity: 0; transform: translateY(-8px); } }
-}
 
 /* ---------------------------------------------------------------- tabs: the indicator slides */
 
@@ -147,6 +126,5 @@ html:not([data-motion="off"]) :is(.frame__img, .tile__media > img, .m-zoom img, 
 /* ---------------------------------------------------------------- reduced motion */
 @media (prefers-reduced-motion: reduce) {
   html:not([data-motion="off"]) :is(a, .card:has(a), .m-zoom):hover :is(.frame__img, .tile__media > img, img, video) { transform: none !important; }
-  html:not([data-motion="off"]) .nav__menu { transform: none !important; }
   html:not([data-motion="off"]) :is(.link, .m-link, p a:not([class]), .footer ul a, .footer .link) { transition-property: color, opacity, background-color, border-color; }
 }

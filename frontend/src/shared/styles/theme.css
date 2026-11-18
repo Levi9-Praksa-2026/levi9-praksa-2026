@@ -78,6 +78,26 @@
   --container-measure: 62ch;
 }
 
+/* Nav states (Nav.tsx). sheet: the phone menu is open. sheet-expanded: an accordion item inside it is open.
+   item-open: a desktop item is hovered or focused, so its menu shows. menu-instant: a menu was already open,
+   so the next one swaps without the fade. */
+@custom-variant sheet {
+  @media (width < 64rem) { :where(.is-open) & { @slot; } }
+}
+@custom-variant sheet-expanded {
+  @media (width < 64rem) { :where(.is-open) :where(.is-expanded) & { @slot; } }
+}
+@custom-variant expanded (:where(.is-expanded) &);
+@custom-variant item-open {
+  @media (width >= 64rem) { :where(.nav-item:hover, .nav-item:focus-within) & { @slot; } }
+}
+@custom-variant menu-instant {
+  @media (width >= 64rem) { :where(.m-menu-open) & { @slot; } }
+}
+@custom-variant noscript {
+  @media (scripting: none) { @slot; }
+}
+
 @layer ui {
 /* ---------------------------------------------------------------- tokens */
 :root {

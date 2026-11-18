@@ -53,8 +53,8 @@ export function useNavSheet(navRef: RefObject<HTMLElement | null>, toggleRef: Re
 
   // the body does not scroll under the open sheet
   useEffect(() => {
-    document.body.classList.toggle('nav-locked', open)
-    return () => document.body.classList.remove('nav-locked')
+    document.body.classList.toggle('max-lg:overflow-hidden', open)
+    return () => document.body.classList.remove('max-lg:overflow-hidden')
   }, [open])
 
   // Escape closes the sheet (focus back on the toggle) or leaves the bar

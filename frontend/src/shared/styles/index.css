@@ -38,8 +38,6 @@
 
 /* the nav marks the section on screen (Nav spy, aria-current="location") as the design system marks the page */
 @layer ui {
-  .nav__link[aria-current="location"]::after { content: ""; position: absolute; left: var(--s-3); right: var(--s-3); bottom: -2px; height: 2px; border-radius: 2px; background: currentColor; }
-  @media (max-width: 1023px) { .nav.is-open .nav__link[aria-current="location"]::after { left: 0; right: auto; width: 24px; bottom: 10px; } }
 }
 
 /* layout.css sets the centred hero's lead in --muted, too light for body text. The lead is body text: ink it. */

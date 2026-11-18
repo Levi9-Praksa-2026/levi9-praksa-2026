@@ -34,5 +34,5 @@ export function SiteNav({ items, register, login }: SiteNavProps) {
     },
     ...items,
   ]
-  return <Nav type="cards" brand={{ name: site.name, href: '#top', mark: <LevddMark /> }} items={withOffices} primary={register} secondary={login} />
+  return <Nav brand={{ name: site.name, href: '#top', mark: <LevddMark /> }} items={withOffices} primary={register} secondary={login} />
 }

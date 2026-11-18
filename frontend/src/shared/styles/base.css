@@ -145,127 +145,16 @@ main > :is(.hero, .section--hero) {
    .at-right, .at-center, .stage--fade-*) come from cards.css.
    This file adds the frames (hero, split, square, closing band) and lets a .stage work inside them.
    The grounds' colours: the page script lights every ground that holds UI (see there). */
-:not(.card) > .panel { border-radius: var(--p-r, var(--r-md)); }   /* a panel on its own: four round corners */
-.menu-card .panel { --p-h: 160px; }
+:not(.card) > .panel { border-radius: var(--p-r, var(--r-md)); }
 :is(.frame, .panel) > .frame__img { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
 
 /* ---------------------------------------------------------------- navigation */
-/* The header: fixed, opaque, one hairline under it, the same at every depth (no blur, no shadow, no
-   floating pill, never hidden on scroll). Its .wrap is the page's, so the logo starts on the left line
-   and the main button ends on the right one. Plain words, 15px, sentence case; one filled button. */
-.nav {
-  position: fixed; inset: 0 0 auto 0; z-index: 50; height: var(--nav);
-  background: var(--bg); color: var(--ink); border-bottom: 1px solid var(--line);
-}
-.nav__bar { height: 100%; display: flex; align-items: center; gap: var(--s-8); }
-/* a text logo: the display face at 500, 22px (the client's SVG logo replaces it when there is one) */
-.nav__logo { display: inline-flex; align-items: center; gap: var(--s-2); font: 500 22px/1 var(--font-display); letter-spacing: -0.02em; flex: none; }
-@media (max-width: 639px) { .nav__logo { font-size: 20px; } }
-.nav__logo svg, .nav__logo img { height: 24px; width: auto; }
-.nav__links { display: flex; align-self: stretch; gap: var(--s-1); flex: 1; min-width: 0; }
-.nav__item { display: flex; align-items: center; height: 100%; }
-.nav__link {
-  position: relative; display: inline-flex; align-items: center; gap: var(--s-1); height: 36px; padding: 0 var(--s-3); border-radius: var(--r-sm);
-  font-size: 15px; font-weight: 500; color: var(--ink); white-space: nowrap; transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
-}
 /* a small laptop (1024-1279): the words sit closer, so a bar of four words never wraps or reaches the logo */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .nav__bar { gap: var(--s-6); }
-  .nav__link { padding: 0 var(--s-2); }
-  .nav__link::before, .nav__link[aria-current="page"]::after { left: var(--s-2); right: var(--s-2); }
-  .nav__links { gap: 0; }
-}
-/* the words take no pill or fill: a 2px line draws under the word from the left on hover and focus and leaves to the right */
-.nav__link::before { content: ""; position: absolute; left: var(--s-3); right: var(--s-3); bottom: -2px; height: 2px; border-radius: 2px; background: currentColor;
-  transform: scaleX(0); transform-origin: right; transition: transform var(--dur) var(--ease); pointer-events: none; }
-.nav__link:hover::before, .nav__link:focus-visible::before, .nav__item:hover > .nav__link::before, .nav__item:focus-within > .nav__link::before { transform: scaleX(1); transform-origin: left; }
-.nav__actions > .nav__link::before { left: var(--s-2); right: var(--s-2); }
-.nav__link .chev { width: 12px; height: 12px; opacity: .6; transition: transform var(--dur) var(--ease); }
-/* the page you are on: a 2px bar under its word (still, the same inset as the hover line) */
-.nav__link[aria-current="page"]::after { content: ""; position: absolute; left: var(--s-3); right: var(--s-3); bottom: -2px; height: 2px; border-radius: 2px; background: currentColor; }
-.nav__expand { display: none; }
-.nav__actions { display: flex; align-items: center; gap: var(--s-4); flex: none; }
-.nav__actions > .nav__link { padding-inline: var(--s-2); }
-.nav__toggle { display: none; }
-
-.nav__menu {
-  position: absolute; left: 0; right: 0; top: 100%; background: var(--bg); color: var(--ink);
-  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-  padding: var(--s-7) 0 var(--s-8); opacity: 0; visibility: hidden; transform: translateY(-6px);
-  transition: opacity 120ms var(--ease), transform 120ms var(--ease), visibility 0s linear 120ms;
-}
-@media (min-width: 1024px) {
-  /* hover opens the full-width panel after 150ms of intent; a click on the word goes to its page */
-  .nav__item:hover > .nav__menu, .nav__item:focus-within > .nav__menu {
-    opacity: 1; visibility: visible; transform: none; transition-duration: 200ms, 200ms, 0s; transition-delay: 150ms, 150ms, 150ms;
-  }
-  .nav__item:hover > .nav__link .chev, .nav__item:focus-within > .nav__link .chev { transform: rotate(180deg); }
-}
-.menu-card { display: grid; gap: var(--s-3); }
-.menu-card .panel { --ratio: 56.25%; }
-
-@media (max-width: 1023px) {
-  .nav__links, .nav__actions { display: none; }
-  /* the menu button takes the secondary button's look on a 44px tap area */
-  .nav__toggle {
-    display: inline-grid; place-items: center; margin-left: auto; width: 44px; height: 44px; border-radius: var(--r-btn);
-    border: 1px solid var(--line-strong); background: transparent; color: var(--ink); cursor: pointer; flex: none;
-  }
-  .nav.is-open .nav__links {
-    display: flex; flex-direction: column; position: fixed; top: var(--nav); left: 0; right: 0; bottom: 0;
-    padding: var(--s-4) var(--gut) calc(var(--btn-h) * 2 + 56px); background: var(--bg); overflow-y: auto; gap: 0;
-  }
-  .nav.is-open .nav__item { display: grid; grid-template-columns: 1fr auto; height: auto; border-bottom: 1px solid var(--line); }
-  .nav.is-open .nav__link { height: 56px; padding: 0; font-size: 20px; background: none; }
-  .nav.is-open .nav__link[aria-current="page"]::after { left: 0; right: auto; width: 24px; bottom: 10px; }
-  .nav.is-open .nav__link::before { display: none; }
-  .nav.is-open .nav__link .chev { display: none; }
-  .nav.is-open .nav__expand {
-    display: inline-grid; place-items: center; width: 44px; height: 56px; border: 0; background: none; color: var(--ink); cursor: pointer;
-  }
-  .nav__expand svg { width: 16px; height: 16px; transition: transform var(--dur) var(--ease); }
-  .nav__item.is-expanded .nav__expand svg { transform: rotate(180deg); }
-  .nav.is-open .nav__menu {
-    position: static; grid-column: 1 / -1; display: none; opacity: 1; visibility: visible; transform: none;
-    box-shadow: none; border: 0; padding: 0 0 var(--s-4);
-  }
-  .nav.is-open .nav__item.is-expanded .nav__menu { display: block; }
-  .nav.is-open .nav__menu :is(.container, .wrap) { width: 100%; }
-  .nav.is-open .nav__menu .grid { row-gap: var(--s-4); }
-  /* menu cards become plain rows in the sheet (their title and line), the picture panel hidden */
-  .nav.is-open .menu-card { display: grid; gap: var(--s-1); padding: var(--s-2) 0; }
-  .nav.is-open .menu-card .panel { display: none; }
-  .nav.is-open .nav__actions {
-    display: grid; gap: var(--s-2); position: fixed; left: 0; right: 0; bottom: 0; z-index: 51;
-    padding: var(--s-4) var(--gut) calc(var(--s-4) + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line);
-  }
-  /* a text action (Sign in, a phone line) under the buttons, centred at their height */
-  .nav.is-open .nav__actions .nav__link { display: inline-flex; order: 2; justify-content: center; height: var(--btn-h); font-size: var(--t-body); }
-  body.nav-locked { overflow: hidden; }
-}
 /* a tablet and a phone (1023 and below): the main button stays in the bar, at the right line
    with the menu button 12px after it; the plain words go to the sheet */
-@media (max-width: 1023px) {
-  .nav__bar { gap: var(--s-3); }
-  .nav:not(.is-open) .nav__actions { display: flex; margin-left: auto; }
-  .nav:not(.is-open) .nav__actions > .nav__link { display: none; }
-  .nav:not(.is-open) .nav__actions + .nav__toggle { margin-left: 0; }
-}
-@media (max-width: 639px) {
-  /* a long name (15 characters, "Verdigris Works"), the main button and the menu button fit 342px (390 wide) on
-     one line each, with no page CSS: the name steps down with the screen (18px at 390), the button is the small
-     size, and the three sit 8px apart. A name of 17 characters or more is the client's to shorten to its mark. */
-  .nav__bar { gap: var(--s-2); }
-  .nav__logo { font-size: clamp(16px, 4.6vw, 20px); gap: 6px; white-space: nowrap; }
-}
 /* no script: the sheet cannot open, so the words stay in the bar (it scrolls sideways) and the dead menu button goes */
-@media (scripting: none) and (max-width: 1023px) {
-  .nav__links { display: flex; overflow-x: auto; scrollbar-width: none; margin-right: var(--s-3); padding-right: var(--s-2); border-right: 1px solid var(--line); }   /* stops short of the button, and a hairline marks where the row is cut (it scrolls) */
-  .nav__toggle { display: none; }
-}
 /* a phone leaves the words under 80px of bar ("Bre" at 320): they stay in the footer's columns, the bar keeps the name
    and the main button */
-@media (scripting: none) and (max-width: 639px) { .nav__links { display: none; } }
 /* the older float type is the plain bar now (a floating, frosted pill is not a header) */
 
 /* ---------------------------------------------------------------- logo row */
@@ -344,7 +233,6 @@ footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto;
    notice", is 44px too, so the rows keep one rhythm); a pill that is only a label keeps its 32px */
 @media (max-width: 639px) {
   :root { --btn-h-sm: 44px; }
-  .nav__logo { min-height: 44px; }
   .footer ul:has(> li > a) { gap: 0; }
   .footer ul:has(> li > a) > li:not(:has(> a)) { display: flex; align-items: center; min-height: 44px; }
   :is(.footer ul, .footer__legal, .footer__nav) a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
@@ -396,12 +284,4 @@ footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto;
 
 /* ---------------------------------------------------------------- helpers */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-/* the skip link: the first child of the header's .wrap, out of the layout until the first Tab, then
-   a plain button over the logo on the page's ground, on the .wrap's left line of the fixed header, so it never
-   moves the logo off that line */
-.skip-link { position: absolute; left: max(var(--gut), (100% - var(--container)) / 2); top: 50%; z-index: 2; width: 1px; height: 1px; overflow: hidden;
-  clip-path: inset(50%); white-space: nowrap; }
-.skip-link:focus { width: auto; height: var(--btn-h); padding: 0 var(--s-5); clip-path: none; transform: translateY(-50%);
-  display: inline-flex; align-items: center; background: var(--bg); color: var(--ink); border: 1px solid var(--line-strong);
-  border-radius: var(--r-btn); font: 500 var(--t-body)/1 var(--font-text); }
 .stack-4 > * + * { margin-top: var(--s-4); }

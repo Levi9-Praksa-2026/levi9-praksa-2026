@@ -81,23 +81,3 @@
   .lv-globe-panel .ly-float { display: none; }
   .og-label { font-size: 11px; padding: 3px 8px 3px 6px; gap: 4px; }
 }
-
-/* The two actions, bigger and bolder: Join now a filled pill with a lift and a blue glow, Log in an
-   outlined pill. Same buttons everywhere, larger in the hero and the blue band. */
-.nav__actions { gap: 10px; }
-.nav__actions .nav__link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 48px;
-  padding-inline: 22px;
-  border: 1.5px solid color-mix(in oklab, var(--p-accent) 35%, transparent);
-  border-radius: 999px;
-  font-weight: 600;
-  color: var(--p-accent);
-  transition: border-color 160ms ease, background-color 160ms ease;
-}
-.nav__actions .nav__link:hover { border-color: var(--p-accent); background: color-mix(in oklab, var(--p-accent) 6%, transparent); }
-
-@media (max-width: 767px) {
-  .nav__actions .nav__link { display: none; }
-}
