@@ -13,6 +13,7 @@ import com.levi9.reddit.community.contracts.CommunityResponse;
 import com.levi9.reddit.community.contracts.CommunitySort;
 import com.levi9.reddit.community.contracts.PageResponse;
 import com.levi9.reddit.community.core.exception.CommunityNotFoundException;
+import com.levi9.reddit.community.core.exception.ConflictException;
 import com.levi9.reddit.community.core.model.Community;
 import com.levi9.reddit.community.infrastructure.repository.CommunityRepository;
 import java.util.List;
@@ -117,6 +118,69 @@ class CommunityServiceTest {
         assertThatThrownBy(() -> service.getCommunity("missing"))
                 .isInstanceOf(CommunityNotFoundException.class)
                 .hasMessage("Community not found: missing");
+    }
+
+    @Test
+    void create_usesTheCallerAsCreatorAndStoresTheNameAsGiven() {
+        when(communities.findByName("backend")).thenReturn(Optional.empty());
+        when(communities.save(any(Community.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CommunityDetailResponse result = service.create("backend", "Backend discussion", 1L);
+
+        assertThat(result.name()).isEqualTo("backend");
+        assertThat(result.description()).isEqualTo("Backend discussion");
+
+        ArgumentCaptor<Community> captor = ArgumentCaptor.forClass(Community.class);
+        verify(communities).save(captor.capture());
+        assertThat(captor.getValue().getName()).isEqualTo("backend");
+        assertThat(captor.getValue().getCreatorId()).isEqualTo(1L);
+        assertThat(captor.getValue().getDescription()).isEqualTo("Backend discussion");
+        assertThat(captor.getValue().isActive()).isTrue();
+    }
+
+    @Test
+    void create_withTakenName_throwsConflict() {
+        when(communities.findByName("backend")).thenReturn(Optional.of(new Community("backend", 2L)));
+
+        assertThatThrownBy(() -> service.create("backend", null, 1L))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("Community name is already taken: backend");
+    }
+
+    @Test
+    void updateDescription_changesOnlyTheDescription() {
+        Community community = new Community("backend", 1L);
+        when(communities.findByName("backend")).thenReturn(Optional.of(community));
+
+        service.updateDescription("backend", "New description");
+
+        assertThat(community.getDescription()).isEqualTo("New description");
+        assertThat(community.isActive()).isTrue();
+    }
+
+    @Test
+    void deactivateAndReactivate_toggleTheActiveFlag() {
+        Community community = new Community("backend", 1L);
+        when(communities.findByName("backend")).thenReturn(Optional.of(community));
+
+        service.deactivate("backend");
+        assertThat(community.isActive()).isFalse();
+
+        service.reactivate("backend");
+        assertThat(community.isActive()).isTrue();
+    }
+
+    @Test
+    void adminWritesOnMissingCommunity_throwNotFound() {
+        when(communities.findByName("missing")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.updateDescription("missing", "text"))
+                .isInstanceOf(CommunityNotFoundException.class)
+                .hasMessage("Community not found: missing");
+        assertThatThrownBy(() -> service.deactivate("missing"))
+                .isInstanceOf(CommunityNotFoundException.class);
+        assertThatThrownBy(() -> service.reactivate("missing"))
+                .isInstanceOf(CommunityNotFoundException.class);
     }
 
     private static <T> Page<T> page(T item) {

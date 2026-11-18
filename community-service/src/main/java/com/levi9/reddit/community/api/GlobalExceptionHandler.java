@@ -1,7 +1,9 @@
 package com.levi9.reddit.community.api;
 
+import com.levi9.reddit.community.core.exception.ConflictException;
 import com.levi9.reddit.community.core.exception.DomainException;
 import com.levi9.reddit.community.core.exception.NotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +31,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ProblemDetail handleDomain(DomainException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(statusOf(ex), ex.getMessage());
         problem.setProperty("errorType", ex.getErrorType().name());
+        return problem;
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    ProblemDetail handleConstraintViolation(ConstraintViolationException ex) {
+        List<FieldViolation> errors = ex.getConstraintViolations().stream()
+                .map(v -> new FieldViolation(fieldName(v.getPropertyPath().toString()), v.getMessage()))
+                .toList();
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Request validation failed");
+        problem.setProperty("errors", errors);
         return problem;
     }
 
@@ -75,7 +87,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static HttpStatus statusOf(DomainException ex) {
         return switch (ex) {
             case NotFoundException _ -> HttpStatus.NOT_FOUND;
+            case ConflictException _ -> HttpStatus.CONFLICT;
         };
+    }
+
+    private static String fieldName(String propertyPath) {
+        int dot = propertyPath.lastIndexOf('.');
+        return dot < 0 ? propertyPath : propertyPath.substring(dot + 1);
     }
 
     record FieldViolation(String field, String message) {}

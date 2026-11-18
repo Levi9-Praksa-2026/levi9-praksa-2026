@@ -17,4 +17,8 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     @Query("select c from Community c where lower(c.name) = lower(:name) and c.active = true")
     Optional<Community> findActiveByName(@Param("name") String name);
+
+    /** Includes inactive communities so admins can edit, shut down or reactivate them. */
+    @Query("select c from Community c where lower(c.name) = lower(:name)")
+    Optional<Community> findByName(@Param("name") String name);
 }
