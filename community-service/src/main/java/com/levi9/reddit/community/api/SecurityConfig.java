@@ -1,6 +1,7 @@
 package com.levi9.reddit.community.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
@@ -14,7 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.ProblemDetailJacksonMixin;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -32,7 +33,10 @@ class SecurityConfig {
             HttpSecurity http,
             ObjectProvider<ObjectMapper> objectMappers,
             @Value("${app.mock-auth.enabled:false}") boolean mockAuthEnabled) throws Exception {
-        ObjectMapper mapper = objectMappers.getIfAvailable(Jackson2ObjectMapperBuilder.json()::build);
+        // Jackson 2's builder keeps Spring's ProblemDetail mixin; the Spring builder is deprecated since 7.0.
+        ObjectMapper mapper = objectMappers.getIfAvailable(() -> JsonMapper.builder()
+                .addMixIn(ProblemDetail.class, ProblemDetailJacksonMixin.class)
+                .build());
 
         http
                 .csrf(AbstractHttpConfigurer::disable) // no cookies: the token travels in a header
@@ -40,9 +44,10 @@ class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/communities", "/api/communities/**").permitAll()
                         // URL rules run before validation, so a non-admin gets 403 even with an invalid body.
-                        .requestMatchers(HttpMethod.POST, "/api/communities", "/api/communities/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/communities/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/communities/**").hasRole("ADMIN")
+                        // Match only the ADMIN paths; e.g. DELETE .../members/me must stay a user operation.
+                        .requestMatchers(HttpMethod.POST, "/api/communities", "/api/communities/*/reactivate").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/communities/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/communities/*").hasRole("ADMIN")
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/error").permitAll()
                         .anyRequest().authenticated())
