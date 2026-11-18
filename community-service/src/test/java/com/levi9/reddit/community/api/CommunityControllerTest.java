@@ -1,6 +1,7 @@
 package com.levi9.reddit.community.api;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -9,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.levi9.reddit.community.contracts.CommunityDetailResponse;
 import com.levi9.reddit.community.contracts.CommunityResponse;
+import com.levi9.reddit.community.contracts.CommunitySort;
 import com.levi9.reddit.community.contracts.PageResponse;
 import com.levi9.reddit.community.core.exception.CommunityNotFoundException;
 import com.levi9.reddit.community.infrastructure.CommunityService;
@@ -36,7 +38,7 @@ class CommunityControllerTest {
 
     @Test
     void findCommunities_returnsOnlyNameAndMemberCountPerItem() throws Exception {
-        given(communityService.findCommunities(0, 20)).willReturn(
+        given(communityService.findCommunities(CommunitySort.NEW, null, 0, 20)).willReturn(
                 new PageResponse<>(List.of(new CommunityResponse("backend", 7)), 0, 20, 1, 1));
 
         mockMvc.perform(get("/api/communities"))
@@ -54,13 +56,58 @@ class CommunityControllerTest {
 
     @Test
     void findCommunities_passesPaging() throws Exception {
-        given(communityService.findCommunities(2, 10)).willReturn(
+        given(communityService.findCommunities(CommunitySort.NEW, null, 2, 10)).willReturn(
                 new PageResponse<>(List.of(), 2, 10, 0, 0));
 
         mockMvc.perform(get("/api/communities").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page").value(2))
                 .andExpect(jsonPath("$.size").value(10));
+    }
+
+    @Test
+    void findCommunities_passesNameAndSort() throws Exception {
+        given(communityService.findCommunities(CommunitySort.TOP, "back", 0, 20))
+                .willReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
+
+        mockMvc.perform(get("/api/communities").param("sort", "top").param("name", "back"))
+                .andExpect(status().isOk());
+
+        verify(communityService).findCommunities(CommunitySort.TOP, "back", 0, 20);
+    }
+
+    @Test
+    void findCommunities_sortIsCaseInsensitive() throws Exception {
+        // TOP is not the default, so this proves the value was actually parsed.
+        given(communityService.findCommunities(CommunitySort.TOP, null, 0, 20))
+                .willReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
+
+        mockMvc.perform(get("/api/communities").param("sort", "TOP"))
+                .andExpect(status().isOk());
+
+        verify(communityService).findCommunities(CommunitySort.TOP, null, 0, 20);
+    }
+
+    @Test
+    void findCommunities_withSortHot_returnsBadRequestWithFieldError() throws Exception {
+        mockMvc.perform(get("/api/communities").param("sort", "hot"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.errors[0].field").value("sort"))
+                .andExpect(jsonPath("$.errors[0].message").value("sort must be new or top"));
+
+        verifyNoInteractions(communityService);
+    }
+
+    @Test
+    void findCommunities_withUnknownSort_returnsBadRequestWithFieldError() throws Exception {
+        mockMvc.perform(get("/api/communities").param("sort", "cheapest"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.errors[0].field").value("sort"))
+                .andExpect(jsonPath("$.errors[0].message").value("sort must be new or top"));
+
+        verifyNoInteractions(communityService);
     }
 
     @Test

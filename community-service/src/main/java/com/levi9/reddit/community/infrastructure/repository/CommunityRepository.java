@@ -13,6 +13,8 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     Page<Community> findByActiveTrue(Pageable pageable);
 
+    Page<Community> findByActiveTrueAndNameContainingIgnoreCase(String name, Pageable pageable);
+
     @Query("select c from Community c where lower(c.name) = lower(:name) and c.active = true")
     Optional<Community> findActiveByName(@Param("name") String name);
 }
