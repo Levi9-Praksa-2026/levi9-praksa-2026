@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.List;
@@ -47,6 +48,23 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         List<FieldViolation> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(e -> new FieldViolation(e.getField(), Objects.requireNonNullElse(e.getDefaultMessage(), "is invalid")))
+                .toList();
+        ProblemDetail problem = ex.getBody();
+        problem.setDetail("Request validation failed");
+        problem.setProperty("errors", errors);
+        return handleExceptionInternal(ex, problem, headers, status, request);
+    }
+
+    // @Min/@Max/@Size/@Pattern on @RequestParam are checked by method validation, not by @Valid on a body.
+    // Give those failures the same "errors" shape as handleMethodArgumentNotValid, per error-convention.md.
+    @Override
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(
+            HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        List<FieldViolation> errors = ex.getParameterValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> new FieldViolation(
+                                result.getMethodParameter().getParameterName(),
+                                Objects.requireNonNullElse(error.getDefaultMessage(), "is invalid"))))
                 .toList();
         ProblemDetail problem = ex.getBody();
         problem.setDetail("Request validation failed");
