@@ -19,7 +19,7 @@ const login = { label: 'Log in', href: routes.login }
 
 export function WelcomePage() {
   return (
-    <PageShell type="software" kind="software" radius="round" buttons="solid" title={site.title} description={site.description}>
+    <PageShell type="software" kind="software" radius="round" title={site.title} description={site.description}>
       <SiteNav items={navItems} register={register} login={login} />
       <main id="top">
         <Hero

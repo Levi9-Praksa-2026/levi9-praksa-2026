@@ -11,9 +11,6 @@ export type SiteKind = 'software' | 'gaming' | 'tech' | 'other'
 
 export type Radius = 'sharp' | 'soft' | 'round'
 
-/** `<html data-buttons>`: the chosen button look; the button markup never changes with it. */
-export type ButtonLook = 'solid' | 'pill' | 'tonal' | 'arrow' | 'block'
-
 /** `<html data-ground>`: the lit ground behind panels, frames and the closing band (tech only). */
 export type LitGround = 'sand' | 'sky' | 'sage' | 'painting'
 

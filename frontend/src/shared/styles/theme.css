@@ -132,7 +132,7 @@
   --p-inv-accent-ink: #22348f;
   --p-inv-action: #ffffff;
   --p-inv-action-ink: #22348f;
-  --ground-bg: #d9ccb7; --ground-surface: #e9e0d2; --ground-ink: #2a2622; --ground-muted: #5a534a; --ground-accent: #a8794a;
+  --ground-bg: #d9ccb7;    /* behind a menu card's photo while it loads */
 
   /* fonts */
   --font-display: "Albert Sans", system-ui, sans-serif;
@@ -142,9 +142,9 @@
   --display-tracking: -0.025em;
   --display-tracking-xl: -0.035em;
 
-  /* the page rhythm: one section per screen. The header is fixed and
+  /* the page rhythm (screen.ts): one section per screen. The header is fixed and
      --nav tall; every section is padded --padt above and --padb (plus the phone action bar, --bar)
-     below, and is exactly one or two screens tall (--h: 1 or 2; --hm on a phone). The hero's words
+     below, and is one or two screens tall (--h: 1 or 2; --hm on a phone). The hero's words
      start --hgap under the header and its content ends --hpadb above the fold. */
   --nav: 72px;
   --padt: 120px;
@@ -152,24 +152,16 @@
   --hgap: 48px;
   --hpadb: 64px;
   --bar: 0px;
-  /* flow sizing: the padding above and below a section's content;
-     the gap between two sections' content is two of them, on every ground */
-  --flow-pad: 112px;
-  /* grid: one .wrap (alias .container) for the header, every section and the footer, the same
-     --gut on both sides: 1280 wide at x 80-1360 at 1440, 342 at x 24-366 at 390 */
+
+  /* the page column (wrap): 1280 wide at most, --gut on both sides; --gutter between grid columns */
   --container: 1280px;
   --gut: 80px;
-  --pad: var(--gut);
+
   --gutter: 24px;
 
-  /* spacing: 4/8 scale */
-  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 24px;
-  --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px; --s-10: 128px;
-  --section: 40px;      /* only a .section outside main (the design system's demo pages); every main > section and
-                           footer.closing take --padt and --padb */
-  --section-band: 56px; /* the same for an older footer outside footer.closing */
+
   --head-gap: 48px;     /* the one heading-to-content gap, 32 on a phone */
-  --card-pad: 16px;     /* card padding (cards.css sets its own for cards with a panel) */
+  --card-pad: 16px;     /* card padding */
   --card-gap: 16px;     /* gap between cards */
 
   /* type scale (the only sizes on the page) */
@@ -192,9 +184,8 @@
   /* controls (fixed here; a page never adds its own) */
   --btn-h: 44px;
   --btn-h-sm: 36px;
-  --nav-h: var(--nav);  /* the older name, kept for the design system's files */
+
   --icon: 16px;         /* small icons: socials, menu chevrons, mono brand marks */
-  --tile: 64px;         /* an icon tile in the integrations grid (72 from 1024) */
 
   /* motion: the one UI ease-out */
   --ease: cubic-bezier(.2, .8, .2, 1);
@@ -208,16 +199,14 @@ html[data-radius="round"] { --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-btn: 9
 @media (max-width: 639px) {
   :root { --nav: 56px; --padt: 96px; --padb: 48px; --hgap: 40px; --hpadb: 24px; --gut: 24px; --gutter: 12px; --card-gap: 12px; --head-gap: 32px; }
 }
-@media (max-width: 1023px) { :root { --flow-pad: 96px; } }
   /* a short phone (under 700px tall): the hero keeps its button on the first screen */
   @media (max-width: 639px) and (max-height: 700px) { :root { --hgap: 24px; } }
-@media (max-width: 639px) { :root { --flow-pad: 64px; } }
 @media (min-width: 640px) {
-  :root { --gut: 48px; --section: 48px; --section-band: 72px; --card-pad: 24px; }
+  :root { --gut: 48px;--card-pad: 24px; }
 }
 @media (min-width: 1024px) {
-  :root { --gut: 80px; --section: 56px; --section-band: 96px; --card-gap: 24px;
-          --t-lead: 20px; --t-card: 20px; --t-h3: 28px; --tile: 72px; }
+  :root { --gut: 80px;--card-gap: 24px;
+          --t-lead: 20px; --t-card: 20px; --t-h3: 28px;}
 }
 
 /* ---------------------------------------------------------------- grounds (at most three) */
@@ -242,9 +231,7 @@ html[data-radius="round"] { --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-btn: 9
   --line: color-mix(in oklab, var(--ink) 11%, transparent);
   --line-strong: color-mix(in oklab, var(--ink) 20%, transparent);
   /* effects and UI fragments (assets/ui) take the colours of the ground they sit on */
-  --fx-bg: var(--bg); --fx-surface: var(--surface); --fx-ink: var(--ink); --fx-muted: var(--muted);
-  --fx-accent: var(--accent); --fx-accent-ink: var(--accent-ink);
-  --ui-font: var(--font-text); --ui-mono: var(--font-mono); --ui-radius: var(--r-md);
+
 }
 .ground-surface,
 .ground-inverse { background: var(--bg); color: var(--ink); }

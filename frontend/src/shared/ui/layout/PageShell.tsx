@@ -1,6 +1,6 @@
 'use client'
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
-import type { ButtonLook, LitGround, PageType, Radius, SiteKind, Sizing } from '@/shared/ui/types'
+import type { LitGround, PageType, Radius, SiteKind, Sizing } from '@/shared/ui/types'
 import { PageContext, type PageContextValue } from '@/shared/lib/page-context'
 import { useIsoLayoutEffect } from '@/shared/hooks/useIsoLayoutEffect'
 
@@ -12,7 +12,6 @@ export interface PageShellProps {
   /** The chosen radius; `sharp` for fintech and developer tools, `round` for consumer apps. */
   radius?: Radius
   /** The chosen button look. */
-  buttons?: ButtonLook
   /** The lit ground (tech pages only). */
   ground?: LitGround
   /** `false` switches the motion layer off (`<html data-motion="off">`); `'live'` writes
@@ -72,20 +71,19 @@ function useMeta(name: string, content: string | null): void {
 
 /**
  * The root of every page. It declares the page to the design system's CSS
- * (`<html data-type data-radius data-buttons data-ground data-motion>`, the page-type and site-kind
+ * (`<html data-type data-radius data-ground data-motion>`, the page-type and site-kind
  * metas, the title), arms the hero's entrance before the first paint, and runs the page-level checks
  * (tone, pictures, placeholders). Children read the kind and the ready gate through `usePage()`.
  *
  * Put it at the top of the page's own entry (or route), around the nav, main and footer.
  */
 export function PageShell({
-  type, kind, radius = 'soft', buttons = 'solid', ground, motion = true, sizing = 'screens', lang = 'en', title, description, children,
+  type, kind, radius = 'soft', ground, motion = true, sizing = 'screens', lang = 'en', title, description, children,
 }: PageShellProps) {
   useElementAttributes(() => document.documentElement, {
     lang,
     'data-type': type,
     'data-radius': radius,
-    'data-buttons': buttons,
     'data-ground': ground ?? null,
     'data-sizing': sizing === 'flow' ? 'flow' : null,
     'data-motion': motion === 'live' ? 'live' : motion ? '' : 'off',
