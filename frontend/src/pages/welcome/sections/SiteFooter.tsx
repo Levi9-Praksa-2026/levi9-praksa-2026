@@ -17,8 +17,6 @@ export interface SiteFooterProps {
 export function SiteFooter({ name, lede, title, line, register, columns, legal }: SiteFooterProps) {
   return (
     <Closing
-      close={{ type: 'type' }}
-      footer="dark"
       title={title}
       line={line}
       primary={register}

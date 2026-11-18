@@ -50,7 +50,6 @@ h3 { font-stretch: var(--display-stretch, 100%); font-variation-settings: var(--
 /* the box (exactly the first screen, padded under the fixed header) is base.css's; .hero-text fills
    what is left, and a type that grows a picture down to the fold lets it take the rest */
 .hero { position: relative; isolation: isolate; }
-.hero > .wrap > .hero-text { height: 100%; }
 .hero h1 { font-size: var(--ly-h1); line-height: 1.02; letter-spacing: var(--display-tracking-xl, var(--display-tracking)); text-wrap: balance; }
 .hero .hero__lead { font-size: var(--ly-lead); line-height: 1.5; max-width: 42ch; text-wrap: pretty; color: var(--ink); }
 .hero .hero__lead .muted, .hero__lead.muted { color: var(--muted); }

@@ -20,35 +20,3 @@
 /* the page's source, for Tailwind's class scan */
 @source "../../";
 
-/* Tailwind's grid utility and the design system's 12-column .grid share a name, and the design system's grid sets every child
-   across the row (.grid > * { grid-column: 1 / -1 }). The design system's grid is `.grid.ui-grid` (every design system
-   component and <Grid> render both); any other .grid is Tailwind's plain display: grid, with none of the
-   design system's tracks, gutters or child spans. */
-@layer ui {
-  .grid:not(.ui-grid) { grid-template-columns: none; column-gap: normal; row-gap: normal; }
-  .grid:not(.ui-grid) > * { grid-column: auto; }
-}
-
-/* Tailwind's container would override the design system's .container (the same box as .wrap): keep the design system's */
-@utility container {
-  width: min(100% - 2 * var(--gut), var(--container));
-  margin-inline: auto;
-  padding-inline: 0;
-}
-
-/* the nav marks the section on screen (Nav spy, aria-current="location") as the design system marks the page */
-@layer ui {
-}
-
-/* layout.css sets the centred hero's lead in --muted, too light for body text. The lead is body text: ink it. */
-@layer ui {
-}
-
-/* inside the design system's grid, start-<n> is the column a child starts on (base.css). Tailwind
-   also reads start-<n> as an inset (inset-inline-start), and utilities beat the design system layer; this
-   unlayered rule takes the inset back off, so a shared column never shifts sideways. */
-.ui-grid > [class*="start-"] { inset-inline-start: auto; }
-
-/* the order card's colour swatches (<Swatches>), as the design system's product-render/views.html draws them. */
-@layer ui {
-}

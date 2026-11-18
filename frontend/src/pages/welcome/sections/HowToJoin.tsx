@@ -1,6 +1,8 @@
 import { Section, SectionHead } from '@/shared/ui/Section'
 import { PostCard } from '@/features/posts/PostCard'
 import { ReplyCard } from '@/features/posts/ReplyCard'
+import { cx } from '@/shared/lib/env'
+import { grid12 } from '@/shared/ui/layout/screen'
 import type { Post, Reply } from '@/features/posts/types'
 
 export interface JoinStep {
@@ -22,8 +24,8 @@ export function HowToJoin({ title, steps, post, replies }: HowToJoinProps) {
   return (
     <Section id="join" screens={1} ground="surface">
       <SectionHead title={title} />
-      <div className="lv-join grid ui-grid">
-        <ol className="lv-join__steps span-5">
+      <div className={cx('lv-join gap-y-card-gap', grid12)}>
+        <ol className="lv-join__steps col-span-full min-w-0 lg:col-span-5">
           {steps.map((s, i) => (
             <li key={s.id} className="lv-join__step">
               <span className="lv-join__num" aria-hidden="true">
@@ -36,7 +38,7 @@ export function HowToJoin({ title, steps, post, replies }: HowToJoinProps) {
             </li>
           ))}
         </ol>
-        <div className="lv-thread span-6 start-7" data-ui="">
+        <div className="lv-thread col-span-full min-w-0 lg:col-span-6 lg:col-start-7" data-ui="">
           <PostCard post={post} />
           <div className="lv-thread__replies">
             {replies.map(r => (

@@ -5,6 +5,8 @@ import type { ActionItem } from '@/shared/ui/types'
 import { lazy, Suspense } from 'react'
 import type { GlobePlace } from '@/features/offices/OfficeGlobe'
 import { PostCard } from '@/features/posts/PostCard'
+import { cx } from '@/shared/lib/env'
+import { grid12 } from '@/shared/ui/layout/screen'
 import type { Post } from '@/features/posts/types'
 
 export interface HeroProps {
@@ -28,9 +30,9 @@ const OfficeGlobe = lazy(() => import('@/features/offices/OfficeGlobe').then(m =
 export function Hero({ kicker, title, lead, places, focus, globeLabel, post, register, login }: HeroProps) {
   return (
     <HeroShell variant="split">
-      <div className="wrap">
-        <div className="hero-text grid ui-grid hero__grid">
-          <div className="hero__text span-5">
+      <div className="wrap relative z-[1] flex h-full flex-col gap-y-12 max-sm:h-auto">
+        <div className={cx('hero-text hero__grid h-full min-h-0 gap-y-card-gap', grid12)}>
+          <div className="hero__text col-span-full min-w-0 lg:col-span-5">
             <p className="hero__kicker">
               <span className="dot" aria-hidden="true" />
               {kicker}
@@ -40,7 +42,7 @@ export function Hero({ kicker, title, lead, places, focus, globeLabel, post, reg
             <ButtonRow primary={register} secondary={login} arrow size="hero" className="mt-8"
               primaryClassName="shadow-[0_14px_30px_-12px_rgb(43_63_160/0.7)] hover:shadow-[0_20px_38px_-14px_rgb(43_63_160/0.8)]" />
           </div>
-          <div className="hero__media lv-globe-panel span-6 start-7">
+          <div className="hero__media lv-globe-panel col-span-full min-w-0 lg:col-span-6 lg:col-start-7">
             <Suspense fallback={<div className="og" role="img" aria-label={globeLabel} />}>
               <OfficeGlobe places={places} focus={focus} label={globeLabel} />
             </Suspense>

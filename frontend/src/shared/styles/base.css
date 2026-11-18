@@ -31,9 +31,6 @@ p { text-wrap: pretty; }
 ::selection { background: color-mix(in oklab, var(--accent) 30%, transparent); }
 
 /* ---------------------------------------------------------------- grid */
-.wrap { width: min(100% - 2 * var(--gut), var(--container)); margin-inline: auto; padding-inline: 0; }
-.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: var(--card-gap); }
-.grid > * { min-width: 0; grid-column: 1 / -1; }
 
 /* ---------------------------------------------------------------- one section per screen
    The page is a stack of screens. Framed at scrollY = k x the screen height, a shot shows exactly one
@@ -47,86 +44,18 @@ p { text-wrap: pretty; }
    beside the .wrap. Content must fit: one screen holds 708px of content at 1440x900 (900 - 120 - 72),
    two hold 1,608 (the second screen's part starts --padt under its top with .g2). From 640 to 1279 a
    section keeps at least its screens and grows past them rather than overlap the next. */
-main > :is(section, .section), footer.closing {
-  position: relative; box-sizing: border-box;
-  height: calc(var(--h, 1) * 100vh); height: calc(var(--h, 1) * 100svh);
-  padding: var(--padt) 0 calc(var(--padb) + var(--bar));
-}
-main > :is(section, .section) > :is(.wrap, .container), footer.closing > .wrap { position: relative; z-index: 1; height: 100%; }
-main > :is(section, .section) > :is(.wrap, .container):not(.grid) { display: flex; flex-direction: column; }
-/* a .wrap that is the section's grid too (class="wrap grid"): its rows start at the top */
-main > :is(section, .section) > :is(.wrap, .container).grid { align-content: start; }
-@media (min-width: 640px) and (max-width: 1279px) {
-  main > :is(section, .section):not(.hero, .section--hero), footer.closing {
-    height: auto; min-height: calc(var(--h, 1) * 100vh); min-height: calc(var(--h, 1) * 100svh);
-  }
-  /* the section is a column and its .wrap takes all of it, so a .fill (a photograph, a frame) still
-     grows to the section's foot (a min-height percentage would not resolve, leaving it at its least) */
-  /* :where() keeps it at no weight, so a page's own phone- or tablet-only hiding (section.desk-only { display: none }) wins */
-  :where(main > :is(section, .section):not(.hero, .section--hero), footer.closing) { display: flex; flex-direction: column; }
-  main > :is(section, .section):not(.hero, .section--hero) > :is(.wrap, .container), footer.closing > .wrap { flex: 1 0 auto; height: auto; min-height: 0; }
-}
 /* a phone: lvh (the screen with its bars hidden) for every section but the hero; --hm when stacking
    makes the content taller than the desktop count */
-@media (max-width: 639px) {
-  /* at least its screens, never less: content a screen cannot hold makes the section taller (the rhythm
-     check then asks for --hm: 2 or less content); a fixed height would lay its last rows over the next
-     section, the fault the phone shots showed most (a list under the closing heading and its button) */
-  main > :is(section, .section):not(.hero, .section--hero), footer.closing {
-    height: auto; min-height: calc(var(--hm, var(--h, 1)) * 100vh); min-height: calc(var(--hm, var(--h, 1)) * 100lvh);
-  }
-  /* one grid row at least the screens tall that grows with the .wrap's content: the .wrap is stretched to
-     it, so its .fill and its two groups still share a definite height */
-  /* (at no weight, as on the tablet: a page's own section.desk-only { display: none } still hides it) */
-  :where(main > :is(section, .section):not(.hero, .section--hero):has(> :is(.wrap, .container)), footer.closing) {
-    display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr; grid-auto-rows: auto;
-  }
-  main > :is(section, .section):not(.hero, .section--hero) > :is(.wrap, .container), footer.closing > .wrap { height: auto; }
-}
 /* ---------------------------------------------------------------- flow sizing
    <html data-sizing="flow">: a clean override of the screens rules above. Every
    main > section and footer.closing is as tall as its content, --flow-pad above and below (the phone bar under the
    close only), so the gap between two sections' content is two pads on every ground. The hero is untouched (the
    first screen); a section with data-moment or data-big-scene keeps its screens height. The h2 is still first, the
    .wrap the only in-flow child. */
-[data-sizing="flow"] main > :is(section, .section):not(.hero, .section--hero, [data-moment], [data-big-scene]),
-[data-sizing="flow"] footer.closing {
-  display: block; height: auto; min-height: 0;
-  padding: var(--flow-pad) 0;
-}
-[data-sizing="flow"] footer.closing { padding-bottom: calc(var(--flow-pad) + var(--bar)); }
-[data-sizing="flow"] main > :is(section, .section):not(.hero, .section--hero, [data-moment], [data-big-scene]) > :is(.wrap, .container),
-[data-sizing="flow"] footer.closing > .wrap { height: auto; flex: none; }
-
-/* the hero: exactly the first screen, the fixed header over its top. Its words start --hgap under the
-   header (--photo adds a full-bleed photograph's height above them on a place); its content ends
-   --hpadb above the fold, and nothing of the next section shows, at 1440, 1024, 820 and 390.
-     <section class="hero hero--<type>"><div class="wrap"><div class="hero-text"> .. </div>[one strip]</div></section>
-   .hero-text holds the whole composition (the words, and the picture or window beside or under them);
-   one docked strip (logos, three facts) may follow it, at most 96px, desktop only. */
-main > :is(.hero, .section--hero) {
-  height: 100vh; height: 100svh; min-height: 0;
-  padding: calc(var(--nav) + var(--photo, 0px) + var(--hgap)) 0 calc(var(--hpadb) + var(--bar));
-}
-:is(.hero, .section--hero) > .wrap { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr) auto; row-gap: var(--s-7); }
-:is(.hero, .section--hero) > .wrap > .hero-text { min-height: 0; }
 /* a phone: the hero is at least the first screen and grows when a short phone (320x640) cannot hold its
    words, buttons and picture, so nothing of it lies over the next section or under the header */
-@media (max-width: 639px) {
-  main > :is(.hero, .section--hero) { height: auto; min-height: 100vh; min-height: 100svh; }
-  main > :is(.hero, .section--hero):has(> :is(.wrap, .container)) { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr; grid-auto-rows: auto; }
-  main > :is(.hero, .section--hero) > :is(.wrap, .container) { height: auto; }
-}
-@media (min-width: 1024px) {
-  .span-3  { grid-column: auto / span 3; }
-  .span-4  { grid-column: auto / span 4; }
-  .span-5  { grid-column: auto / span 5; }
-  .span-6  { grid-column: auto / span 6; } .start-7 { grid-column-start: 7; }
-}
 
 /* ---------------------------------------------------------------- section heading */
-.section-head { max-width: 760px; margin-bottom: var(--head-gap); display: grid; gap: var(--s-4); }
-.section-head p { color: var(--ink); font-size: var(--t-lead); line-height: 1.5; max-width: 60ch; }
 
 /* ---------------------------------------------------------------- buttons (one pair, a chosen look)
    One pair a page, .btn--primary and .btn--secondary, in the look chosen with the page
@@ -173,32 +102,6 @@ main > :is(.hero, .section--hero) {
    Older <details> markup shows its answer open too. */
 
 /* ---------------------------------------------------------------- footer */
-.footer { padding-block: var(--section) var(--s-6); border-top: 1px solid var(--line); }   /* an older footer after the last section; footer.closing (below) replaces it */
-.footer .grid { row-gap: var(--s-7); }
-.footer :is(h3, h4):not(.closing__cta *) { font: 500 var(--t-small)/1.4 var(--font-text); letter-spacing: 0; color: var(--muted); margin-bottom: var(--s-4); }
-.footer ul { display: grid; gap: var(--s-3); font-size: var(--t-small); }
-.footer ul a:hover { color: var(--action); }
-.footer__legal { display: flex; flex-wrap: wrap; gap: var(--s-4) var(--s-6); justify-content: space-between;
-                 margin-top: var(--s-8); padding-top: var(--s-5); border-top: 1px solid var(--line);
-                 font-size: var(--t-label); color: var(--muted); }
-.socials { display: flex; gap: var(--s-2); }
-.socials a { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); }
-.socials a:hover { border-color: var(--line-strong); }
-.socials svg,
-.socials img { width: var(--icon); height: var(--icon); }
-@media (max-width: 1023px) { .footer .footer__col { grid-column: auto / span 6; } .footer .grid > .span-4 { grid-column: 1 / -1; } }
-@media (min-width: 640px) and (max-width: 1023px) { .footer .footer__col { grid-column: auto / span 3; } }
-
-/* the company block's one line, set in the display face (footer-columns) */
-.footer__lede { font: var(--display-weight) var(--t-h3)/1.25 var(--font-display); letter-spacing: var(--display-tracking); max-width: 22ch; }
-/* the legal row's end: the socials sit right of the copyright line */
-.footer__legal .socials a { width: 32px; height: 32px; }
-
-/* footer types.
-   .footer--dark (Figma, x.ai): a dark ground (with .ground-inverse), the name set large top left, the
-   link columns on the right. On a dark page it stays dark: a step darker than the page, a hairline
-   on top, never a light slab under a dark page. */
-.footer--dark { border-top: 0; padding-block: var(--section-band) var(--s-6); }
 
 /* ---------------------------------------------------------------- footer.closing: the close and the footer, one screen
    The page ends on one more section: <footer class="footer closing [footer--dark | footer--statement |
@@ -211,32 +114,12 @@ main > :is(.hero, .section--hero) {
      .close--type   the h2 and a line, then the big button across the .wrap (Figma's close)
      .close--word   the name set across the .wrap in the display face under the h2 and the button
    A phone stacks it in one screen; add .g2m when the links need a screen of their own. */
-footer.closing { border-top: 0; }
-footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto; row-gap: var(--s-8); }
-.closing__cta { min-height: 0; display: flex; flex-direction: column; gap: var(--s-6); }
-.closing__cta > .section-head { margin-bottom: 0; }
-.closing__cta h2 { max-width: 20ch; }
-/* the 640px button (product, service, place) stays within half the .wrap, so it never stands over half of it off its
-   right line: on a place's 1200px column it is 600 */
-.closing__links { display: grid; gap: var(--s-7); }
-.closing__links > .footer__legal { margin-top: 0; }
-.closing__links .footer__lede { font-size: var(--t-lead); max-width: 30ch; }
-@media (max-width: 639px) {
-  footer.closing > .wrap { row-gap: var(--s-7); }
-  .closing__links { gap: var(--s-5); }
-  .closing__links > .grid { row-gap: var(--s-5); }
-  .closing__links .footer__col { grid-column: auto / span 6; }
-}
 /* a phone: every link and control outside a line of running text is a 44px target (the bar's name, the
    footer's links, its legal row and credits line, a text link, the pill, a small button, the socials);
    a footer list of links loses its gap, since each row is now its own 44px (a plain row in it, "Two days'
    notice", is 44px too, so the rows keep one rhythm); a pill that is only a label keeps its 32px */
 @media (max-width: 639px) {
   :root { --btn-h-sm: 44px; }
-  .footer ul:has(> li > a) { gap: 0; }
-  .footer ul:has(> li > a) > li:not(:has(> a)) { display: flex; align-items: center; min-height: 44px; }
-  :is(.footer ul, .footer__legal, .footer__nav) a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
-  .socials a, .footer__legal .socials a { width: 44px; height: 44px; }
 }
 
 /* ---------------------------------------------------------------- the big close (closing-type) */
@@ -258,16 +141,9 @@ footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto;
      <figure class="pl-photo" style="--pl-r: .8"><img src=".." alt=".." loading="lazy"></figure> */
 :root { --pl-room: calc(100svh - var(--padt) - var(--padb) - var(--bar)); }
 /* with script on, hidden from the first frame until the page script has read the screen, so it never shows over the hero */
-@media (max-width: 639px) and (scripting: enabled) {
-  :root:not(:has(> body > nav.actionbar[data-bar="always"])) main > :is(.hero, .section--hero) { --bar: 0px; }
-}
 
 /* a brand-colour band (product and place may add one, in the page's second half): the accent as the
    section's ground, its words in the accent's ink */
-.ground-brand { --bg: var(--p-accent); --surface: color-mix(in oklab, var(--p-accent) 88%, var(--p-accent-ink)); --ink: var(--p-accent-ink);
-  --muted: color-mix(in oklab, var(--p-accent-ink) 82%, var(--p-accent)); --card: var(--surface);
-  --action: var(--p-accent-ink); --action-ink: var(--p-accent); background: var(--bg); color: var(--ink); }
-.ground-brand { --line: color-mix(in oklab, var(--ink) 16%, transparent); --line-strong: color-mix(in oklab, var(--ink) 30%, transparent); }
 
 /* a [bracketed placeholder] or a "(sample)" tag left in visible text: the page script marks it so it shows
    in every screenshot; nothing like it ships */
@@ -284,4 +160,3 @@ footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto;
 
 /* ---------------------------------------------------------------- helpers */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.stack-4 > * + * { margin-top: var(--s-4); }

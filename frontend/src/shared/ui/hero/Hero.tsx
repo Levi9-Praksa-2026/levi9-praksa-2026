@@ -33,7 +33,13 @@ export function Hero({ variant, enter = true, className, style, data, children }
     <HeroContext.Provider value={{ phase, titleId }}>
       <section
         ref={ref}
-        className={cx('hero', `hero--${variant}`, phaseClass[phase], className)}
+        className={cx(
+          'hero relative isolate h-svh min-h-0 pt-[calc(var(--nav)+var(--photo,0px)+var(--hgap))] pb-[calc(var(--hpadb)+var(--bar))]',
+          'max-sm:grid max-sm:h-auto max-sm:min-h-svh max-sm:grid-cols-[minmax(0,1fr)] max-sm:grid-rows-[1fr] max-sm:auto-rows-auto',
+          `hero--${variant}`,
+          phaseClass[phase],
+          className,
+        )}
         data-enter={enter ? '' : 'off'}
         aria-labelledby={titleId}
         style={style}

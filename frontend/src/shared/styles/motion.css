@@ -31,25 +31,8 @@
    Reduced motion keeps the colour change only (see the end of this file). */
 
 /* ---------------------------------------------------------------- links: an underline that draws */
-/* .link and links in running text: a rest line, and the ink line draws left to right on hover and
-   leaves to the right. A link in a sentence rests on its own colour at 45% (about 3.3:1 on its
-   ground), so it reads as a link even when it is the same colour as the text (WCAG 1.4.1); .link
-   and .m-link carry an arrow or sit alone and rest on the faint hairline */
-html:not([data-motion="off"]) :is(.link, .m-link, p a:not([class]), .footer ul a, .footer .link) {
-  text-decoration: none;
-  background-image: linear-gradient(currentColor, currentColor), linear-gradient(var(--m-rest, var(--line-strong)), var(--m-rest, var(--line-strong)));
-  background-repeat: no-repeat; background-size: 0% 1px, 100% 1px;
-  background-position: right 0 bottom 0, 0 100%;
-  transition: background-size var(--m-out) var(--m-ease), color var(--m-out) var(--m-ease);
-  padding-bottom: 2px;
-}
 /* set on its own rule: the shared rule above is (0,3,1) through :is(.footer .link) and would win */
 html:not([data-motion="off"]) p a:not([class]) { --m-rest: color-mix(in oklab, currentColor 45%, transparent); }
-html:not([data-motion="off"]) :is(.footer ul a, .m-link--bare):not(:hover, :focus-visible) { background-size: 0% 1px, 0% 1px; }
-html:not([data-motion="off"]) :is(.link, .m-link, p a:not([class]), .footer ul a, .footer .link):is(:hover, :focus-visible) {
-  background-size: 100% 1px, 100% 1px; background-position: left 0 bottom 0, 0 100%; transition-duration: var(--m-in);
-}
-html:not([data-motion="off"]) .footer ul a:hover { color: var(--ink); }
 
 /* ---------------------------------------------------------------- navigation */
 /* the nav words take no pill: base.css draws the underline under a word from the left on hover and focus, and
@@ -126,5 +109,4 @@ html:not([data-motion="off"]) :is(.frame__img, .tile__media > img, .m-zoom img, 
 /* ---------------------------------------------------------------- reduced motion */
 @media (prefers-reduced-motion: reduce) {
   html:not([data-motion="off"]) :is(a, .card:has(a), .m-zoom):hover :is(.frame__img, .tile__media > img, img, video) { transform: none !important; }
-  html:not([data-motion="off"]) :is(.link, .m-link, p a:not([class]), .footer ul a, .footer .link) { transition-property: color, opacity, background-color, border-color; }
 }

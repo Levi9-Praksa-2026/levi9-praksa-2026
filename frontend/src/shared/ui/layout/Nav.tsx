@@ -6,6 +6,7 @@ import type { ActionItem, LinkItem } from '@/shared/ui/types'
 import { Brand, type BrandProps } from '@/shared/ui/layout/Brand'
 import { useNavSheet } from '@/shared/hooks/useNavSheet'
 import { useScrollSpy } from '@/shared/hooks/useScrollSpy'
+import { grid12 } from '@/shared/ui/layout/screen'
 
 export interface NavMenuCard extends LinkItem {
   line: string
@@ -56,7 +57,7 @@ function Chevron() {
 
 /** Card columns: three cards take four columns each, four take three. */
 function cardSpan(count: number): string {
-  return count >= 4 ? 'span-3' : 'span-4'
+  return count >= 4 ? 'lg:col-span-3' : 'lg:col-span-4'
 }
 
 function MenuPanel({ menu }: { menu: NavMenu }) {
@@ -70,9 +71,9 @@ function MenuPanel({ menu }: { menu: NavMenu }) {
         'sheet:visible sheet:static sheet:col-span-full sheet:hidden sheet:translate-y-0 sheet:border-0 sheet:p-0 sheet:pb-4 sheet:opacity-100 sheet-expanded:block',
       )}
     >
-      <div className="wrap grid ui-grid sheet:w-full sheet:gap-y-4">
+      <div className={cx('wrap', grid12, 'gap-y-card-gap sheet:w-full sheet:gap-y-4')}>
         {menu.cards.map(card => (
-          <AppLink key={card.href + card.label} href={card.href} className={cx('grid gap-3 sheet:gap-1 sheet:py-2', cardSpan(menu.cards.length))}>
+          <AppLink key={card.href + card.label} href={card.href} className={cx('col-span-full grid min-w-0 gap-3 sheet:gap-1 sheet:py-2', cardSpan(menu.cards.length))}>
             <div className="panel [--p-h:160px] [--ratio:56.25%] sheet:hidden">{card.visual}</div>
             <span className="font-text text-[length:var(--t-card)] leading-[1.3] font-medium tracking-[-0.01em]">{card.label}</span>
             <span className="text-small leading-normal text-muted">{card.line}</span>
