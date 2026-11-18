@@ -93,14 +93,8 @@
   --ease: cubic-bezier(.2, .8, .2, 1);
   --dur: 180ms;
 }
-html[data-radius="sharp"] { --r-sm: 4px; --r-md: 6px;  --r-lg: 8px;  --r-btn: 4px; }
 html[data-radius="soft"]  { --r-sm: 8px; --r-md: 12px; --r-lg: 20px; --r-btn: 8px; }
 html[data-radius="round"] { --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-btn: 999px; }
-/* the four lit grounds; sand is the default above. painting goes with
-   painterly-landscape (x.ai's daylight sky over olive hills) */
-html[data-ground="sky"]      { --ground-bg: #c6d3df; --ground-surface: #d6e0e9; --ground-ink: #25303a; --ground-muted: #4d5964; --ground-accent: #3f6a92; }
-html[data-ground="sage"]     { --ground-bg: #cdd6c6; --ground-surface: #dce3d6; --ground-ink: #262d24; --ground-muted: #535b51; --ground-accent: #6c8e63; }
-html[data-ground="painting"] { --ground-bg: #79a8d6; --ground-surface: #a6c4e2; --ground-ink: #16212c; --ground-muted: #273949; --ground-accent: #9c9b3c; }
 /* cards.css takes its card and panel radii from this scale */
 html[data-radius] .card { --c-r: var(--r-lg); }
 html[data-radius] .panel { --p-r: var(--r-md); }
@@ -118,28 +112,10 @@ html[data-radius] .panel { --p-r: var(--r-md); }
 @media (min-width: 1024px) {
   :root { --gut: 80px; --section: 56px; --section-band: 96px; --card-gap: 24px;
           --t-lead: 20px; --t-card: 20px; --t-h3: 28px; --tile: 72px; }
-  /* a place (and a local service): the 1200 column at x 120-1320 */
-  html[data-type="place"] { --gut: 120px; --container: 1200px; }
-}
-/* a place: its own smaller type (h1 48/53 and 32/37, h2 32/40 and 24/30, titles
-   and the sub-line 20 and 18), the place hero's gap under its photograph (40, 24 on a phone),
-   square photographs and cards and 2px buttons, whatever data-radius and data-buttons say */
-:root[data-type="place"] {
-  --hgap: 40px;
-  --t-h1: clamp(32px, 1.524vw + 26.06px, 48px);
-  --t-h2: clamp(24px, .762vw + 21px, 32px);
-  --t-h3: clamp(20px, .381vw + 18.51px, 24px);
-  --r-sm: 2px; --r-md: 0px; --r-lg: 0px; --r-btn: 2px;
-}
-:root[data-type="place"] :is(h1, .t-h1) { line-height: 1.104; }
-:root[data-type="place"] :is(h2, .t-h2) { line-height: 1.25; }
-@media (max-width: 639px) {
-  :root[data-type="place"] { --hgap: 24px; }
-  :root[data-type="place"] :is(h1, .t-h1) { line-height: 1.156; }
 }
 
 /* ---------------------------------------------------------------- grounds (at most three) */
-:root, .ground-base {
+:root {
   --bg: var(--p-bg); --surface: var(--p-surface); --ink: var(--p-ink); --muted: var(--p-muted);
   --accent: var(--p-accent); --accent-ink: var(--p-accent-ink); --card: var(--p-surface);
   --action: var(--p-action); --action-ink: var(--p-action-ink);
@@ -154,7 +130,9 @@ html[data-radius] .panel { --p-r: var(--r-md); }
   --accent: var(--p-inv-accent); --accent-ink: var(--p-inv-accent-ink); --card: var(--p-inv-surface);
   --action: var(--p-inv-action); --action-ink: var(--p-inv-action-ink);
 }
-:root, .ground-base, .ground-surface, .ground-inverse {
+:root,
+.ground-surface,
+.ground-inverse {
   --line: color-mix(in oklab, var(--ink) 11%, transparent);
   --line-strong: color-mix(in oklab, var(--ink) 20%, transparent);
   /* effects and UI fragments (assets/ui) take the colours of the ground they sit on */
@@ -162,7 +140,8 @@ html[data-radius] .panel { --p-r: var(--r-md); }
   --fx-accent: var(--accent); --fx-accent-ink: var(--accent-ink);
   --ui-font: var(--font-text); --ui-mono: var(--font-mono); --ui-radius: var(--r-md);
 }
-.ground-base, .ground-surface, .ground-inverse { background: var(--bg); color: var(--ink); }
+.ground-surface,
+.ground-inverse { background: var(--bg); color: var(--ink); }
 
 /* ---------------------------------------------------------------- base */
 *, *::before, *::after { box-sizing: border-box; }
@@ -188,19 +167,15 @@ h1, h2, h3, h4 {
      only words of 10 letters or more, 4 at least on each side, so a short English heading never breaks */
   hyphens: auto; -webkit-hyphens: auto; hyphenate-limit-chars: 10 4 4;
 }
-h1, .t-h1 { font-size: var(--t-h1); line-height: 1.04; }
-h2, .t-h2 { font-size: var(--t-h2); line-height: 1.1; }
-h3, .t-h3 { font-size: var(--t-h3); line-height: 1.2; }
+h1 { font-size: var(--t-h1); line-height: 1.04; }
+h2 { font-size: var(--t-h2); line-height: 1.1; }
+h3 { font-size: var(--t-h3); line-height: 1.2; }
 h4, .t-card { font-family: var(--font-text); font-weight: 500; font-size: var(--t-card); line-height: 1.3; letter-spacing: -0.01em; }
 p { text-wrap: pretty; }
 .t-lead  { font-size: var(--t-lead); line-height: 1.5; }
-.t-body  { font-size: var(--t-body); line-height: 1.55; }
 .t-small { font-size: var(--t-small); line-height: 1.5; }
 .t-label { font-size: var(--t-label); font-weight: 500; line-height: 1.4; letter-spacing: 0.01em; }
-.t-stat  { font-family: var(--font-display); font-weight: var(--display-weight); font-size: var(--t-stat);
-           line-height: 1; letter-spacing: var(--display-tracking); font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); }
-.mono  { font-family: var(--font-mono); }
 .measure { max-width: 62ch; }
 :focus-visible { outline: 2px solid var(--action); outline-offset: 2px; border-radius: 2px; }
 ::selection { background: color-mix(in oklab, var(--accent) 30%, transparent); }
@@ -236,9 +211,9 @@ main > :is(section, .section) > :is(.wrap, .container).grid { align-content: sta
 main > :is(section, .section) > .wrap > .fill { flex: 1 1 0; min-height: 0; }
 /* two screens as two groups: row 1 the h2 and the first group, row 2 the rest (no second h2), starting
    --padt under the second screen's top, so the second shot looks like any other section */
-main > :is(section, .section).g2, footer.closing.g2 { --h: 2; }
-main > :is(section, .section).g2 > :is(.wrap, .container), footer.closing.g2 > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); row-gap: calc(var(--padt) + var(--padb) + var(--bar)); }
-main > :is(section, .section).g2 > :is(.wrap, .container) > *, footer.closing.g2 > .wrap > * { min-height: 0; align-self: start; }
+main > :is(section, .section).g2 { --h: 2; }
+main > :is(section, .section).g2 > :is(.wrap, .container) { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); row-gap: calc(var(--padt) + var(--padb) + var(--bar)); }
+main > :is(section, .section).g2 > :is(.wrap, .container) > * { min-height: 0; align-self: start; }
 main > :is(section, .section).g2 > :is(.wrap, .container) > :is(.group, .fill) { align-self: stretch; }
 /* a group: one screen's part of a .g2 section (its h2 and first rows, or the rest) */
 .group { display: flex; flex-direction: column; min-height: 0; }
@@ -275,8 +250,8 @@ main > :is(section, .section).g2 > :is(.wrap, .container) > :is(.group, .fill) {
     display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr; grid-auto-rows: auto;
   }
   main > :is(section, .section):not(.hero, .section--hero) > :is(.wrap, .container), footer.closing > .wrap { height: auto; }
-  main > :is(section, .section).g2m, footer.closing.g2m { --hm: 2; }
-  main > :is(section, .section).g2m > :is(.wrap, .container), footer.closing.g2m > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); row-gap: calc(var(--padt) + var(--padb) + var(--bar)); }
+  main > :is(section, .section).g2m { --hm: 2; }
+  main > :is(section, .section).g2m > :is(.wrap, .container) { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); row-gap: calc(var(--padt) + var(--padb) + var(--bar)); }
   /* stacked in one, the two groups keep the open cards' 32px, so the first group's last panel never meets
      the next card's title */
   main > :is(section, .section).g2:not(.g2m) > :is(.wrap, .container) { display: flex; row-gap: var(--s-6); }
@@ -327,49 +302,6 @@ main > :is(.hero, .section--hero) {
 }
 :is(.hero, .section--hero) > .wrap > .hero-strip { grid-row: 2; max-height: 96px; }
 @media (max-width: 639px) { :is(.hero, .section--hero) > .wrap > .hero-strip { display: none; } }
-.section--hero .section-head { max-width: 860px; }
-/* the starter's own hero (hero-split): the words on span-5 top-aligned, the picture on span-6 start-7
-   as tall as the hero's content box (at most 716 at 1440x900); a phone stacks words, then the picture
-   in what is left */
-.hero-text.hero-split { height: 100%; align-items: stretch; }
-.hero-split > .hero-copy { align-self: start; }
-.hero-split > .hero-visual { position: relative; min-height: 0; height: 100%; }
-@media (max-width: 1023px) {
-  .hero-text.hero-split { display: flex; flex-direction: column; gap: var(--s-6); }
-  .hero-split > .hero-visual { flex: 1 1 0; min-height: 200px; height: auto; }
-}
-.hero-copy > * + * { margin-top: var(--s-5); }
-/* the h1 first in the words' column: its capitals start on the picture's top line, not the line box's
-   (the leading above the capitals would put the words about 12px under the photograph's top) */
-.hero-copy > h1:first-child { text-box: trim-start cap alphabetic; }
-.hero-copy > .btn-row { margin-top: var(--s-6); }
-/* three short facts at the foot of the words' column, on the picture's bottom line (no dead space
-   under the buttons): <dl class="hero-facts"><div><dt>..</dt><dd>..</dd></div> x3</dl> */
-@media (min-width: 1024px) {
-  .hero-split > .hero-copy { height: 100%; display: flex; flex-direction: column; }
-  .hero-split > .hero-copy > .hero-facts { margin-top: auto; }
-}
-.hero-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-5) var(--gutter); margin: 0; }
-.hero-facts > div { display: grid; gap: var(--s-1); align-content: start; }
-.hero-facts dt { font-size: var(--t-small); color: var(--muted); }
-.hero-facts dd { margin: 0; font-weight: 500; }
-@media (max-width: 1023px) { .hero-facts { display: none; } }
-/* a notice line above the h1 (changed hours, a delivery cut-off): one line with a number, static,
-   starting on the left line like the h1 under it */
-.hero-notice { font-size: var(--t-small); font-weight: 500; color: var(--ink); }
-.hero-notice b, .hero-notice strong { font-weight: 500; color: var(--accent); }
-.hero-copy > .hero-notice + h1 { margin-top: var(--s-5); }
-
-/* a phone: open tiles from a row of three or four (rooms, goods, beans) go two-up, an odd last one
-   across the row, so a row of three fits one 844px screen (stacked one under another they need two) */
-@media (max-width: 639px) {
-  .grid > .tile:is(.span-3, .span-4) { grid-column: auto / span 6; }
-  .grid > .tile:is(.span-3, .span-4):nth-child(odd of .tile):nth-last-child(1 of .tile) { grid-column: 1 / -1; }
-  .grid > .tile:is(.span-3, .span-4) .tile__head { flex-wrap: wrap; gap: 0 var(--s-2); }
-}
-/* a phone: open cards (words on the ground, the panel under them) stacked one under another keep 32px
-   between a panel's foot and the next card's title, so a title never reads as the panel's caption */
-@media (max-width: 639px) { .grid:has(> .card--open) { row-gap: var(--s-6); } }
 /* a phone stacks a two-screen section's four open tiles into its two screens: their panels take 180px (a wide
    crop), so the h2 and the first two tiles of two lines each end on the first screen and the four inside both,
    not a third of a screen past. A page that sets its group's own --p-h (#features .panel) sets its phone value
@@ -388,9 +320,6 @@ main > :is(.hero, .section--hero) {
     .grid > .card.span-6:has(> .panel):not(.card--split) { grid-column: auto / span 6; }
     .grid > .card.span-6:has(> .panel):not(.card--split):nth-child(odd of .card.span-6):nth-last-child(1 of .card.span-6) { grid-column: 1 / -1; }
   }
-  /* open tiles (rooms, models, people, a photo pair) go two-up; an odd last one takes the row */
-  .grid > .tile:is(.span-3, .span-4, .span-6) { grid-column: auto / span 6; }
-  .grid > .tile:is(.span-3, .span-4, .span-6):nth-child(odd of .tile):nth-last-child(1 of .tile) { grid-column: 1 / -1; }
 }
 @media (min-width: 1024px) {
   .span-2  { grid-column: auto / span 2; }
@@ -402,17 +331,9 @@ main > :is(.hero, .section--hero) {
   .span-8  { grid-column: auto / span 8; }
   .span-9  { grid-column: auto / span 9; }
   .span-10 { grid-column: auto / span 10; }
-  .span-12 { grid-column: auto / span 12; }
-  .start-1 { grid-column-start: 1; } .start-2 { grid-column-start: 2; } .start-3 { grid-column-start: 3; }
-  .start-5 { grid-column-start: 5; } .start-6 { grid-column-start: 6; } .start-7 { grid-column-start: 7; }
-  .start-4 { grid-column-start: 4; } .start-8 { grid-column-start: 8; } .start-9 { grid-column-start: 9; }
+  .span-12 { grid-column: auto / span 12; } .start-7 { grid-column-start: 7; }
   .start-10 { grid-column-start: 10; }
-  /* a split is top-aligned: the words' first line and the picture's top on one line (never centred
-     against each other, never mirrored: text left, the visual right, on every split of the page) */
-  .grid--middle, .grid--top { align-items: start; }
 }
-/* card rows: every card in a row the same height (a plain .grid stretches them) */
-.grid:is(.grid--middle, .grid--top) > .card { align-self: stretch; }
 /* 1024-1279: a span-4 card's panel would be about 220px wide, too narrow for real UI. Cards with a
    panel on span-4 go two-up, a span-8 one takes the row, and an odd last one takes the row too
    (steps, proof row: two, then one wide; bento: the wide card, then the four small ones two by two) */
@@ -424,17 +345,10 @@ main > :is(.hero, .section--hero) {
 
 /* ---------------------------------------------------------------- section heading */
 .section-head { max-width: 760px; margin-bottom: var(--head-gap); display: grid; gap: var(--s-4); }
-/* every heading starts on the left line (a centred head among left ones reads as a mistake): the
-   old centred head is left-aligned too */
-.section-head--center { text-align: left; justify-items: start; }
 /* a head row: the h2 (and its line) left, one link or the section's button at the right line */
 .section-head--split { max-width: none; display: flex; align-items: end; justify-content: space-between; gap: var(--s-5); flex-wrap: wrap; }
 .section-head--split > div { display: grid; gap: var(--s-4); max-width: 760px; }
 .section-head p { color: var(--ink); font-size: var(--t-lead); line-height: 1.5; max-width: 60ch; }
-.section-head--row { max-width: none; display: flex; align-items: end; justify-content: space-between; gap: var(--s-5); flex-wrap: wrap; }
-.section-head--row > div { display: grid; gap: var(--s-4); max-width: 760px; }
-/* the hero row (hero-product, hero-cycle): the h1 and its line left, the buttons right, across 1280 */
-.section--hero .section-head--row { max-width: none; }
 
 /* ---------------------------------------------------------------- buttons (one pair, a chosen look)
    One pair a page, .btn--primary and .btn--secondary, in the look chosen with the page
@@ -458,8 +372,6 @@ main > :is(.hero, .section--hero) {
 .btn--secondary { background: var(--bg); color: var(--ink); border-color: var(--line-strong); }
 .btn--secondary:hover { background: color-mix(in oklab, var(--bg) 94%, var(--ink)); border-color: color-mix(in oklab, var(--ink) 35%, transparent); }
 .btn--sm { height: var(--btn-h-sm); padding: 0 var(--s-4); font-size: var(--t-small); }
-html[data-buttons="pill"] { --r-btn: 999px; }
-html[data-buttons="block"] { --r-btn: 2px; --btn-h: 48px; }
 html:is([data-buttons="pill"], [data-buttons="tonal"]) .btn--secondary { background: color-mix(in oklab, var(--ink) 8%, var(--bg)); border-color: transparent; }
 html:is([data-buttons="pill"], [data-buttons="tonal"]) .btn--secondary:hover { background: color-mix(in oklab, var(--ink) 14%, var(--bg)); border-color: transparent; }
 /* arrow and block: the secondary is a text link at the button's height (no box: one button look) */
@@ -468,15 +380,6 @@ html:is([data-buttons="arrow"], [data-buttons="block"]) .btn--secondary {
   text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong);   /* the .link look */
 }
 html:is([data-buttons="arrow"], [data-buttons="block"]) .btn--secondary:hover { background: none; border-color: transparent; text-decoration-color: currentColor; }
-/* the glyph after a label: a chevron (pill) or an arrow (arrow), drawn so every font shows the same */
-html[data-buttons="pill"] .btn--primary::after,
-html[data-buttons="arrow"] :is(.btn--primary, .btn--secondary)::after {
-  content: ""; flex: none; width: 12px; height: 12px; margin-right: -2px; background: currentColor;
-  -webkit-mask: var(--btn-glyph) center / contain no-repeat; mask: var(--btn-glyph) center / contain no-repeat;
-  transition: transform var(--dur) var(--ease);
-}
-html[data-buttons="pill"] { --btn-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4.5 2.5 8 6l-3.5 3.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-html[data-buttons="arrow"] { --btn-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M1.5 6h8.5M6.5 2.5 10 6l-3.5 3.5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 @media (hover: hover) and (pointer: fine) { html:is([data-buttons="pill"], [data-buttons="arrow"]) .btn:hover::after { transform: translateX(3px); } }
 .btn:active { transform: translateY(1px) scale(.985); }
 .btn--arrow::after { content: "\2192"; transition: transform var(--dur) var(--ease); }
@@ -490,7 +393,6 @@ html[data-buttons="arrow"] { --btn-glyph: url("data:image/svg+xml,%3Csvg xmlns='
 .btn--xl .m-arrow { width: 0.62em; height: 0.62em; stroke-width: 1.4; }
 :is(.btn, .link, .pill):has(> .m-arrow)::after { content: none; display: none; }
 .btn-row { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
-.section-head--center .btn-row { justify-content: center; }
 /* on the phone every button row stacks full width */
 @media (max-width: 639px) {
   .btn-row { flex-direction: column; align-items: stretch; width: 100%; justify-self: stretch; }
@@ -516,19 +418,11 @@ html[data-buttons="arrow"] { --btn-glyph: url("data:image/svg+xml,%3Csvg xmlns='
   background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--card-pad);
 }
 /* small titles in the text face: a display face at 20px (a condensed or hairline serif) reads smaller than the body */
-.card > h3, .card > h4, .card--plan h3 { font-family: var(--font-text); font-weight: 500; font-size: var(--t-card); line-height: 1.3; letter-spacing: -0.01em; }
+.card > h3,
+.card > h4 { font-family: var(--font-text); font-weight: 500; font-size: var(--t-card); line-height: 1.3; letter-spacing: -0.01em; }
 /* the type floor: text people read is 16px or more in ink; cards.css sets it for its
    card text, this for a plain card's lines */
 .card > p { color: var(--ink); font-size: var(--t-body); max-width: 52ch; }
-/* at most two boxes one inside the other: a card whose panel holds UI drops its own
-   box, so its title and lines sit on the page ground over the panel (Figma's tiles), or runs the
-   panel flush to its sides and bottom (cards.css .panel--flush) */
-.card.card--open { --c-pad: 0px; background: none; border: 0; box-shadow: none; padding: 0; overflow: visible; }
-.card.card--open > .panel { margin: var(--s-5) 0 0; border-radius: var(--r-lg); }
-.card.card--open > .panel--top { margin: 0 0 var(--s-5); }
-.card--plan.is-featured { border-color: var(--action); box-shadow: inset 0 0 0 1px var(--action); }
-/* cards.css (linked after this file) sets .card { gap: 0 } for feature cards; a plan keeps its 16px rows */
-.card.card--plan { gap: var(--s-4); }
 
 /* ---------------------------------------------------------------- visuals: panels and frames
    A card's .panel (the inset visual), .stage and the placements (.at-corner, .at-rise, .at-over,
@@ -546,111 +440,10 @@ html[data-buttons="arrow"] { --btn-glyph: url("data:image/svg+xml,%3Csvg xmlns='
 .frame::before { content: ""; flex: none; width: 0; padding-top: var(--ratio, 0px); }
 /* an object or scene (assets/objects) and a photograph (.frame__img) fill the frame themselves */
 .frame > :not(canvas, .stage, .loop-pause, .frame__fx, .frame__img, [data-print], [data-scene], .print3d) { position: relative; max-width: 100%; min-width: 0; }
-/* a photograph is a plain rectangle in its frame: no border, no print, no filter */
-.frame--photo { padding: 0; border: 0; }
-/* .frame--fill: as tall as its row (a split's picture beside the words, down to the section's foot);
-   stacked on a tablet or a phone it takes what the screen leaves, at least 200px */
-.frame--fill { height: 100%; }
-@media (max-width: 1023px) {
-  .grid.fill:has(> .frame--fill) { display: flex; flex-direction: column; gap: var(--s-6); }
-  .grid.fill > .frame--fill { flex: 1 1 0; height: auto; min-height: 200px; }
-}
-/* a split's words as a column: the last block (stats, a link) on the picture's bottom line */
-.split-col { display: flex; flex-direction: column; gap: var(--s-5); }
-@media (min-width: 1024px) { .split-col { height: 100%; } .split-col > .split-col__end { margin-top: auto; } }
 :is(.frame, .panel) > .frame__img { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
-.frame--portrait { --ratio: 125%; }
-/* the product stage (hero-product): wide, the product whole on it; a phone gets a tall stage */
-.frame--stage { --ratio: 50%; }
-@media (max-width: 639px) { .frame--stage, .frame--portrait { --ratio: 120%; } }
-.frame--hero { padding: clamp(24px, 5vw, 64px); }
-.frame--split { --ratio: 80%; }
-.frame--square { --ratio: 100%; }
-/* the closing band: the hero's echo, lit with the page's ground (sand, sky, sage or painting) on light
-   and dark pages alike, so its text and buttons take that ground's ink. Its effect sits on a layer of
-   its own, <div class="frame__fx" data-fx="..">, held still and calm where the text sits */
-.frame--cta { min-height: 420px; }
-/* .frame--lit: the same for an object's frame that holds a few words in its clear half (the
-   product statement's facts in a .frame__text, lower left; the object stands right of centre) */
-.frame--cta, .frame--lit {
-  border-color: transparent; background: var(--ground-bg); color: var(--ground-ink);
-  --bg: var(--ground-surface); --surface: var(--ground-surface); --ink: var(--ground-ink); --muted: var(--ground-muted);
-  --action: var(--ground-ink); --action-ink: var(--ground-surface);
-  --line: color-mix(in oklab, var(--ground-ink) 12%, transparent); --line-strong: color-mix(in oklab, var(--ground-ink) 24%, transparent);
-}
-.frame > .frame__fx { position: absolute; inset: 0; z-index: 0; }
 /* on a light page the buttons on a lit ground keep the page's own action colour: one action, one look
    (a dark page keeps the lit ground's ink, which reads on the bright ground) */
 html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) { --action: var(--p-action); --action-ink: var(--p-action-ink); }
-/* a card on a photograph (a booking form over the room): the card holds the page's colours */
-.frame--photo:has(> .card) { padding: clamp(var(--s-5), 5vw, var(--s-8)) clamp(var(--s-4), 4vw, var(--s-7)); }
-.frame--photo > .card { position: relative; z-index: 1; width: min(100%, 480px); }   /* flat: no shadow at rest */
-.frame--cta > .frame__fx { opacity: .85; }
-.frame--lit > .frame__text { z-index: 2; align-self: flex-end; margin-right: auto; width: min(100%, 360px); display: grid; gap: var(--s-5); }
-/* 2:1 on a desktop; a phone gets 2:3, the words at the top and the object smaller and low under
-   them (its hero preset), so the facts never touch the object */
-.frame--lit { --ratio: 50%; }
-@media (max-width: 639px) { .frame--lit { --ratio: 150%; } .frame--lit > .frame__text { align-self: flex-start; } }
-@media (max-width: 639px) { .frame--split { --ratio: 100%; } }
-/* A hero, wide or split frame (x.ai's hero window): --w on the rising fragment's slot (its true width)
-   centres it while it fits; anchored 24px in and cut by the right edge once the frame is narrower.
-   --pair on the .stage (the main fragment's width plus the part of the second that sticks out)
-   centres the pair; below 1024 the main one alone. In a card's panel cards.css places it (.at-corner,
-   .at-rise, .at-right; a centred .at-rise.fit narrows with the panel), as its recipe says. */
-.frame > .stage > .at-rise { --ax: max(24px, calc(50% - var(--w, 64%) / 2)); }
-.frame--hero > .stage > .at-rise { --ax: max(24px, calc(50% - var(--pair, var(--w, 64%)) / 2)); }
-.frame--hero > .stage > .at-over { --bx: max(24px, calc(50% - var(--pair, 800px) / 2)); }
-@media (max-width: 1023px) { .frame--hero > .stage > .at-rise { --ax: max(24px, calc(50% - var(--w, 64%) / 2)); } }
-/* a frame holding a cards.css .stage: the stage fills it and places the fragments;
-   the hero and wide frames are 16:7 and square on a phone; below 1024 only the main fragment shows */
-.frame:has(> .stage) { padding: 0; }
-.frame--hero:has(> .stage) { aspect-ratio: 16 / 7; }
-@media (max-width: 1023px) {
-  .frame--hero:has(> .stage) { aspect-ratio: 3 / 2; }   /* a tablet: room for the main fragment's rows */
-}
-/* a tablet held upright (820x1180): a taller frame, so the hero fills the screen without a gap */
-@media (min-width: 640px) and (max-width: 1023px) and (orientation: portrait) {
-  .frame--hero:has(> .stage) { aspect-ratio: 4 / 3; }
-}
-@media (max-width: 1023px) {
-  .frame--hero > .stage > :is(.at-over, .at-over-l) { display: none; }
-}
-/* a split frame is about 440-560px wide from 1024 to 1279: the main piece alone there */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .frame--split > .stage > :is(.at-over, .at-over-l) { display: none; }
-}
-@media (max-width: 639px) {
-  .frame--hero:has(> .stage) { aspect-ratio: 1; }
-  .frame > .stage > :is(.at-over, .at-over-l) { display: none; }
-  /* phone: cards.css sets a fragment 16px in on both sides, and the page script holds every loop on its
-     finished picture, so no pause button lands on the UI */
-}
-/* a small object on a focal tile (.at-center): its true width (--w, 288px for the slider), narrowed
-   on a small panel so 24px of ground always shows on both sides (a span-4 panel is 304px at 1280) */
-.stage > .at-center { width: calc(100% - 48px); max-width: var(--w, 288px); }
-.stage > .at-center > :is([data-ui], .ui) { width: 100%; max-width: none; }
-/* .to-edge stretches a fragment's surface past the bottom (cards.css); doc's surface is its page */
-.stage > .to-edge > .ui-doc > .ui-doc__page { min-height: 100%; }
-/* .hero-stage: whole fragments side by side in a frame, never overlapping or cut (a row of app
-   screens); the first is the main one, and the ones that no longer fit drop out from the end */
-.hero-stage { container: hero-stage / inline-size; width: 100%; }
-.hero-stage__row { display: flex; align-items: center; justify-content: center; gap: var(--s-5); }
-.hero-stage__row > * { flex: none; max-width: 100%; }
-@container hero-stage (max-width: 1060px) { .hero-stage__row > :nth-child(n + 3) { display: none; } }
-@container hero-stage (max-width: 740px)  { .hero-stage__row > :nth-child(n + 2) { display: none; } }
-/* the pause button on every visual that moves by itself for more than 5 s (WCAG 2.2.2): ui.js adds it
-   to a loop when it starts to move, the page script to the hero's ground. Write a button.loop-pause into
-   the frame only for a loop of your own (hero-cycle). The same solid 32px disc in the page colours as
-   assets/ui/base.css's, 12px in from the bottom-right corner, with a 44px hit area. */
-.loop-pause {
-  position: absolute; right: 12px; bottom: 12px; z-index: 6; display: grid; place-items: center;
-  width: 32px; height: 32px; margin: 0; padding: 0; border-radius: 50%; cursor: pointer;
-  border: 1px solid color-mix(in oklab, var(--ink) 16%, transparent); background: var(--bg); color: var(--ink);
-  box-shadow: 0 1px 2px rgb(0 0 0 / .12), 0 4px 12px -4px rgb(0 0 0 / .28);
-}
-.loop-pause::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; }
-.loop-pause svg { width: 14px; height: 14px; fill: currentColor; }
-@media (prefers-reduced-motion: reduce) { .loop-pause { display: none; } }
 
 /* ---------------------------------------------------------------- navigation */
 /* The header: fixed, opaque, one hairline under it, the same at every depth (no blur, no shadow, no
@@ -679,8 +472,8 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
    wordmark: no mark, the name alone */
 .mark.mark--initial { -webkit-mask: none; mask: none; display: inline-grid; place-items: center; border-radius: calc(var(--r-sm) * 0.75);
   color: var(--accent-ink); font: var(--display-weight, 400) 13px/1 var(--font-display); letter-spacing: 0; }
-.footer__mark .mark, .footer .nav__logo .mark { width: 0.8em; height: 0.8em; margin-right: 0.18em; vertical-align: -0.04em; }
-.footer__mark .mark--initial, .footer .nav__logo .mark--initial { width: 1em; height: 1em; font-size: 0.6em; }
+.footer .nav__logo .mark { width: 0.8em; height: 0.8em; margin-right: 0.18em; vertical-align: -0.04em; }
+.footer .nav__logo .mark--initial { width: 1em; height: 1em; font-size: 0.6em; }
 .nav--split .nav__logo .mark--initial { width: 26px; height: 26px; font-size: 15px; }
 .nav__links { display: flex; align-self: stretch; gap: var(--s-1); flex: 1; min-width: 0; }
 .nav__item { display: flex; align-items: center; height: 100%; }
@@ -787,10 +580,6 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
   .nav__logo { font-size: clamp(16px, 4.6vw, 20px); gap: 6px; white-space: nowrap; }
   .nav__logo .mark:not(.mark--initial) { width: 20px; height: 20px; }
   .nav:not(.is-open) .nav__actions .btn { height: 44px; padding-inline: var(--s-3); font-size: var(--t-small); }
-  /* with the phone action bar the bar's button is the action's copy at the foot: the nav's goes into the sheet, so
-     the first screen shows it once, the hero's */
-  :root:has(> body > nav.actionbar) .nav:not(.is-open) .nav__actions { display: none; }
-  :root:has(> body > nav.actionbar) .nav:not(.is-open) .nav__toggle { margin-left: auto; }
 }
 /* no script: the sheet cannot open, so the words stay in the bar (it scrolls sideways) and the dead menu button goes */
 @media (scripting: none) and (max-width: 1023px) {
@@ -830,14 +619,6 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
 /* the older float type is the plain bar now (a floating, frosted pill is not a header) */
 
 /* ---------------------------------------------------------------- logo row */
-.logos { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-5) var(--s-6); }
-.logos > * { height: 28px; width: auto; max-width: 100%; color: var(--ink); }
-.logos .wordmark { height: auto; font: 500 var(--t-card)/1 var(--font-display); letter-spacing: -0.02em; white-space: nowrap; }
-/* --mono marks in a logo row: 28px tall, each in the same box (the mask keeps its shape) */
-.logos .icon-mono { width: 120px; height: 28px; }
-/* tablet and phone: a grid, so a wrapped row never leaves one logo on its own */
-@media (max-width: 1023px) { .logos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; } }
-@media (max-width: 639px)  { .logos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* ---------------------------------------------------------------- lists, quote, steps */
 .checks { display: grid; gap: var(--s-3); }
@@ -847,26 +628,8 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cmask id='m'%3E%3Crect width='20' height='20' fill='white'/%3E%3Cpath d='M6 10.2l2.6 2.6L14 7.4' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/mask%3E%3Ccircle cx='10' cy='10' r='10' mask='url(%23m)'/%3E%3C/svg%3E") center / 20px no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cmask id='m'%3E%3Crect width='20' height='20' fill='white'/%3E%3Cpath d='M6 10.2l2.6 2.6L14 7.4' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/mask%3E%3Ccircle cx='10' cy='10' r='10' mask='url(%23m)'/%3E%3C/svg%3E") center / 20px no-repeat;
 }
-.quote blockquote { font-family: var(--font-display); font-weight: var(--display-weight); font-size: var(--t-h3);
-                    line-height: 1.3; letter-spacing: var(--display-tracking); text-wrap: pretty; }
-/* cards.css styles .quote as quote text; who said it stays in the text face */
-.quote figcaption, .quote .person { font: 400 var(--t-small)/1.45 var(--font-text); letter-spacing: 0; color: var(--ink); }
-.person { display: flex; align-items: center; gap: var(--s-3); }
-.person img, .person .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; background: var(--surface); flex: none; }
-.person .avatar { display: grid; place-items: center; font: 500 var(--t-small)/1 var(--font-text); color: var(--muted); }
-/* the number beside a quote (quote-stat): below 1024 it sits under the quote, by space alone */
-@media (max-width: 1023px) { .stat-aside { margin-top: var(--s-7); } }
-/* a stats row: two to four short facts, the number above its label (data-m-count on a count) */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--s-5) var(--gutter); margin: 0; }
-.stats > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: var(--s-2); }
-.stats dd { margin: 0; }
-.stats .t-stat { font-size: clamp(26px, 1vw + 22px, 36px); }
-@media (max-width: 639px) { .stats .t-stat { font-size: 26px; } }
-.step-num { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 999px;
-            border: 1px solid var(--line-strong); font: 500 var(--t-small)/1 var(--font-text); font-variant-numeric: tabular-nums; }
 
 /* ---------------------------------------------------------------- tabs */
-.tabs { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .tab {
   height: var(--btn-h-sm); padding: 0 var(--s-4); border-radius: var(--r-btn); border: 1px solid var(--line);
   background: transparent; color: var(--muted); font-size: var(--t-small); font-weight: 500; cursor: pointer;
@@ -879,26 +642,11 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
 
 /* ---------------------------------------------------------------- pricing */
 .price { display: flex; align-items: baseline; gap: var(--s-2); }
-.price .t-stat { font-size: var(--t-stat); }
-.card--plan { gap: var(--s-4); }
-.card--plan .btn { width: 100%; }
-.card--plan .checks { margin-top: var(--s-2); }
-.badge { display: inline-flex; align-items: center; height: 24px; padding: 0 var(--s-3); border-radius: 999px; vertical-align: middle;
-         background: var(--action); color: var(--action-ink); font: 500 var(--t-label)/1 var(--font-text); letter-spacing: 0; }
-.card--plan h3 .badge { margin-left: var(--s-2); }
 
 /* ---------------------------------------------------------------- FAQ
    Every answer is open, always: no accordion, no +/- marker, nothing changes height.
      <div class="faq"><div class="faq__item"><h3>[Question]</h3><p>[Answer]</p></div> ...</div>
    Older <details> markup shows its answer open too. */
-.faq > :is(.faq__item, details) { display: grid; gap: var(--s-2); padding: var(--s-5) 0; border-bottom: 1px solid var(--line); }   /* each row closes with its rule */
-.faq > :is(.faq__item, details):first-child { padding-top: 0; }
-.faq :is(.faq__item > h3, summary) { display: block; font: 500 var(--t-lead)/1.4 var(--font-text); letter-spacing: 0; list-style: none; cursor: text; }
-.faq summary { pointer-events: none; }
-.faq summary::-webkit-details-marker { display: none; }
-.faq details::details-content { content-visibility: visible; }
-.faq :is(.faq__item, details) p { color: var(--ink); max-width: 64ch; }
-@media (max-width: 639px) { .faq > :is(.faq__item, details) { padding: var(--s-4) 0; } }
 
 /* ---------------------------------------------------------------- footer */
 .footer { padding-block: var(--section) var(--s-6); border-top: 1px solid var(--line); }   /* an older footer after the last section; footer.closing (below) replaces it */
@@ -912,11 +660,8 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
 .socials { display: flex; gap: var(--s-2); }
 .socials a { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); }
 .socials a:hover { border-color: var(--line-strong); }
-.socials svg, .socials img, .socials .icon-mono { width: var(--icon); height: var(--icon); }
-/* a brand mark in the text colour: the SVG is a mask, so it
-   follows currentColor on every ground. The mask image is set in the tag's style attribute. */
-.icon-mono { display: inline-block; flex: none; width: var(--icon); height: var(--icon); background: currentColor;
-             -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.socials svg,
+.socials img { width: var(--icon); height: var(--icon); }
 @media (max-width: 1023px) { .footer .footer__col { grid-column: auto / span 6; } .footer .grid > .span-4 { grid-column: 1 / -1; } }
 @media (min-width: 640px) and (max-width: 1023px) { .footer .footer__col { grid-column: auto / span 3; } }
 
@@ -929,19 +674,7 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
    .footer--dark (Figma, x.ai): a dark ground (with .ground-inverse), the name set large top left, the
    link columns on the right. On a dark page it stays dark: a step darker than the page, a hairline
    on top, never a light slab under a dark page. */
-.footer--dark { border-top: 0; padding-block: var(--section-band) var(--s-6); }   /* a change of ground: the gap a band gets */
-html[data-tone="dark"] .footer--dark {
-  --bg: color-mix(in oklab, var(--p-bg) 72%, #000); --surface: var(--p-surface); --ink: var(--p-ink); --muted: var(--p-muted);
-  --accent: var(--p-accent); --accent-ink: var(--p-accent-ink); --action: var(--p-action); --action-ink: var(--p-action-ink);
-  border-top: 1px solid var(--line);
-}
-.footer__mark { display: inline-flex; align-items: center; font: var(--display-weight) var(--t-h2)/1 var(--font-display); letter-spacing: var(--display-tracking); }
-/* .footer--visit (a place): the address set large with the way there, the hours beside it, then
-   one row of the nav's words; no third ask for the main action */
-.footer__address { font: var(--display-weight) var(--t-h2)/1.1 var(--font-display); letter-spacing: var(--display-tracking); font-style: normal; }
-.footer__nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-6); margin-top: var(--s-8); padding-top: var(--s-5); border-top: 1px solid var(--line); font-weight: 500; }
-.footer__nav a:hover { color: var(--action); }
-.footer__nav .socials { margin-left: auto; }
+.footer--dark { border-top: 0; padding-block: var(--section-band) var(--s-6); }
 .footer--visit .footer__legal { margin-top: var(--s-5); border-top: 0; padding-top: 0; }
 /* .footer--statement: the close and the footer in one inset slab on the page's lit ground (sand,
    sky, sage or painting): one big line, one full-width button, then the columns */
@@ -952,15 +685,12 @@ html[data-tone="dark"] .footer--dark {
   --action: var(--ground-ink); --action-ink: var(--ground-surface); --accent: var(--ground-accent);
   --line: color-mix(in oklab, var(--ground-ink) 14%, transparent); --line-strong: color-mix(in oklab, var(--ground-ink) 28%, transparent);
 }
-.footer--statement .cta-type { padding-bottom: var(--s-9); margin-bottom: var(--s-8); border-bottom: 1px solid var(--line); }
 @media (max-width: 639px) { .footer--statement:not(.closing) { padding-top: var(--s-9); } }
 /* opening hours: <dl class="hours" data-tz="Europe/Berlin">, one dt (its days: "Mon to Fri", "Sat and
    Sun", or data-days="mon-fri") and one dd a row. the page script marks today's row .is-today in the venue's
    time zone (never the visitor's clock); the labels are read, so they stay in ink */
 .hours { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-5); font-variant-numeric: tabular-nums; }
 .hours dt { color: var(--ink); } .hours dd { margin: 0; }
-.hours .is-today { font-weight: 500; }
-.hours dt.is-today::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: var(--s-2); border-radius: 999px; background: var(--accent); vertical-align: 0.2em; }
 /* the visit block, on the container's lines. Open by default: the words on the page ground,
    no box (a box as wide as the section on a ground of its own reads as a band to the rhythm check, and a phone's
    padding moves its words off the left line). .visit--card is the panel on --g-alt for the full page, where it
@@ -979,27 +709,6 @@ html[data-tone="dark"] .footer--dark {
      <ul class="visit__rows"><li><span>Access</span><span>Step-free at the front door</span></li></ul>
    </div></div></section> */
 .visit { display: grid; gap: var(--s-5); color: var(--ink); }
-.visit__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); flex-wrap: wrap; }
-.visit__head > * { margin: 0; }
-.visit__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s-5); row-gap: var(--s-5); }   /* the columns stretch to one height (row-lines) */
-.visit--cols .visit__cols { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.visit__col { min-width: 0; }
-.visit__col > .t-label { margin-bottom: var(--s-3); color: var(--muted); }
-.visit__address { font: 400 20px/30px var(--font-text); font-style: normal; }
-.visit__rows { display: grid; margin: 0; padding: 0; list-style: none; }
-.visit__rows > li { display: flex; align-items: center; justify-content: space-between; gap: var(--s-5); min-height: 44px; border-top: 1px solid var(--line); }
-.visit__rows > li > :first-child { color: var(--muted); }
-.visit__rows > li > :last-child { text-align: right; }
-@media (min-width: 1024px) {
-  .visit--card { --bg: var(--p-surface); --surface: var(--p-bg); --card: var(--p-bg); background: var(--bg); border-radius: var(--r-lg); padding: var(--s-7); }
-}
-@media (max-width: 1023px) { .visit--cols .visit__cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 639px) {
-  .visit__cols, .visit--cols .visit__cols { grid-template-columns: minmax(0, 1fr); }
-  .visit__address { font-size: 18px; line-height: 28px; }
-  .visit__rows > li { align-items: flex-start; flex-direction: column; justify-content: center; gap: 0; padding-block: var(--s-2); }
-  .visit__rows > li > :last-child { text-align: left; }
-}
 /* photo credits: one short line that opens the full list, at the end of the legal row:
    <details class="credits"><summary>Photographs via Unsplash and Wikimedia Commons</summary>
    <p>one line a photograph, per photo</p></details> */
@@ -1024,7 +733,6 @@ html[data-tone="dark"] .footer--dark {
    A phone stacks it in one screen; add .g2m when the links need a screen of their own. */
 footer.closing { border-top: 0; }
 footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto; row-gap: var(--s-8); }
-footer.closing.g2 > .wrap { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
 .closing__cta { min-height: 0; display: flex; flex-direction: column; gap: var(--s-6); }
 .closing__cta > .section-head--split, .closing__cta > .section-head { margin-bottom: 0; }
 .closing__cta h2 { max-width: 20ch; }
@@ -1061,7 +769,9 @@ footer.closing.g2 > .wrap { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
    notice", is 44px too, so the rows keep one rhythm); a pill that is only a label keeps its 32px */
 @media (max-width: 639px) {
   :root { --btn-h-sm: 44px; }
-  .nav__logo, .footer__mark, .link, :is(a, button).pill { min-height: 44px; }
+  .nav__logo,
+  .link,
+  :is(a, button).pill { min-height: 44px; }
   :is(a, button).pill { height: auto; }
   .footer ul:has(> li > a) { gap: 0; }
   .footer ul:has(> li > a) > li:not(:has(> a)) { display: flex; align-items: center; min-height: 44px; }
@@ -1072,9 +782,6 @@ footer.closing.g2 > .wrap { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
 }
 
 /* ---------------------------------------------------------------- the big close (closing-type) */
-/* the close starts on the left line like every other heading; the big button runs across the .wrap */
-.cta-type { display: grid; justify-items: start; gap: var(--s-6); text-align: left; }
-.cta-type h2 { max-width: 22ch; }
 /* the primary button at its one large size, once a page: 640px wide and centred; .btn--wide runs it
    across the container (Figma's close), on a software page only */
 .btn--xl { width: min(100%, 640px); height: clamp(64px, 1.4vw + 48px, 72px); font: var(--display-weight) clamp(20px, 0.6vw + 16px, 26px)/1 var(--font-display); letter-spacing: var(--display-tracking); }
@@ -1091,18 +798,6 @@ html[data-buttons] .btn--xl::after { width: 0.6em; height: 0.6em; }
    colours, lower left on the photograph (.photo-band--left: centred on the left side; --light is the
    same box, kept for old markup). On a phone, and on a place at every width (a place photograph
    carries no words), the photograph stands alone and the words go under it on the ground. */
-.photo-band { position: relative; isolation: isolate; overflow: clip; display: grid; align-items: end;
-              min-height: clamp(440px, 46vw, 720px); border-radius: var(--r-lg); background: var(--surface); }
-.photo-band--bleed { border-radius: 0; }
-.photo-band--hero { min-height: calc(100svh - var(--nav-h)); }
-/* the older photo hero first in main: the first screen, under the fixed header */
-main > .photo-band--hero:first-child { height: 100svh; min-height: 0; }
-main > .photo-band--hero:first-child > .photo-band__text { padding-top: calc(var(--nav) + var(--hgap)); }
-.photo-band > :is(img, video, picture) { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; max-width: none; object-fit: cover; }
-.photo-band > picture > img { width: 100%; height: 100%; object-fit: cover; }
-.photo-band__text { position: relative; display: grid; gap: var(--s-4); justify-items: start; color: var(--ink); }
-.photo-band__text > :is(h1, h2, p) { max-width: 18ch; }
-.photo-band__text > p { max-width: 44ch; font-size: var(--t-lead); }
 /* from 640: a solid box in the section's colours, 32px in from the photograph's lower-left corner;
    on a full-bleed band it starts on the page's left line */
 @media (min-width: 640px) {
@@ -1112,23 +807,7 @@ main > .photo-band--hero:first-child > .photo-band__text { padding-top: calc(var
   }
   :root:not([data-type="place"]) .photo-band--bleed > .photo-band__text { margin: var(--s-8) max(var(--gut), (100% - var(--container)) / 2); }
   :root:not([data-type="place"]) main > .photo-band--hero:first-child > .photo-band__text { margin-top: calc(var(--nav) + var(--hgap)); padding-top: var(--s-6); }
-  .photo-band--left { align-items: center; }
 }
-@media (max-width: 639px) {
-  .photo-band { display: block; min-height: 0; overflow: visible; background: none; border-radius: 0; }
-  .photo-band > :is(img, video, picture) { position: relative; inset: auto; height: auto; aspect-ratio: 4 / 5; border-radius: var(--r-lg); }
-  .photo-band--bleed > :is(img, video, picture) { border-radius: 0; }
-  .photo-band__text { padding: var(--s-5) 0 0; }
-  .photo-band--bleed > .photo-band__text { padding: var(--s-5) var(--pad) 0; }
-  .photo-band--hero > .photo-band__text { padding-bottom: var(--section); }
-  /* the hero's photograph grows to fill the first screen above its words */
-  .photo-band--hero { display: flex; flex-direction: column; min-height: calc(100svh - var(--nav-h)); }
-  .photo-band--hero > :is(img, video, picture) { flex: 1 0 0; min-height: 100vw; aspect-ratio: auto; object-fit: cover; }
-}
-:root[data-type="place"] .photo-band { display: flex; flex-direction: column; min-height: 0; overflow: visible; background: none; border-radius: 0; }
-:root[data-type="place"] .photo-band > :is(img, video, picture) { position: relative; inset: auto; flex: 1 1 auto; min-height: 0; height: auto; aspect-ratio: 4 / 3; }
-:root[data-type="place"] .photo-band__text { padding: var(--s-6) 0 0; }
-:root[data-type="place"] .photo-band--bleed > .photo-band__text { padding-inline: max(var(--gut), (100% - var(--container)) / 2); }
 
 /* .pl-photo: every single in-flow photograph on a place (visit, menu, story, booking, close).
    It keeps its ratio (--pl-r as a number: 1.3333 for 4:3, .8 for 4:5, 1 for 1:1) and its column, and
@@ -1136,108 +815,17 @@ main > .photo-band--hero:first-child > .photo-band__text { padding-top: calc(var
    for a photograph in the right-hand column). Square corners, nothing on it.
      <figure class="pl-photo" style="--pl-r: .8"><img src=".." alt=".." loading="lazy"></figure> */
 :root { --pl-room: calc(100svh - var(--padt) - var(--padb) - var(--bar)); }
-.pl-photo { container-type: inline-size; margin: 0; min-width: 0; }
-.pl-photo > img, .pl-photo > picture > img {
-  display: block; aspect-ratio: var(--pl-r, 1.3333); width: auto; max-width: 100%;
-  height: min(calc(100cqw / var(--pl-r, 1.3333)), var(--pl-cap, calc(var(--pl-room) - var(--pl-head, 0px))));
-  object-fit: cover; object-position: var(--pos, 50% 50%); border-radius: var(--r-lg);
-}
-.pl-photo--end > img, .pl-photo--end > picture > img { margin-left: auto; }
-@media (max-width: 1023px) { .pl-photo > img, .pl-photo > picture > img { width: 100%; height: auto; } }
 /* the visit screen on a phone ends in its photograph: the .pl-photo after the words (the last in its row of the
    split) takes what they leave of the screen, from its own ratio to 4:5 at most, so the screen never ends in an
    empty band (the row becomes a column, its gaps kept) */
 @media (max-width: 639px) {
   [data-place="visit"] > .wrap:not(.grid) > .grid:has(> .pl-photo:last-child) { flex: 1 0 auto; }
-  [data-place="visit"] > .wrap.grid:has(> .pl-photo:last-child),
-  [data-place="visit"] > .wrap > .grid:has(> .pl-photo:last-child) { display: flex; flex-direction: column; }
-  [data-place="visit"] .grid > .pl-photo:last-child,
-  [data-place="visit"] .grid > .pl-photo:last-child > picture { display: flex; flex-direction: column; flex: 1 0 auto; }
-  [data-place="visit"] .grid > .pl-photo:last-child > img,
-  [data-place="visit"] .grid > .pl-photo:last-child > picture > img { flex: 1 0 auto; max-height: calc(100cqw * 1.25); }
 }
-
-/* .tile: an open tile, the picture on top and its words on the page ground under it, no box
-   (a room, a model, a person, a case). One --tile-ratio per row so the pictures line up. */
-.tile { display: grid; gap: var(--s-4); align-content: start; color: inherit; }
-.tile__media { position: relative; overflow: clip; aspect-ratio: var(--tile-ratio, 4 / 3); border-radius: var(--r-lg); background: var(--surface); }
-.tile__media > img { width: 100%; height: 100%; object-fit: cover; transition: transform 600ms var(--ease); }
-@media (hover: hover) and (pointer: fine) { a.tile:hover .tile__media > img { transform: scale(1.03); } }   /* inside its mask; the tile never grows (motion.css has the same) */
-.tile--portrait { --tile-ratio: 4 / 5; }
-.tile--wide { --tile-ratio: 16 / 9; }
-.tile__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); }
-.tile__head > :is(h3, h4) { font: 500 var(--t-card)/1.3 var(--font-text); letter-spacing: -0.01em; }
-.tile__price { flex: none; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tile__facts { color: var(--muted); font-size: var(--t-small); margin-top: calc(-1 * var(--s-3)); }
-.tile > p { color: var(--ink); max-width: 52ch; }
-/* an object render or a drawing in a tile (line-up): on the lit ground, the object filling the tile */
-.tile__media:has(> [data-print], > .drawing) { display: grid; place-items: center; background: var(--ground-bg); }
-.tile__media > [data-print] { position: absolute; inset: 0; }
-.tile__media > .drawing { width: min(84%, calc(84% * var(--ar, 1.5))); }
-
-/* .drawing: a product with no photograph and no object of its kind, drawn: one inline SVG in true proportions, its lines a fixed 1.5px at every size, one part in the
-   accent, dimension lines with their figures as HTML labels placed in percent of the figure.
-   <figure class="drawing" style="--ar: 1.6" role="img" aria-label="..">
-     <svg viewBox="0 0 1600 1000" aria-hidden="true">
-       <g class="part"><path class="fill" d=".."/><path class="ln" d=".."/></g>
-       <g class="dim"><path d="M100 960H1500"/><path d="M100 945v30M1500 945v30"/></g>
-     </svg>
-     <span class="drawing__dim" style="left: 50%; top: 96%">1,400 mm</span>
-   </figure>
-   In a frame it fits the frame whole (--ar: the viewBox's width over its height); a crop for a
-   feature section is the same SVG with the viewBox set round the part. */
-.drawing { position: relative; margin: 0; flex: none; aspect-ratio: var(--ar, 1.5); color: var(--ink); }
-.frame > .drawing { width: min(100%, calc(var(--ratio, 50%) * var(--ar, 1.5) * 0.86)); }
-/* a crop (a feature section's close-up of one part): it fills the frame and runs out of its edges,
-   <svg preserveAspectRatio="xMidYMid slice">, no figures on it */
-.frame > .drawing.drawing--crop { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; }
-.drawing > svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.drawing :is(.ln, .fill, .acc, .dim) { vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
-.drawing .ln { fill: none; stroke: currentColor; stroke-width: 1.5; }
-.drawing .fill { fill: color-mix(in oklab, var(--ink) 6%, var(--bg)); stroke: currentColor; stroke-width: 1.5; }
-.drawing .acc { fill: var(--accent); stroke: currentColor; stroke-width: 1.5; }
-/* a dark part (a black steel frame, a rubber foot) solid in ink, its seams .ink-ln */
-.drawing .ink { fill: var(--ink); stroke: var(--ink); stroke-width: 1.5; }
-.drawing .ink-ln { fill: none; stroke: color-mix(in oklab, var(--bg) 45%, var(--ink)); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.drawing .dim, .drawing .dim * { fill: none; stroke: var(--muted); stroke-width: 1; }
-.drawing .part { pointer-events: bounding-box; }
-.drawing .part :is(.ln, .fill, .ink, .acc) { transition: stroke var(--dur) var(--ease), fill var(--dur) var(--ease); }
-@media (hover: hover) {
-  .drawing .part:hover :is(.ln, .fill) { stroke: var(--accent); }
-  .drawing .part:hover .fill { fill: color-mix(in oklab, var(--accent) 14%, var(--bg)); }
-  .drawing .part:hover .ink { fill: var(--accent); stroke: var(--accent); }
-}
-.drawing__dim { position: absolute; transform: translate(-50%, -50%); padding: 2px var(--s-2); border-radius: 999px;
-  background: var(--bg); color: var(--ink); font: 500 var(--t-label)/1.3 var(--font-text); font-variant-numeric: tabular-nums; white-space: nowrap; }
 @media (max-width: 639px) {
-  .drawing__dim { font-size: var(--t-label); padding: 1px 6px; }
-  /* room for a figure at the drawing's edge, which keeps its 13px while the drawing shrinks */
-  .frame > .drawing:not(.drawing--crop) { width: min(84%, calc(var(--ratio, 50%) * var(--ar, 1.5) * 0.8)); }
   /* a whole drawing (wider than tall) in a phone frame: the frame shortens to it, so a desk or a bike is
      not a small line across a tall empty box (a hero stage still grows to the first screen) */
   .frame:not(:has(> .frame__text)):has(> .drawing:not(.drawing--crop)) { --ratio: 80%; }
 }
-
-/* .peek: a list beside one photograph that changes to the row under the pointer (a place's or a
-   service's one moment: rooms, spaces, classes, services, the menu's kinds). the page script runs it:
-   <div class="grid grid--middle" data-peek>
-     <div class="frame frame--photo frame--portrait span-5">
-       <img class="frame__img" data-peek-for="garden" src=".." alt="..">
-       <img class="frame__img" data-peek-for="kitchen" src=".." alt=".." hidden> ...</div>
-     <ul class="rows span-6 start-7"><li data-peek-to="garden">..</li><li data-peek-to="kitchen">..</li></ul>
-   </div> */
-/* every row's words stay on the left line; the row on show darkens its rule to ink and marks its name
-   with a dot after it. The photograph swaps at once. The list runs as tall as the photograph
-   (the row's two boxes match), its rows from the top. */
-[data-peek] > .rows { align-self: stretch; }
-[data-peek-to] { cursor: default; transition: border-color var(--dur) var(--ease); }
-[data-peek-to].is-on { border-bottom-color: var(--ink); }
-[data-peek-to] .rows__name::after { content: ""; display: inline-block; width: 8px; height: 8px; margin-left: var(--s-2); vertical-align: .1em;
-  border-radius: 999px; background: var(--accent); opacity: 0; }
-[data-peek-to].is-on .rows__name::after { opacity: 1; }
-@media (max-width: 1023px) { [data-peek-to] .rows__name::after { display: none; } }
-/* a tablet shows the photograph under the list, full width: 5:4, not a portrait taller than the screen */
-@media (min-width: 640px) and (max-width: 1023px) { [data-peek] .frame--portrait { --ratio: 80%; } }
 
 /* .rows: a list read across, a name (and a line) left, a value right, hairlines between: a menu, a
    price list, services with prices, specs, hours. Never cards for these. */
@@ -1245,65 +833,10 @@ main > .photo-band--hero:first-child > .photo-band__text { padding-top: calc(var
 .rows > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-1) var(--s-5); padding-block: var(--s-4); border-bottom: 1px solid var(--line); }
 /* no rule above the first row, so no padding either: its words start on the line beside it (a photograph's top) */
 .rows > li:first-child { padding-top: 0; }
-.rows__name { font-weight: 500; }
-.rows__value { grid-column: 2; grid-row: 1; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-/* a narrow phone: a long value ("14 to 22 months") wraps in its own column instead of squeezing the name to a word a line */
-@media (max-width: 479px) { .rows__value { white-space: normal; max-width: 11ch; text-wrap: balance; } }
 .rows > li > p { grid-column: 1; color: var(--ink); max-width: 56ch; }
-.rows--spec .rows__name { font-weight: 400; color: var(--muted); }
-
-/* forms (booking-form): fields on the system's control height, one radius, labels above */
-.form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); }
-.form > :is(.field--full, .btn-row, p) { grid-column: 1 / -1; }
-.field { display: grid; gap: var(--s-2); font-size: var(--t-small); font-weight: 500; }
-.field :is(input, select, textarea) {
-  width: 100%; height: var(--btn-h); padding: 0 var(--s-3); border: 1px solid var(--line-strong); border-radius: var(--r-sm);
-  background: var(--bg); color: var(--ink); font: 400 var(--t-body)/1.4 var(--font-text);
-}
-.field textarea { height: auto; min-height: 120px; padding-block: var(--s-3); resize: vertical; }
-@media (max-width: 639px) { .form { grid-template-columns: minmax(0, 1fr); } }
-/* a field that fails on submit: a 2px border and the reason under it in words,
-   so colour is never the only sign; the error colour is a red pulled towards the ink, 4.5:1 on a light or a dark ground */
-.form { --error: color-mix(in oklab, #d92d20 72%, var(--ink)); }
-.field :is(input, select, textarea)[aria-invalid="true"] { border: 2px solid var(--error); }
-.field__error { font: 500 var(--t-small)/1.4 var(--font-text); color: var(--error); }
-.field__error[hidden] { display: none; }
-.field__error::before { content: "!"; display: inline-grid; place-items: center; width: 16px; height: 16px; margin-right: var(--s-2);
-  border-radius: 50%; background: var(--error); color: var(--bg); font-size: 12px; line-height: 1; vertical-align: -2px; }
-/* the status line under the button (role="status"): sending, sent or not sent, in words */
-.form__status { grid-column: 1 / -1; min-height: 1.5em; font-size: var(--t-small); color: var(--ink); }
-.form__status:empty { min-height: 0; }
-
-/* sections part by a change of ground or by space only: no rule between them (.section--rule is plain) */
-
-/* the phone action bar (a place's directions and booking; other types may use it): fixed at the foot
-   under 640px, one 342x48 button or two of 165, and every section's foot pads for it (--bar).
-   the page script shows it (data-bar="shown") once the hero's main button has scrolled off the top, and hides it
-   (data-bar="hidden", inert) while that button, or a control that does what one of the bar's does, is on the
-   screen: the bar never repeats an action the screen already shows. The hero never pads for it then (the bar
-   is not on the first screen). Without script it is simply always there at the foot, under every section's
-   padding, covering nothing. */
-.actionbar { display: none; }
-@media (max-width: 639px) {
-  :root:has(> body > nav.actionbar) { --bar: calc(64px + env(safe-area-inset-bottom)); }
-  .actionbar {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
-    gap: var(--s-3); align-items: center; height: calc(64px + env(safe-area-inset-bottom));
-    padding: var(--s-2) var(--gut) env(safe-area-inset-bottom); background: var(--bg); border-top: 1px solid var(--line);
-    transition: transform 240ms var(--ease), visibility 0s;
-  }
-  .actionbar .btn { width: 100%; height: 48px; }
-  /* hidden: below the screen's edge and out of the focus order */
-  .actionbar[data-bar="hidden"] { transform: translateY(100%); visibility: hidden; transition: transform 240ms var(--ease), visibility 0s 240ms; }
-  :root:has(> body > nav.actionbar:is([data-bar="shown"], [data-bar="hidden"])) main > :is(.hero, .section--hero) { --bar: 0px; }
-}
 /* with script on, hidden from the first frame until the page script has read the screen, so it never shows over the hero */
 @media (max-width: 639px) and (scripting: enabled) {
-  .actionbar:not([data-bar="shown"], [data-bar="always"]) { transform: translateY(100%); visibility: hidden; }
   :root:not(:has(> body > nav.actionbar[data-bar="always"])) main > :is(.hero, .section--hero) { --bar: 0px; }
-}
-@media (max-width: 639px) and (prefers-reduced-motion: reduce) {
-  .actionbar, .actionbar[data-bar="hidden"] { transition: none; }
 }
 
 /* a brand-colour band (product and place may add one, in the page's second half): the accent as the
@@ -1338,7 +871,4 @@ main > .photo-band--hero:first-child > .photo-band__text { padding-top: calc(var
 .skip-link:focus { width: auto; height: var(--btn-h); padding: 0 var(--s-5); clip-path: none; transform: translateY(-50%);
   display: inline-flex; align-items: center; background: var(--bg); color: var(--ink); border: 1px solid var(--line-strong);
   border-radius: var(--r-btn); font: 500 var(--t-body)/1 var(--font-text); }
-.stack-2 > * + * { margin-top: var(--s-2); }
 .stack-4 > * + * { margin-top: var(--s-4); }
-.stack-5 > * + * { margin-top: var(--s-5); }
-.stack-6 > * + * { margin-top: var(--s-6); }

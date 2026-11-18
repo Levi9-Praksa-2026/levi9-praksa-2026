@@ -13,7 +13,6 @@
 .lv-post--compact { gap: 10px; }
 .lv-post--compact .lv-post__body { gap: 2px; }
 .lv-post--compact .lv-post__title { font-size: 15px; line-height: 20px; }
-@media (max-width: 639px) { .lv-post--extra { display: none; } }
 
 /* A reply in a thread. */
 .lv-reply { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; font-family: var(--font-text); text-align: left; }

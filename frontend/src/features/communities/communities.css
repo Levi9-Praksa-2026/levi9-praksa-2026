@@ -6,6 +6,3 @@
   color: var(--p-accent);
   font-family: var(--font-mono); font-size: 13px; line-height: 20px; font-weight: 500; letter-spacing: 0;
 }
-
-.lv-preview { display: grid; align-content: start; gap: 10px; min-width: 0; text-align: left; }
-.lv-preview .lv-preview__blurb { margin: 0 0 6px; font-size: 14px; line-height: 20px; color: var(--p-ink); }
