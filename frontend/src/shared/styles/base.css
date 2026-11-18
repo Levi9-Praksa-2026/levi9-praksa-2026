@@ -136,36 +136,7 @@ main > :is(.hero, .section--hero) {
      tonal  the radius scale, a tinted secondary with no outline (Linear, Vercel)
      arrow  an arrow after the primary's label; the secondary is a text link with an arrow (Stripe)
      block  near-square corners, 48px tall; the secondary is an underlined text link (shops, hotels) */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
-  height: var(--btn-h); padding: 0 var(--s-5); border-radius: var(--r-btn); border: 1px solid transparent;
-  font: 500 var(--t-body)/1 var(--font-text); letter-spacing: 0; white-space: nowrap; cursor: pointer;
-  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease), text-decoration-color var(--dur) var(--ease);
-}
-.btn--primary { background: var(--action); color: var(--action-ink); }
-.btn--primary:hover { background: color-mix(in oklab, var(--action) 86%, var(--ink)); }
-/* an inverted primary (the action is the ground's ink: a brand band, a lit ground): its hover steps toward the ground, as the filled one steps toward the ink */
-.ground-brand .btn--primary:hover { background: color-mix(in oklab, var(--action) 88%, var(--bg)); }
-/* the ground's own colour with a clear border: never grey on grey, readable on an effect too */
-.btn--secondary { background: var(--bg); color: var(--ink); border-color: var(--line-strong); }
-.btn--secondary:hover { background: color-mix(in oklab, var(--bg) 94%, var(--ink)); border-color: color-mix(in oklab, var(--ink) 35%, transparent); }
-.btn:active { transform: translateY(1px) scale(.985); }
-/* the drawn arrow (assets/motion: its stem grows and its head moves 3px on hover), the last child of
-   a primary button, a pill or a link: <svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true">
-   <path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg>.
-   It replaces the chosen glyph, so a button never shows two */
-.m-arrow { flex: none; width: 12px; height: 12px; margin-right: -2px; overflow: visible;
-           fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.btn--xl .m-arrow { width: 0.62em; height: 0.62em; stroke-width: 1.4; }
-:is(.btn, .link, .pill):has(> .m-arrow)::after { content: none; display: none; }
-.btn-row { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
 /* on the phone every button row stacks full width */
-@media (max-width: 639px) {
-  .btn-row { flex-direction: column; align-items: stretch; width: 100%; justify-self: stretch; }
-  /* full width, the second action is a text link at the button's height under the filled one (an
-     outline across the whole screen reads as a rule, a pale fill as a switched-off button) */
-  .btn-row > .btn--secondary { background: none; border-color: transparent; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong); }
-}
 
 /* ---------------------------------------------------------------- card (one style) */
 
@@ -214,8 +185,6 @@ main > :is(.hero, .section--hero) {
 .nav__link[aria-current="page"]::after { content: ""; position: absolute; left: var(--s-3); right: var(--s-3); bottom: -2px; height: 2px; border-radius: 2px; background: currentColor; }
 .nav__expand { display: none; }
 .nav__actions { display: flex; align-items: center; gap: var(--s-4); flex: none; }
-/* the bar's button: the page's primary at the one button height (44, 48 with data-buttons="block") */
-.nav__actions .btn { height: var(--btn-h); padding-inline: var(--s-5); font-size: 15px; }
 .nav__actions > .nav__link { padding-inline: var(--s-2); }
 .nav__toggle { display: none; }
 
@@ -270,7 +239,6 @@ main > :is(.hero, .section--hero) {
     display: grid; gap: var(--s-2); position: fixed; left: 0; right: 0; bottom: 0; z-index: 51;
     padding: var(--s-4) var(--gut) calc(var(--s-4) + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line);
   }
-  .nav.is-open .nav__actions .btn { width: 100%; height: 48px; font-size: var(--t-body); }
   /* a text action (Sign in, a phone line) under the buttons, centred at their height */
   .nav.is-open .nav__actions .nav__link { display: inline-flex; order: 2; justify-content: center; height: var(--btn-h); font-size: var(--t-body); }
   body.nav-locked { overflow: hidden; }
@@ -280,7 +248,7 @@ main > :is(.hero, .section--hero) {
 @media (max-width: 1023px) {
   .nav__bar { gap: var(--s-3); }
   .nav:not(.is-open) .nav__actions { display: flex; margin-left: auto; }
-  .nav:not(.is-open) .nav__actions > :not(.btn--primary) { display: none; }
+  .nav:not(.is-open) .nav__actions > .nav__link { display: none; }
   .nav:not(.is-open) .nav__actions + .nav__toggle { margin-left: 0; }
 }
 @media (max-width: 639px) {
@@ -289,7 +257,6 @@ main > :is(.hero, .section--hero) {
      size, and the three sit 8px apart. A name of 17 characters or more is the client's to shorten to its mark. */
   .nav__bar { gap: var(--s-2); }
   .nav__logo { font-size: clamp(16px, 4.6vw, 20px); gap: 6px; white-space: nowrap; }
-  .nav:not(.is-open) .nav__actions .btn { height: 44px; padding-inline: var(--s-3); font-size: var(--t-small); }
 }
 /* no script: the sheet cannot open, so the words stay in the bar (it scrolls sideways) and the dead menu button goes */
 @media (scripting: none) and (max-width: 1023px) {
@@ -360,10 +327,8 @@ footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto;
 .closing__cta { min-height: 0; display: flex; flex-direction: column; gap: var(--s-6); }
 .closing__cta > .section-head { margin-bottom: 0; }
 .closing__cta h2 { max-width: 20ch; }
-.closing__cta.close--type > .btn--xl { align-self: stretch; }
 /* the 640px button (product, service, place) stays within half the .wrap, so it never stands over half of it off its
    right line: on a place's 1200px column it is 600 */
-@media (min-width: 640px) { .closing__cta.close--type > .btn--xl:not(.btn--wide) { width: min(50%, 640px); } }
 .closing__links { display: grid; gap: var(--s-7); }
 .closing__links > .footer__legal { margin-top: 0; }
 .closing__links .footer__lede { font-size: var(--t-lead); max-width: 30ch; }
@@ -382,18 +347,12 @@ footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto;
   .nav__logo { min-height: 44px; }
   .footer ul:has(> li > a) { gap: 0; }
   .footer ul:has(> li > a) > li:not(:has(> a)) { display: flex; align-items: center; min-height: 44px; }
-  :is(.footer ul, .footer__legal, .footer__nav) a:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+  :is(.footer ul, .footer__legal, .footer__nav) a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
   .socials a, .footer__legal .socials a { width: 44px; height: 44px; }
 }
 
 /* ---------------------------------------------------------------- the big close (closing-type) */
-/* the primary button at its one large size, once a page: 640px wide and centred; .btn--wide runs it
-   across the container (Figma's close), on a software page only */
-.btn--xl { width: min(100%, 640px); height: clamp(64px, 1.4vw + 48px, 72px); font: var(--display-weight) clamp(20px, 0.6vw + 16px, 26px)/1 var(--font-display); letter-spacing: var(--display-tracking); }
-.btn--xl.btn--wide { width: 100%; height: clamp(64px, 3vw + 40px, 88px); font-size: clamp(22px, 0.95vw + 18px, 32px); justify-content: space-between; padding-inline: var(--s-7); }
-html[data-buttons] .btn--xl::after { width: 0.6em; height: 0.6em; }
 /* on a phone it is the page's own button at full width, one step taller, so the pair stays one look */
-@media (max-width: 639px) { .btn--xl, .btn--xl.btn--wide { width: 100%; height: 48px; font: 500 18px/1 var(--font-text); letter-spacing: 0; } }
 
 /* ---------------------------------------------------------------- photographs
    .photo-band: one photograph (or film) and a few words. Three uses: the older photo hero

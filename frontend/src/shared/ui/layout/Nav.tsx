@@ -119,7 +119,7 @@ export function Nav({ type, brand, items, primary, secondary, tone = false, skip
   return (
     <header
       ref={navRef}
-      className={cx('nav', (type === 'centre' || type === 'split') && `nav--${type}`, tone && 'nav--tone', sheet.open && 'is-open', sheet.menuOpen && 'm-menu-open')}
+      className={cx('nav group/nav', (type === 'centre' || type === 'split') && `nav--${type}`, tone && 'nav--tone', sheet.open && 'is-open', sheet.menuOpen && 'm-menu-open')}
       data-m-nav="1"
       onPointerLeave={sheet.leaveBar}
     >
@@ -156,7 +156,7 @@ export function Nav({ type, brand, items, primary, secondary, tone = false, skip
         </nav>
         <div className="nav__actions">
           {secondary && <AppLink className="nav__link" href={secondary.href} onClick={secondary.onClick}>{secondary.label}</AppLink>}
-          <Button href={primary.href} onClick={primary.onClick}>{primary.label}</Button>
+          <Button href={primary.href} onClick={primary.onClick} size="nav" className="max-lg:group-[.is-open]/nav:w-full max-lg:group-[.is-open]/nav:h-12">{primary.label}</Button>
         </div>
         <button
           ref={toggleRef}

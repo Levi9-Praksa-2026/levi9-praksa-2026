@@ -54,7 +54,7 @@ export interface ClosingProps {
 
 function CloseRow({ close, title, line, primary, name, headingId }: Pick<ClosingProps, 'close' | 'title' | 'line' | 'primary'> & { name: string; headingId: string }) {
   const button = (big: boolean) => (
-    <Button href={primary.href} onClick={primary.onClick} arrow size={big ? 'xl' : 'md'} wide={big}>{primary.label}</Button>
+    <Button href={primary.href} onClick={primary.onClick} arrow size={big ? 'xl' : 'md'}>{primary.label}</Button>
   )
   if (close.type === 'type') {
     return (

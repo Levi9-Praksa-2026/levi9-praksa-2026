@@ -37,7 +37,8 @@ export function Hero({ kicker, title, lead, places, focus, globeLabel, post, reg
             </p>
             <HeroTitle>{title}</HeroTitle>
             <p className="hero__lead">{lead}</p>
-            <ButtonRow primary={register} secondary={login} arrow />
+            <ButtonRow primary={register} secondary={login} arrow size="hero" className="mt-8"
+              primaryClassName="shadow-[0_14px_30px_-12px_rgb(43_63_160/0.7)] hover:shadow-[0_20px_38px_-14px_rgb(43_63_160/0.8)]" />
           </div>
           <div className="hero__media lv-globe-panel span-6 start-7">
             <Suspense fallback={<div className="og" role="img" aria-label={globeLabel} />}>

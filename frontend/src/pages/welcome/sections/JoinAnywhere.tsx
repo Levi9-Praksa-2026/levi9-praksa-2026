@@ -35,7 +35,7 @@ export function JoinAnywhere({ lead, words, sub, places, register }: JoinAnywher
               <li key={p}>{p}</li>
             ))}
           </ul>
-          <ButtonRow primary={register} arrow />
+          <ButtonRow primary={register} arrow size="hero" primaryClassName="shadow-[0_14px_30px_-12px_rgb(5_10_40/0.5)]" />
         </div>
       </div>
     </Section>

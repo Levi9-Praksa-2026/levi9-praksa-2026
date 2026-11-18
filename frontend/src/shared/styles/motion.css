@@ -26,39 +26,9 @@
 }
 
 /* ---------------------------------------------------------------- buttons */
-html:not([data-motion="off"]) .btn {
-  position: relative;
-  transition: background-color var(--m-out) var(--m-ease), color var(--m-out) var(--m-ease),
-              border-color var(--m-out) var(--m-ease), box-shadow var(--m-out) var(--m-ease),
-              transform var(--m-press) var(--m-ease);
-}
-/* the tone moves toward the ground: a black button greys a little on white, a white one on black */
-html:not([data-motion="off"]) .btn--primary:hover { background: color-mix(in oklab, var(--action) 84%, var(--bg)); }
-html:not([data-motion="off"]) .btn--secondary:hover {
-  background: color-mix(in oklab, var(--bg) 92%, var(--ink));
-  border-color: color-mix(in oklab, var(--ink) 32%, transparent);
-}
-html:not([data-motion="off"]) .btn:hover { transition-duration: var(--m-in), var(--m-in), var(--m-in), var(--m-in), var(--m-press); }
-html:not([data-motion="off"]) .btn:active { transform: translateY(1px) scale(.985); }
 /* the step: a button rises 1px on hover (2px on the large size) and presses 1px down with a 1.5% shrink on
    click; pointer only. The text-link secondary (arrow and block looks) keeps its underline and does not step.
    Reduced motion keeps the colour change only (see the end of this file). */
-@media (hover: hover) and (pointer: fine) {
-  html:not([data-motion="off"]) .btn:hover { transform: translateY(-1px); }
-  html:not([data-motion="off"]) .btn--xl:hover { transform: translateY(-2px); }
-  html:not([data-motion="off"]) .btn:active { transform: translateY(1px) scale(.985); }
-}
-.m-arrow { width: 12px; height: 12px; flex: none; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.6;
-           stroke-linecap: round; stroke-linejoin: round; }
-.m-arrow__stem { opacity: 0; transform: scaleX(.2); transform-origin: 1px 50%; transform-box: fill-box;
-                 transition: opacity var(--m-out) var(--m-ease), transform var(--m-out) var(--m-ease); }
-.m-arrow__head { transition: transform var(--m-out) var(--m-ease); }
-:is(a, button):focus-visible > .m-arrow .m-arrow__stem { opacity: 1; transform: none; transition-duration: var(--m-in); }
-:is(a, button):focus-visible > .m-arrow .m-arrow__head { transform: translateX(3px); transition-duration: var(--m-in); }
-@media (hover: hover) and (pointer: fine) {
-  :is(a, button):hover > .m-arrow .m-arrow__stem { opacity: 1; transform: none; transition-duration: var(--m-in); }
-  :is(a, button):hover > .m-arrow .m-arrow__head { transform: translateX(3px); transition-duration: var(--m-in); }
-}
 
 /* ---------------------------------------------------------------- links: an underline that draws */
 /* .link and links in running text: a rest line, and the ink line draws left to right on hover and
@@ -176,13 +146,7 @@ html:not([data-motion="off"]) :is(.frame__img, .tile__media > img, .m-zoom img, 
 
 /* ---------------------------------------------------------------- reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  html:not([data-motion="off"]) :is(a, .card:has(a), .m-zoom):hover :is(.frame__img, .tile__media > img, img, video),
-  html:not([data-motion="off"]) .btn:is(:hover, :active),
-  :is(a, button):hover > .m-arrow :is(.m-arrow__head, .m-arrow__stem) { transform: none !important; }
-  .m-arrow__stem { opacity: 1; transform: none; }
+  html:not([data-motion="off"]) :is(a, .card:has(a), .m-zoom):hover :is(.frame__img, .tile__media > img, img, video) { transform: none !important; }
   html:not([data-motion="off"]) .nav__menu { transform: none !important; }
   html:not([data-motion="off"]) :is(.link, .m-link, p a:not([class]), .footer ul a, .footer .link) { transition-property: color, opacity, background-color, border-color; }
-  /* a press still shows, as a deeper tone instead of a move */
-  html:not([data-motion="off"]) .btn--primary:active { background: color-mix(in oklab, var(--action) 74%, var(--bg)); }
-  html:not([data-motion="off"]) .btn--secondary:active { background: color-mix(in oklab, var(--bg) 86%, var(--ink)); }
 }

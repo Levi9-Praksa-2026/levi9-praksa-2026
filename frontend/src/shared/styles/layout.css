@@ -57,7 +57,6 @@ h3 { font-stretch: var(--display-stretch, 100%); font-variation-settings: var(--
 .hero__kicker { display: flex; align-items: center; gap: var(--s-2); font-size: var(--t-small); color: var(--muted); }
 .hero__kicker .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
 .hero__text > * + * { margin-top: var(--s-5); }
-.hero__text > .btn-row { margin-top: var(--s-6); }
 .hero__text > .hero__kicker + h1 { margin-top: var(--s-4); }
 .hero__grid { align-items: center; align-content: center; }
 /* a hero grid with a picture as tall as the hero (split, collage, triptych): one row, the whole height */

@@ -85,7 +85,6 @@
 /* The two actions, bigger and bolder: Join now a filled pill with a lift and a blue glow, Log in an
    outlined pill. Same buttons everywhere, larger in the hero and the blue band. */
 .nav__actions { gap: 10px; }
-.nav__actions .btn { min-height: 48px; padding-inline: 24px; font-size: 16px; font-weight: 600; border-radius: 999px; }
 .nav__actions .nav__link {
   display: inline-flex;
   align-items: center;
@@ -99,27 +98,6 @@
 }
 .nav__actions .nav__link:hover { border-color: var(--p-accent); background: color-mix(in oklab, var(--p-accent) 6%, transparent); }
 
-.hero .btn-row, .lv-any .btn-row { gap: 14px; }
-.hero .btn, .lv-any .btn {
-  min-height: 62px;
-  padding-inline: 34px;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0;
-  border-radius: 999px;
-  transition: translate 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
-}
-.hero .btn--primary { box-shadow: 0 14px 30px -12px rgb(43 63 160 / 0.7); }
-.hero .btn--primary:hover { translate: 0 -2px; box-shadow: 0 20px 38px -14px rgb(43 63 160 / 0.8); }
-.hero .btn--primary:active, .lv-any .btn:active { translate: 0 0; }
-.hero .btn--secondary { border: 1.5px solid color-mix(in oklab, var(--p-accent) 35%, transparent); color: var(--p-accent); background: #ffffff; }
-.hero .btn--secondary:hover { border-color: var(--p-accent); }
-.lv-any .btn--primary { box-shadow: 0 14px 30px -12px rgb(5 10 40 / 0.5); }
-.lv-any .btn--primary:hover { translate: 0 -2px; }
-.hero .m-arrow, .lv-any .m-arrow { width: 16px; height: 16px; }
-
 @media (max-width: 767px) {
   .nav__actions .nav__link { display: none; }
-  .nav__actions .btn { min-height: 44px; padding-inline: 18px; font-size: 15px; }
-  .hero .btn, .lv-any .btn { min-height: 56px; font-size: 17px; }
 }
