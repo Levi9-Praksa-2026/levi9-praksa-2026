@@ -31,22 +31,22 @@ export function Hero({ kicker, title, lead, places, focus, globeLabel, post, reg
   return (
     <HeroShell variant="split">
       <div className="wrap relative z-[1] flex h-full flex-col gap-y-12 max-sm:h-auto">
-        <div className={cx('hero-text hero__grid h-full min-h-0 gap-y-card-gap', grid12)}>
-          <div className="hero__text col-span-full min-w-0 lg:col-span-5">
-            <p className="hero__kicker">
-              <span className="dot" aria-hidden="true" />
+        <div className={cx('hero-text h-full min-h-0 grid-rows-[minmax(0,1fr)] content-stretch items-stretch gap-y-card-gap', grid12)}>
+          <div className="col-span-full min-w-0 self-start lg:col-span-5">
+            <p className="flex items-center gap-2 text-small text-muted">
+              <span className="size-2 flex-none rounded-full bg-p-accent" aria-hidden="true" />
               {kicker}
             </p>
-            <HeroTitle>{title}</HeroTitle>
-            <p className="hero__lead">{lead}</p>
+            <HeroTitle className="mt-4">{title}</HeroTitle>
+            <p className="mt-6 max-w-[42ch] text-[clamp(17px,.286vw+15.89px,20px)] leading-normal text-ink">{lead}</p>
             <ButtonRow primary={register} secondary={login} arrow size="hero" className="mt-8"
               primaryClassName="shadow-[0_14px_30px_-12px_rgb(43_63_160/0.7)] hover:shadow-[0_20px_38px_-14px_rgb(43_63_160/0.8)]" />
           </div>
-          <div className="hero__media lv-globe-panel col-span-full min-w-0 lg:col-span-6 lg:col-start-7">
+          <div className="hero__media relative col-span-full h-full min-h-0 min-w-0 max-lg:mt-8 max-lg:h-auto max-lg:min-h-[240px] lg:col-span-6 lg:col-start-7">
             <Suspense fallback={<div className="og" role="img" aria-label={globeLabel} />}>
               <OfficeGlobe places={places} focus={focus} label={globeLabel} />
             </Suspense>
-            <div className="ly-float">
+            <div className="absolute bottom-6 left-6 z-[2] grid w-[min(300px,calc(100%-48px))] gap-1 rounded-md border border-line bg-bg p-4 text-ink max-md:hidden">
               <PostCard post={post} />
             </div>
           </div>

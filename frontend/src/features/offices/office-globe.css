@@ -74,3 +74,8 @@
   background: #ffffff;
   font-weight: 500;
 }
+
+/* Phone: smaller labels. */
+@media (max-width: 767px) {
+  .og-label { font-size: 11px; padding: 3px 8px 3px 6px; gap: 4px; }
+}

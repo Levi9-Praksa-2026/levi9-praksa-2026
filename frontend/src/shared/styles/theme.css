@@ -124,14 +124,14 @@
   --p-accent-ink: #ffffff;
   --p-action: #2b3fa0;
   --p-action-ink: #ffffff;
-  --p-inv-bg: #141833;
-  --p-inv-surface: #212640;
+  --p-inv-bg: #22348f;
+  --p-inv-surface: #2b3fa0;
   --p-inv-ink: #ffffff;
-  --p-inv-muted: #9c9fad;
+  --p-inv-muted: #c9d0f2;
   --p-inv-accent: #ffffff;
-  --p-inv-accent-ink: #141833;
+  --p-inv-accent-ink: #22348f;
   --p-inv-action: #ffffff;
-  --p-inv-action-ink: #141833;
+  --p-inv-action-ink: #22348f;
   --ground-bg: #d9ccb7; --ground-surface: #e9e0d2; --ground-ink: #2a2622; --ground-muted: #5a534a; --ground-accent: #a8794a;
 
   /* fonts */
@@ -168,7 +168,7 @@
   --section: 40px;      /* only a .section outside main (the design system's demo pages); every main > section and
                            footer.closing take --padt and --padb */
   --section-band: 56px; /* the same for an older footer outside footer.closing */
-  --head-gap: 48px;     /* the one heading-to-content gap, 32 on a phone (layout.css reads it as --ly-head-gap) */
+  --head-gap: 48px;     /* the one heading-to-content gap, 32 on a phone */
   --card-pad: 16px;     /* card padding (cards.css sets its own for cards with a panel) */
   --card-gap: 16px;     /* gap between cards */
 
@@ -210,6 +210,8 @@ html[data-radius] .panel { --p-r: var(--r-md); }
   :root { --nav: 56px; --padt: 96px; --padb: 48px; --hgap: 40px; --hpadb: 24px; --gut: 24px; --gutter: 12px; --card-gap: 12px; --head-gap: 32px; }
 }
 @media (max-width: 1023px) { :root { --flow-pad: 96px; } }
+  /* a short phone (under 700px tall): the hero keeps its button on the first screen */
+  @media (max-width: 639px) and (max-height: 700px) { :root { --hgap: 24px; } }
 @media (max-width: 639px) { :root { --flow-pad: 64px; } }
 @media (min-width: 640px) {
   :root { --gut: 48px; --section: 48px; --section-band: 72px; --card-pad: 24px; }

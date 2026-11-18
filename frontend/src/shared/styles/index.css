@@ -13,7 +13,6 @@
 @import "./theme.css";
 @import "./base.css" layer(ui);
 @import "./cards.css" layer(ui);
-@import "./layout.css" layer(ui);
 @import "./icons.css" layer(ui);
 @import "tailwindcss/utilities.css" layer(utilities);
 
