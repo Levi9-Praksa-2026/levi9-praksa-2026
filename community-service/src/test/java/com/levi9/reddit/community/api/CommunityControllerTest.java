@@ -1,9 +1,13 @@
 package com.levi9.reddit.community.api;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -13,6 +17,7 @@ import com.levi9.reddit.community.contracts.CommunityResponse;
 import com.levi9.reddit.community.contracts.CommunitySort;
 import com.levi9.reddit.community.contracts.PageResponse;
 import com.levi9.reddit.community.core.exception.CommunityNotFoundException;
+import com.levi9.reddit.community.infrastructure.CommunityMembershipService;
 import com.levi9.reddit.community.infrastructure.CommunityService;
 import java.time.Instant;
 import java.util.List;
@@ -21,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -35,6 +41,9 @@ class CommunityControllerTest {
 
     @MockitoBean
     private CommunityService communityService;
+
+    @MockitoBean
+    private CommunityMembershipService membershipService;
 
     @Test
     void findCommunities_returnsOnlyNameAndMemberCountPerItem() throws Exception {
@@ -148,6 +157,44 @@ class CommunityControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.errorType").value("COMMUNITY_NOT_FOUND"));
+    }
+
+    @Test
+    void join_usesJwtSubjectAsUserIdAndReturnsNoContent() throws Exception {
+        mockMvc.perform(put("/api/communities/{name}/members/me", "backend")
+                        .with(jwt().jwt(j -> j.subject("42"))))
+                .andExpect(status().isNoContent());
+
+        verify(membershipService).join("backend", 42L);
+    }
+
+    @Test
+    void leave_usesJwtSubjectAsUserIdAndReturnsNoContent() throws Exception {
+        mockMvc.perform(delete("/api/communities/{name}/members/me", "backend")
+                        .with(jwt().jwt(j -> j.subject("42"))))
+                .andExpect(status().isNoContent());
+
+        verify(membershipService).leave("backend", 42L);
+    }
+
+    @Test
+    void join_withoutTokenIsRejected() throws Exception {
+        mockMvc.perform(put("/api/communities/{name}/members/me", "backend"))
+                .andExpect(status().is4xxClientError());
+
+        verifyNoInteractions(membershipService);
+    }
+
+    @Test
+    void join_unknownCommunityReturnsProblemDetail() throws Exception {
+        willThrow(new CommunityNotFoundException("missing"))
+                .given(membershipService).join("missing", 42L);
+
+        mockMvc.perform(put("/api/communities/{name}/members/me", "missing")
+                        .with(jwt().jwt(j -> j.subject("42"))))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.errorType").value("COMMUNITY_NOT_FOUND"));
     }
 }
