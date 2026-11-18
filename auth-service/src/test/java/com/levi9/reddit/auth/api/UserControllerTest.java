@@ -5,11 +5,15 @@ import com.levi9.reddit.auth.core.exception.ForbiddenException;
 import com.levi9.reddit.auth.core.exception.NotFoundException;
 import com.levi9.reddit.auth.core.exception.UnauthorizedException;
 import com.levi9.reddit.auth.core.service.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.test.context.TestSecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,6 +21,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -28,6 +33,70 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @AfterEach
+    void clearAuthentication() {
+        TestSecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void changesPasswordForAuthenticatedUser() throws Exception {
+        authenticateAs("42");
+        mvc.perform(put("/api/users/me/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"currentPassword":"old secret","newPassword":"new secret"}
+                                """))
+                .andExpect(status().isNoContent());
+
+        verify(userService).changePassword(42L, "old secret", "new secret");
+    }
+
+    @Test
+    void rejectsPasswordChangeWithoutAuthenticatedUserId() throws Exception {
+        mvc.perform(put("/api/users/me/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"currentPassword":"old secret","newPassword":"new secret"}
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorType").value("INVALID_CREDENTIALS"));
+
+        verifyNoInteractions(userService);
+    }
+
+    @Test
+    void rejectsPasswordChangeWithInvalidJwtSubject() throws Exception {
+        authenticateAs("reader");
+        mvc.perform(put("/api/users/me/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"currentPassword":"old secret","newPassword":"new secret"}
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorType").value("INVALID_CREDENTIALS"));
+
+        verifyNoInteractions(userService);
+    }
+
+    @Test
+    void rejectsNewPasswordBeyondBcryptByteLimit() throws Exception {
+        authenticateAs("42");
+        mvc.perform(put("/api/users/me/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"currentPassword":"old secret","newPassword":"%s"}
+                                """.formatted("é".repeat(37))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].message").value("New password must be at most 72 UTF-8 bytes"));
+
+        verifyNoInteractions(userService);
+    }
+
+    private static void authenticateAs(String subject) {
+        Jwt jwt = Jwt.withTokenValue("test-token").header("alg", "RS256").subject(subject).build();
+        TestSecurityContextHolder.setAuthentication(new JwtAuthenticationToken(jwt));
+    }
 
     @Test
     void deletesUser() throws Exception {

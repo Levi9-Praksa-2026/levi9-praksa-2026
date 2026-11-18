@@ -26,6 +26,16 @@ public class UserService {
     }
 
     @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = users.findUserById(userId)
+                .filter(candidate -> !candidate.isDeleted())
+                .orElseThrow(() -> new NotFoundException(ErrorType.USER_NOT_FOUND, "User not found"));
+        verifyPassword(user, currentPassword);
+        user.changePasswordHash(passwords.encode(newPassword));
+        refreshTokens.revokeAllActiveByUserId(userId, Instant.now());
+    }
+
+    @Transactional
     public void delete(Long userId, String password) {
         User user = users.findById(userId)
                 .filter(candidate -> !candidate.isDeleted())
@@ -33,10 +43,14 @@ public class UserService {
         if (user.getRole() != UserRole.USER) {
             throw new ForbiddenException(ErrorType.ACCOUNT_DELETION_FORBIDDEN, "This account cannot be deleted");
         }
+        verifyPassword(user, password);
+        user.delete();
+        refreshTokens.revokeAllActiveByUserId(userId, Instant.now());
+    }
+
+    private void verifyPassword(User user, String password) {
         if (!passwords.matches(password, user.getPasswordHash())) {
             throw new UnauthorizedException(ErrorType.INVALID_CREDENTIALS, "Invalid password");
         }
-        user.delete();
-        refreshTokens.revokeAllActiveByUserId(userId, Instant.now());
     }
 }

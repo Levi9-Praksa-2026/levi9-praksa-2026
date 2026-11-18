@@ -118,6 +118,10 @@ public class User {
         return createdAt;
     }
 
+    public void changePasswordHash(String passwordHash) {
+        this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
+    }
+
     public void delete() {
         this.deleted = true;
     }
