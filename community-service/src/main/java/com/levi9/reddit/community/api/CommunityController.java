@@ -6,6 +6,7 @@ import com.levi9.reddit.community.contracts.CommunitySort;
 import com.levi9.reddit.community.contracts.CreateCommunityRequest;
 import com.levi9.reddit.community.contracts.PageResponse;
 import com.levi9.reddit.community.contracts.UpdateCommunityRequest;
+import com.levi9.reddit.community.core.model.Community;
 import com.levi9.reddit.community.infrastructure.CommunityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +17,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.Locale;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -38,6 +39,8 @@ public class CommunityController {
         this.communityService = communityService;
     }
 
+    // TODO: GET /api/communities?status=inactive (ADMIN) from the endpoints doc is not implemented yet.
+    // A URL rule cannot protect a query parameter — when added, check the role in code on this handler.
     @GetMapping
     @Operation(summary = "Active communities, paginated; each item has only its name and member count")
     public PageResponse<CommunityResponse> findCommunities(
@@ -58,34 +61,34 @@ public class CommunityController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a community (ADMIN)")
-    public CommunityDetailResponse create(@Valid @RequestBody CreateCommunityRequest request) {
-        return communityService.create(request.name(), request.description(), MockCaller.ID);
+    public CommunityDetailResponse create(
+            @Valid @RequestBody CreateCommunityRequest request,
+            Authentication authentication) {
+        // With the mock filter the principal is the user id; with real JWTs getName() is the sub claim.
+        long creatorId = Long.parseLong(authentication.getName());
+        return communityService.create(request.name(), request.description(), creatorId);
     }
 
     @PatchMapping("/{name}")
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Edit the description of a community (ADMIN); the name never changes")
     public void updateDescription(
-            @PathVariable @Pattern(regexp = "[A-Za-z0-9_-]{1,50}") String name,
+            @PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name,
             @Valid @RequestBody UpdateCommunityRequest request) {
         communityService.updateDescription(name, request.description());
     }
 
     @DeleteMapping("/{name}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Shut down a community (ADMIN): is_active = false, no row is deleted")
-    public void deactivate(@PathVariable @Pattern(regexp = "[A-Za-z0-9_-]{1,50}") String name) {
+    public void deactivate(@PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name) {
         communityService.deactivate(name);
     }
 
     @PostMapping("/{name}/reactivate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Undo a shutdown (ADMIN)")
-    public void reactivate(@PathVariable @Pattern(regexp = "[A-Za-z0-9_-]{1,50}") String name) {
+    public void reactivate(@PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name) {
         communityService.reactivate(name);
     }
 }

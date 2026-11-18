@@ -42,10 +42,12 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 ## community-service
 
 ### Mock authentication
-- **Local:** `app.mock-auth.enabled=true` (the default) puts a hard-coded `ROLE_ADMIN` caller with user id `1`
-  into the security context. auth-service cannot issue access tokens yet, so this keeps the ADMIN endpoints usable.
-- **Production:** set `APP_MOCKAUTH_ENABLED=false` and wire the real JWT resource server as described in
-  `security-convention.md`. Leaving the flag on would let anyone perform ADMIN operations.
+- **Local:** `docker-compose.yml` sets `APP_MOCKAUTH_ENABLED=true`, which puts a hard-coded `ROLE_ADMIN` caller with
+  user id `1` into the security context. auth-service cannot issue access tokens yet, so this keeps the ADMIN
+  endpoints usable. Startup logs a WARN while the mock filter is registered.
+- **Production:** the flag defaults to `false` in code, so leave `APP_MOCKAUTH_ENABLED` unset or `false` and wire the
+  real JWT resource server as described in `security-convention.md`. Turning it on would let anyone perform ADMIN
+  operations.
 
 ## post-service
 

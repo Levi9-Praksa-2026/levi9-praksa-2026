@@ -51,7 +51,11 @@ class CommunityAdminSecurityTest {
                         .content(BODY))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Unauthorized"))
                 .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.detail").value("Authentication is required"))
+                .andExpect(jsonPath("$.instance").value("/api/communities"))
+                .andExpect(jsonPath("$.properties").doesNotExist())
                 .andExpect(jsonPath("$.errorType").doesNotExist());
     }
 
@@ -63,8 +67,23 @@ class CommunityAdminSecurityTest {
                         .content(BODY))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Forbidden"))
                 .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.detail").value("Access is denied"))
+                .andExpect(jsonPath("$.instance").value("/api/communities"))
+                .andExpect(jsonPath("$.properties").doesNotExist())
                 .andExpect(jsonPath("$.errorType").doesNotExist());
+    }
+
+    @Test
+    void create_asUserWithInvalidBody_isForbiddenBeforeValidation() throws Exception {
+        mockMvc.perform(post("/api/communities")
+                        .with(user("regular").roles("USER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"bad name!","description":null}
+                                """))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -73,7 +92,7 @@ class CommunityAdminSecurityTest {
                 .willReturn(new CommunityDetailResponse(1L, "backend", "Backend discussion", 0, Instant.now()));
 
         mockMvc.perform(post("/api/communities")
-                        .with(user("admin").roles("ADMIN"))
+                        .with(user("1").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(BODY))
                 .andExpect(status().isCreated());

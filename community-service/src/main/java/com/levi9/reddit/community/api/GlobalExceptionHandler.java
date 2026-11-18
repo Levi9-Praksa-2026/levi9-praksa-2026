@@ -37,7 +37,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     ProblemDetail handleConstraintViolation(ConstraintViolationException ex) {
         List<FieldViolation> errors = ex.getConstraintViolations().stream()
-                .map(v -> new FieldViolation(v.getPropertyPath().toString(), v.getMessage()))
+                .map(v -> new FieldViolation(fieldName(v.getPropertyPath().toString()), v.getMessage()))
                 .toList();
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Request validation failed");
         problem.setProperty("errors", errors);
@@ -89,6 +89,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             case NotFoundException _ -> HttpStatus.NOT_FOUND;
             case ConflictException _ -> HttpStatus.CONFLICT;
         };
+    }
+
+    private static String fieldName(String propertyPath) {
+        int dot = propertyPath.lastIndexOf('.');
+        return dot < 0 ? propertyPath : propertyPath.substring(dot + 1);
     }
 
     record FieldViolation(String field, String message) {}

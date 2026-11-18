@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestPropertySource(properties = "app.mock-auth.enabled=true")
 class CommunityServiceApplicationTests {
 
     @Autowired
@@ -190,14 +192,14 @@ class CommunityServiceApplicationTests {
 
     @Test
     @Transactional
-    void creatingSameNameAgainReturnsConflict() throws Exception {
+    void creatingNameWithDifferentCaseReturnsConflict() throws Exception {
         communityRepository.save(new Community("backend", 1L));
         entityManager.flush();
 
         mockMvc.perform(post("/api/communities")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"BACKEND","description":null}
+                                {"name":"Backend","description":null}
                                 """))
                 .andExpect(status().isConflict())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))

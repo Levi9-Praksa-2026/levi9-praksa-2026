@@ -31,11 +31,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(CommunityController.class)
 @Import({SecurityConfig.class, GlobalExceptionHandler.class})
+@TestPropertySource(properties = "app.mock-auth.enabled=true")
 class CommunityControllerTest {
 
     private static final Instant CREATED = Instant.parse("2026-11-01T10:00:00Z");
@@ -163,7 +165,7 @@ class CommunityControllerTest {
 
     @Test
     void create_returnsCreatedCommunity() throws Exception {
-        given(communityService.create("backend", "Backend discussion", MockCaller.ID))
+        given(communityService.create("backend", "Backend discussion", 1L))
                 .willReturn(new CommunityDetailResponse(1L, "backend", "Backend discussion", 0, CREATED));
 
         mockMvc.perform(post("/api/communities")
@@ -177,7 +179,7 @@ class CommunityControllerTest {
                 .andExpect(jsonPath("$.name").value("backend"))
                 .andExpect(jsonPath("$.description").value("Backend discussion"));
 
-        verify(communityService).create("backend", "Backend discussion", MockCaller.ID);
+        verify(communityService).create("backend", "Backend discussion", 1L);
     }
 
     @Test
@@ -255,6 +257,17 @@ class CommunityControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"description\":\"" + description + "\"}"))
                 .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(communityService);
+    }
+
+    @Test
+    void updateDescription_withEmptyBody_returnsBadRequest() throws Exception {
+        mockMvc.perform(patch("/api/communities/{name}", "backend")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("request"));
 
         verifyNoInteractions(communityService);
     }
