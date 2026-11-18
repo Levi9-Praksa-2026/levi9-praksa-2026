@@ -25,19 +25,15 @@ h2 { font-size: var(--t-h2); line-height: 1.1; }
 h3 { font-size: var(--t-h3); line-height: 1.2; }
 h4, .t-card { font-family: var(--font-text); font-weight: 500; font-size: var(--t-card); line-height: 1.3; letter-spacing: -0.01em; }
 p { text-wrap: pretty; }
-.t-lead  { font-size: var(--t-lead); line-height: 1.5; }
 .t-small { font-size: var(--t-small); line-height: 1.5; }
-.t-label { font-size: var(--t-label); font-weight: 500; line-height: 1.4; letter-spacing: 0.01em; }
 .muted { color: var(--muted); }
-.measure { max-width: 62ch; }
 :focus-visible { outline: 2px solid var(--action); outline-offset: 2px; border-radius: 2px; }
 ::selection { background: color-mix(in oklab, var(--accent) 30%, transparent); }
 
 /* ---------------------------------------------------------------- grid */
-.wrap, .container { width: min(100% - 2 * var(--gut), var(--container)); margin-inline: auto; padding-inline: 0; }
+.wrap { width: min(100% - 2 * var(--gut), var(--container)); margin-inline: auto; padding-inline: 0; }
 .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: var(--card-gap); }
 .grid > * { min-width: 0; grid-column: 1 / -1; }
-.section { padding-block: var(--section); }
 
 /* ---------------------------------------------------------------- one section per screen
    The page is a stack of screens. Framed at scrollY = k x the screen height, a shot shows exactly one
@@ -60,23 +56,6 @@ main > :is(section, .section) > :is(.wrap, .container), footer.closing > .wrap {
 main > :is(section, .section) > :is(.wrap, .container):not(.grid) { display: flex; flex-direction: column; }
 /* a .wrap that is the section's grid too (class="wrap grid"): its rows start at the top */
 main > :is(section, .section) > :is(.wrap, .container).grid { align-content: start; }
-/* .fill: the block that takes what the screen leaves under the heading (a photograph, a frame) */
-main > :is(section, .section) > .wrap > .fill { flex: 1 1 0; min-height: 0; }
-/* two screens as two groups: row 1 the h2 and the first group, row 2 the rest (no second h2), starting
-   --padt under the second screen's top, so the second shot looks like any other section */
-main > :is(section, .section).g2 { --h: 2; }
-main > :is(section, .section).g2 > :is(.wrap, .container) { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); row-gap: calc(var(--padt) + var(--padb) + var(--bar)); }
-main > :is(section, .section).g2 > :is(.wrap, .container) > * { min-height: 0; align-self: start; }
-main > :is(section, .section).g2 > :is(.wrap, .container) > :is(.group, .fill) { align-self: stretch; }
-/* a group: one screen's part of a .g2 section (its h2 and first rows, or the rest) */
-.group { display: flex; flex-direction: column; min-height: 0; }
-/* each screen's card row runs down to that screen's foot (the cards stretch, their panels grow), so
-   the second screen of a .g2 is never a short row over an empty ground; both rows end on the same line */
-@media (min-width: 1024px) {
-  main > :is(section, .section).g2 > .wrap > .grid:last-child,
-  main > :is(section, .section).g2 > .wrap > .group > .grid:last-child { align-self: stretch; flex: 1 1 auto; min-height: 0; }
-}
-.group > .fill { flex: 1 1 0; min-height: 0; }
 @media (min-width: 640px) and (max-width: 1279px) {
   main > :is(section, .section):not(.hero, .section--hero), footer.closing {
     height: auto; min-height: calc(var(--h, 1) * 100vh); min-height: calc(var(--h, 1) * 100svh);
@@ -103,14 +82,6 @@ main > :is(section, .section).g2 > :is(.wrap, .container) > :is(.group, .fill) {
     display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr; grid-auto-rows: auto;
   }
   main > :is(section, .section):not(.hero, .section--hero) > :is(.wrap, .container), footer.closing > .wrap { height: auto; }
-  main > :is(section, .section).g2m { --hm: 2; }
-  main > :is(section, .section).g2m > :is(.wrap, .container) { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); row-gap: calc(var(--padt) + var(--padb) + var(--bar)); }
-  /* stacked in one, the two groups keep the open cards' 32px, so the first group's last panel never meets
-     the next card's title */
-  main > :is(section, .section).g2:not(.g2m) > :is(.wrap, .container) { display: flex; row-gap: var(--s-6); }
-  /* what the two screens leave goes around the second group, so it opens below the header, not on the fold */
-  main > :is(section, .section).g2:not(.g2m) > :is(.wrap, .container) > :last-child { margin-block: auto; }
-  main > :is(section, .section).g2:not(.g2m) > :is(.wrap, .container) > * { align-self: stretch; }
 }
 /* ---------------------------------------------------------------- flow sizing
    <html data-sizing="flow">: a clean override of the screens rules above. Every
@@ -126,13 +97,6 @@ main > :is(section, .section).g2 > :is(.wrap, .container) > :is(.group, .fill) {
 [data-sizing="flow"] footer.closing { padding-bottom: calc(var(--flow-pad) + var(--bar)); }
 [data-sizing="flow"] main > :is(section, .section):not(.hero, .section--hero, [data-moment], [data-big-scene]) > :is(.wrap, .container),
 [data-sizing="flow"] footer.closing > .wrap { height: auto; flex: none; }
-
-/* a layer: the photograph or ground of a whole section, under its words, edge to edge */
-main > :is(section, .section) > :is(img, video, canvas, picture).layer,
-footer.closing > :is(img, video, canvas, picture).layer {
-  position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: var(--pos, 50% 50%);
-}
-main > :is(section, .section) > picture.layer > img { width: 100%; height: 100%; object-fit: cover; }
 
 /* the hero: exactly the first screen, the fixed header over its top. Its words start --hgap under the
    header (--photo adds a full-bleed photograph's height above them on a place); its content ends
@@ -153,54 +117,15 @@ main > :is(.hero, .section--hero) {
   main > :is(.hero, .section--hero):has(> :is(.wrap, .container)) { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr; grid-auto-rows: auto; }
   main > :is(.hero, .section--hero) > :is(.wrap, .container) { height: auto; }
 }
-:is(.hero, .section--hero) > .wrap > .hero-strip { grid-row: 2; max-height: 96px; }
-@media (max-width: 639px) { :is(.hero, .section--hero) > .wrap > .hero-strip { display: none; } }
-/* a phone stacks a two-screen section's four open tiles into its two screens: their panels take 180px (a wide
-   crop), so the h2 and the first two tiles of two lines each end on the first screen and the four inside both,
-   not a third of a screen past. A page that sets its group's own --p-h (#features .panel) sets its phone value
-   too, as the starter does */
-@media (max-width: 639px) { main > :is(section, .section).g2 .card--open > .panel { --p-h: 180px; } }
-/* spans: desktop >= 1024. Tablet 640-1023: text cards on span-3 and span-6 go two-up; cards with a
-   panel (a visual needs the width; the one exception is a span-6 pair, below)
-   and everything else (split text and visuals, span-4 cards, span-5/7/8 blocks) take the full row, so a split stacks and no row is left half empty. Phone < 640: one column. */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .grid > .card.span-3:not(:has(> .panel)), .grid > .card.span-6:not(:has(> .panel)) { grid-column: auto / span 6; }
-  /* the one exception with a panel: a 2x2 (or a pair) of span-6 cards stays two-up from 720px (a panel
-     of about 310px and more, wide enough for a shared fragment), so four cards take one or two screens
-     at 768-820 instead of a card per row (four stacked panels run past two screens). Split cards and
-     every other span keep the full row. Under 720 a card per row. */
-  @media (min-width: 720px) {
-    .grid > .card.span-6:has(> .panel):not(.card--split) { grid-column: auto / span 6; }
-    .grid > .card.span-6:has(> .panel):not(.card--split):nth-child(odd of .card.span-6):nth-last-child(1 of .card.span-6) { grid-column: 1 / -1; }
-  }
-}
 @media (min-width: 1024px) {
-  .span-2  { grid-column: auto / span 2; }
   .span-3  { grid-column: auto / span 3; }
   .span-4  { grid-column: auto / span 4; }
   .span-5  { grid-column: auto / span 5; }
-  .span-6  { grid-column: auto / span 6; }
-  .span-7  { grid-column: auto / span 7; }
-  .span-8  { grid-column: auto / span 8; }
-  .span-9  { grid-column: auto / span 9; }
-  .span-10 { grid-column: auto / span 10; }
-  .span-12 { grid-column: auto / span 12; } .start-7 { grid-column-start: 7; }
-  .start-10 { grid-column-start: 10; }
-}
-/* 1024-1279: a span-4 card's panel would be about 220px wide, too narrow for real UI. Cards with a
-   panel on span-4 go two-up, a span-8 one takes the row, and an odd last one takes the row too
-   (steps, proof row: two, then one wide; bento: the wide card, then the four small ones two by two) */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .grid > .card.span-4:has(> .panel) { grid-column: auto / span 6; }
-  .grid > .card.span-8:has(> .panel),
-  .grid > .card.span-4:has(> .panel):nth-child(odd of .card.span-4):nth-last-child(1 of .card.span-4) { grid-column: 1 / -1; }
+  .span-6  { grid-column: auto / span 6; } .start-7 { grid-column-start: 7; }
 }
 
 /* ---------------------------------------------------------------- section heading */
 .section-head { max-width: 760px; margin-bottom: var(--head-gap); display: grid; gap: var(--s-4); }
-/* a head row: the h2 (and its line) left, one link or the section's button at the right line */
-.section-head--split { max-width: none; display: flex; align-items: end; justify-content: space-between; gap: var(--s-5); flex-wrap: wrap; }
-.section-head--split > div { display: grid; gap: var(--s-4); max-width: 760px; }
 .section-head p { color: var(--ink); font-size: var(--t-lead); line-height: 1.5; max-width: 60ch; }
 
 /* ---------------------------------------------------------------- buttons (one pair, a chosen look)
@@ -224,19 +149,7 @@ main > :is(.hero, .section--hero) {
 /* the ground's own colour with a clear border: never grey on grey, readable on an effect too */
 .btn--secondary { background: var(--bg); color: var(--ink); border-color: var(--line-strong); }
 .btn--secondary:hover { background: color-mix(in oklab, var(--bg) 94%, var(--ink)); border-color: color-mix(in oklab, var(--ink) 35%, transparent); }
-.btn--sm { height: var(--btn-h-sm); padding: 0 var(--s-4); font-size: var(--t-small); }
-html:is([data-buttons="pill"], [data-buttons="tonal"]) .btn--secondary { background: color-mix(in oklab, var(--ink) 8%, var(--bg)); border-color: transparent; }
-html:is([data-buttons="pill"], [data-buttons="tonal"]) .btn--secondary:hover { background: color-mix(in oklab, var(--ink) 14%, var(--bg)); border-color: transparent; }
-/* arrow and block: the secondary is a text link at the button's height (no box: one button look) */
-html:is([data-buttons="arrow"], [data-buttons="block"]) .btn--secondary {
-  background: none; border-color: transparent; padding-inline: var(--s-2);
-  text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong);   /* the .link look */
-}
-html:is([data-buttons="arrow"], [data-buttons="block"]) .btn--secondary:hover { background: none; border-color: transparent; text-decoration-color: currentColor; }
-@media (hover: hover) and (pointer: fine) { html:is([data-buttons="pill"], [data-buttons="arrow"]) .btn:hover::after { transform: translateX(3px); } }
 .btn:active { transform: translateY(1px) scale(.985); }
-.btn--arrow::after { content: "\2192"; transition: transform var(--dur) var(--ease); }
-@media (hover: hover) and (pointer: fine) { .btn--arrow:hover::after { transform: translateX(3px); } }
 /* the drawn arrow (assets/motion: its stem grows and its head moves 3px on hover), the last child of
    a primary button, a pill or a link: <svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true">
    <path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg>.
@@ -252,30 +165,9 @@ html:is([data-buttons="arrow"], [data-buttons="block"]) .btn--secondary:hover { 
   /* full width, the second action is a text link at the button's height under the filled one (an
      outline across the whole screen reads as a rule, a pale fill as a switched-off button) */
   .btn-row > .btn--secondary { background: none; border-color: transparent; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong); }
-  .section-head--split > .btn { width: 100%; }
 }
-.link { display: inline-flex; align-items: center; gap: var(--s-2); font-weight: 500; color: var(--ink);
-        text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px;
-        transition: text-decoration-color var(--dur) var(--ease); }
-.link:hover { text-decoration-color: currentColor; }
-.link::after { content: "\2192"; display: inline-block; text-decoration: none; transition: transform var(--dur) var(--ease); }
-@media (hover: hover) and (pointer: fine) { .link:hover::after { transform: translateX(3px); } }
-.pill { display: inline-flex; align-items: center; gap: var(--s-2); height: 32px; padding: 0 var(--s-3);
-        border-radius: 999px; border: 1px solid var(--line); background: var(--card);
-        font-size: var(--t-label); color: var(--ink); }
-.pill .muted { color: var(--muted); }
 
 /* ---------------------------------------------------------------- card (one style) */
-.card {
-  display: flex; flex-direction: column; gap: var(--s-2); min-width: 0;
-  background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--card-pad);
-}
-/* small titles in the text face: a display face at 20px (a condensed or hairline serif) reads smaller than the body */
-.card > h3,
-.card > h4 { font-family: var(--font-text); font-weight: 500; font-size: var(--t-card); line-height: 1.3; letter-spacing: -0.01em; }
-/* the type floor: text people read is 16px or more in ink; cards.css sets it for its
-   card text, this for a plain card's lines */
-.card > p { color: var(--ink); font-size: var(--t-body); max-width: 52ch; }
 
 /* ---------------------------------------------------------------- visuals: panels and frames
    A card's .panel (the inset visual), .stage and the placements (.at-corner, .at-rise, .at-over,
@@ -284,19 +176,7 @@ html:is([data-buttons="arrow"], [data-buttons="block"]) .btn--secondary:hover { 
    The grounds' colours: the page script lights every ground that holds UI (see there). */
 :not(.card) > .panel { border-radius: var(--p-r, var(--r-md)); }   /* a panel on its own: four round corners */
 .menu-card .panel { --p-h: 160px; }
-.frame {
-  position: relative; isolation: isolate; overflow: clip; display: flex; align-items: center; justify-content: center;
-  background: var(--surface); border-radius: var(--r-lg); border: 1px solid var(--line);
-  padding: clamp(var(--s-4), 4vw, var(--s-7));
-}
-/* a zero-width spacer keeps --ratio (height / width) as the frame's minimum height */
-.frame::before { content: ""; flex: none; width: 0; padding-top: var(--ratio, 0px); }
-/* an object or scene (assets/objects) and a photograph (.frame__img) fill the frame themselves */
-.frame > :not(canvas, .stage, .loop-pause, .frame__fx, .frame__img, [data-print], [data-scene], .print3d) { position: relative; max-width: 100%; min-width: 0; }
 :is(.frame, .panel) > .frame__img { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
-/* on a light page the buttons on a lit ground keep the page's own action colour: one action, one look
-   (a dark page keeps the lit ground's ink, which reads on the bright ground) */
-html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) { --action: var(--p-action); --action-ink: var(--p-action-ink); }
 
 /* ---------------------------------------------------------------- navigation */
 /* The header: fixed, opaque, one hairline under it, the same at every depth (no blur, no shadow, no
@@ -311,23 +191,6 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
 .nav__logo { display: inline-flex; align-items: center; gap: var(--s-2); font: 500 22px/1 var(--font-display); letter-spacing: -0.02em; flex: none; }
 @media (max-width: 639px) { .nav__logo { font-size: 20px; } }
 .nav__logo svg, .nav__logo img { height: 24px; width: auto; }
-/* the brand's mark beside its name, in the accent (the client's logo replaces both). Dealt shapes:
-   <span class="mark" data-mark="dots|arc|ring|petal|leaf|stack" aria-hidden="true"></span> */
-.mark { display: inline-block; flex: none; width: 22px; height: 22px; background: var(--accent);
-        -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
-.mark[data-mark="dots"]  { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='6.5' cy='6.5' r='4.5'/%3E%3Ccircle cx='17.5' cy='6.5' r='4.5'/%3E%3Ccircle cx='6.5' cy='17.5' r='4.5'/%3E%3Crect x='13' y='13' width='9' height='9' rx='1.5'/%3E%3C/svg%3E"); }
-.mark[data-mark="arc"]   { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2.5 21.5V12a9.5 9.5 0 0 1 19 0v9.5h-6V12a3.5 3.5 0 0 0-7 0v9.5z'/%3E%3C/svg%3E"); }
-.mark[data-mark="ring"]  { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm0 5.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z'/%3E%3C/svg%3E"); }
-.mark[data-mark="petal"] { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='6.6' r='5'/%3E%3Ccircle cx='17.4' cy='12' r='5'/%3E%3Ccircle cx='12' cy='17.4' r='5'/%3E%3Ccircle cx='6.6' cy='12' r='5'/%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3C/svg%3E"); }
-.mark[data-mark="leaf"]  { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 21C3 10 10 3 21 3c0 11-7 18-18 18z'/%3E%3C/svg%3E"); }
-.mark[data-mark="stack"] { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='2' y='2.5' width='20' height='5.5' rx='2.75'/%3E%3Crect x='2' y='9.25' width='14' height='5.5' rx='2.75'/%3E%3Crect x='2' y='16' width='8' height='5.5' rx='2.75'/%3E%3C/svg%3E"); }
-/* initial: the name's first letter on a small accent tile (<span class="mark mark--initial" aria-hidden="true">K</span>);
-   wordmark: no mark, the name alone */
-.mark.mark--initial { -webkit-mask: none; mask: none; display: inline-grid; place-items: center; border-radius: calc(var(--r-sm) * 0.75);
-  color: var(--accent-ink); font: var(--display-weight, 400) 13px/1 var(--font-display); letter-spacing: 0; }
-.footer .nav__logo .mark { width: 0.8em; height: 0.8em; margin-right: 0.18em; vertical-align: -0.04em; }
-.footer .nav__logo .mark--initial { width: 1em; height: 1em; font-size: 0.6em; }
-.nav--split .nav__logo .mark--initial { width: 26px; height: 26px; font-size: 15px; }
 .nav__links { display: flex; align-self: stretch; gap: var(--s-1); flex: 1; min-width: 0; }
 .nav__item { display: flex; align-items: center; height: 100%; }
 .nav__link {
@@ -369,11 +232,6 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
   }
   .nav__item:hover > .nav__link .chev, .nav__item:focus-within > .nav__link .chev { transform: rotate(180deg); }
 }
-.menu-col { display: grid; gap: var(--s-2); align-content: start; }
-.menu-col > .t-label { color: var(--muted); margin-bottom: var(--s-2); }
-.menu-col a { display: grid; gap: var(--s-1); padding: var(--s-2) 0; font-weight: 500; }
-.menu-col a span { font-weight: 400; color: var(--muted); font-size: var(--t-small); }
-.menu-col a:hover { color: var(--action); }
 .menu-card { display: grid; gap: var(--s-3); }
 .menu-card .panel { --ratio: 56.25%; }
 
@@ -431,7 +289,6 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
      size, and the three sit 8px apart. A name of 17 characters or more is the client's to shorten to its mark. */
   .nav__bar { gap: var(--s-2); }
   .nav__logo { font-size: clamp(16px, 4.6vw, 20px); gap: 6px; white-space: nowrap; }
-  .nav__logo .mark:not(.mark--initial) { width: 20px; height: 20px; }
   .nav:not(.is-open) .nav__actions .btn { height: 44px; padding-inline: var(--s-3); font-size: var(--t-small); }
 }
 /* no script: the sheet cannot open, so the words stay in the bar (it scrolls sideways) and the dead menu button goes */
@@ -442,59 +299,17 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
 /* a phone leaves the words under 80px of bar ("Bre" at 320): they stay in the footer's columns, the bar keeps the name
    and the main button */
 @media (scripting: none) and (max-width: 639px) { .nav__links { display: none; } }
-
-/* nav types. Every one is the same fixed bar on the page's .wrap; the full-width
-   hover panel on a desktop and the full-screen sheet on a phone are shared, so only the bar's order
-   and its panel's contents differ.
-   (default) nav-mega: the logo, the words 64px right of it, the actions at the right line; the panel
-              holds two or three link columns and one picture card (Figma)
-   nav-cards: the same bar; its panel holds three or four picture cards (a.menu-card, span-4 or span-3)
-   .nav--centre: the words in the middle of the bar (Linear, Vercel)
-   .nav--split: the words left, the name in the middle, the actions right (shops, hotels, restaurants)
-   .nav--tone: the bar on the page's inverse ground, a band of colour over a light page (x.ai's black
-              bar); the panel under it stays on the page ground */
-@media (min-width: 1024px) {
-  .nav--split .nav__bar, .nav--centre .nav__bar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
-  .nav--split .nav__logo { grid-column: 2; grid-row: 1; font-size: 26px; }
-  .nav--split .nav__links { grid-column: 1; grid-row: 1; }
-  /* the first word starts on the left line (its box, its letters and its underline) */
-  .nav--split .nav__links > .nav__item:nth-child(1 of .nav__item) > .nav__link { padding-left: 0; }
-  .nav--split .nav__links > .nav__item:nth-child(1 of .nav__item) > .nav__link::before,
-  .nav--split .nav__links > .nav__item:nth-child(1 of .nav__item) > .nav__link[aria-current="page"]::after { left: 0; }
-  .nav--split .nav__actions, .nav--centre .nav__actions { grid-column: 3; grid-row: 1; justify-self: end; }
-  .nav--centre .nav__logo { grid-column: 1; grid-row: 1; justify-self: start; }
-  .nav--centre .nav__links { grid-column: 2; grid-row: 1; justify-content: center; flex: none; }
-}
-.nav--tone { --bg: var(--p-inv-bg); --ink: var(--p-inv-ink); --muted: var(--p-inv-muted); --accent: var(--p-inv-accent); --accent-ink: var(--p-inv-accent-ink);
-             --action: var(--p-inv-action); --action-ink: var(--p-inv-action-ink); --card: var(--p-inv-surface);
-             --line: color-mix(in oklab, var(--p-inv-ink) 14%, transparent); --line-strong: color-mix(in oklab, var(--p-inv-ink) 26%, transparent); }
-.nav--tone .nav__menu { --bg: var(--p-bg); --ink: var(--p-ink); --muted: var(--p-muted); --action: var(--p-action); --line: color-mix(in oklab, var(--p-ink) 11%, transparent); }
 /* the older float type is the plain bar now (a floating, frosted pill is not a header) */
 
 /* ---------------------------------------------------------------- logo row */
 
 /* ---------------------------------------------------------------- lists, quote, steps */
-.checks { display: grid; gap: var(--s-3); }
-.checks li { display: grid; grid-template-columns: 20px 1fr; gap: var(--s-3); align-items: start; }
-.checks li::before {
-  content: ""; width: 20px; height: 20px; margin-top: 2px; background: var(--action);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cmask id='m'%3E%3Crect width='20' height='20' fill='white'/%3E%3Cpath d='M6 10.2l2.6 2.6L14 7.4' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/mask%3E%3Ccircle cx='10' cy='10' r='10' mask='url(%23m)'/%3E%3C/svg%3E") center / 20px no-repeat;
-          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cmask id='m'%3E%3Crect width='20' height='20' fill='white'/%3E%3Cpath d='M6 10.2l2.6 2.6L14 7.4' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/mask%3E%3Ccircle cx='10' cy='10' r='10' mask='url(%23m)'/%3E%3C/svg%3E") center / 20px no-repeat;
-}
 
 /* ---------------------------------------------------------------- tabs */
-.tab {
-  height: var(--btn-h-sm); padding: 0 var(--s-4); border-radius: var(--r-btn); border: 1px solid var(--line);
-  background: transparent; color: var(--muted); font-size: var(--t-small); font-weight: 500; cursor: pointer;
-  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease);
-}
-.tab:hover { color: var(--ink); border-color: var(--line-strong); }
-.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 /* the panel shown at load is there on the first frame; the page script fades a chosen one in */
 [role="tabpanel"][hidden] { display: none; }
 
 /* ---------------------------------------------------------------- pricing */
-.price { display: flex; align-items: baseline; gap: var(--s-2); }
 
 /* ---------------------------------------------------------------- FAQ
    Every answer is open, always: no accordion, no +/- marker, nothing changes height.
@@ -528,50 +343,6 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
    link columns on the right. On a dark page it stays dark: a step darker than the page, a hairline
    on top, never a light slab under a dark page. */
 .footer--dark { border-top: 0; padding-block: var(--section-band) var(--s-6); }
-.footer--visit .footer__legal { margin-top: var(--s-5); border-top: 0; padding-top: 0; }
-/* .footer--statement: the close and the footer in one inset slab on the page's lit ground (sand,
-   sky, sage or painting): one big line, one full-width button, then the columns */
-.footer--statement {
-  margin: 0; border: 0; border-radius: 0; padding-block: var(--s-10) var(--s-6);
-  background: var(--ground-bg); color: var(--ground-ink);
-  --bg: var(--ground-bg); --surface: var(--ground-surface); --ink: var(--ground-ink); --muted: var(--ground-muted);
-  --action: var(--ground-ink); --action-ink: var(--ground-surface); --accent: var(--ground-accent);
-  --line: color-mix(in oklab, var(--ground-ink) 14%, transparent); --line-strong: color-mix(in oklab, var(--ground-ink) 28%, transparent);
-}
-@media (max-width: 639px) { .footer--statement:not(.closing) { padding-top: var(--s-9); } }
-/* opening hours: <dl class="hours" data-tz="Europe/Berlin">, one dt (its days: "Mon to Fri", "Sat and
-   Sun", or data-days="mon-fri") and one dd a row. the page script marks today's row .is-today in the venue's
-   time zone (never the visitor's clock); the labels are read, so they stay in ink */
-.hours { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-5); font-variant-numeric: tabular-nums; }
-.hours dt { color: var(--ink); } .hours dd { margin: 0; }
-/* the visit block, on the container's lines. Open by default: the words on the page ground,
-   no box (a box as wide as the section on a ground of its own reads as a band to the rhythm check, and a phone's
-   padding moves its words off the left line). .visit--card is the panel on --g-alt for the full page, where it
-   stands in a split column beside the client's photograph: from 1024px up only, at most half the container,
-   48px inside; under 1024 it is open type again. .visit--cols is the short page's: address, hours and access as
-   three columns, then the menu as .rows under it in the same section.
-   Its head is the label "Visit" left and the open-now line right; under it the address column and the hours column 24
-   apart; under both at most two 44px rows (access, a guesthouse's check-in, "By appointment").
-   <section class="section" data-place="visit" aria-label="Visit"><div class="wrap"><div class="visit">
-     <div class="visit__head"><p class="t-label muted">Visit</p><p class="t-small" data-open-now></p></div>
-     <div class="visit__cols">
-       <div class="visit__col stack-4"><address class="visit__address">Street<br>District</address>
-         <a class="link" href="https://www.openstreetmap.org/search?query=..">Get directions</a></div>
-       <div class="visit__col"><dl class="hours" data-tz="Europe/Berlin"><dt>Mon to Fri</dt><dd>8 to 18</dd></dl></div>
-     </div>
-     <ul class="visit__rows"><li><span>Access</span><span>Step-free at the front door</span></li></ul>
-   </div></div></section> */
-.visit { display: grid; gap: var(--s-5); color: var(--ink); }
-/* photo credits: one short line that opens the full list, at the end of the legal row:
-   <details class="credits"><summary>Photographs via Unsplash and Wikimedia Commons</summary>
-   <p>one line a photograph, per photo</p></details> */
-.credits { flex-basis: 100%; font-size: var(--t-label); color: var(--muted); }
-.credits > summary { display: inline; cursor: pointer; list-style: none; }
-.credits > summary::-webkit-details-marker { display: none; }
-.credits > summary::after { content: "Credits"; margin-left: var(--s-2); color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
-.credits[open] > summary::after { content: "Hide"; }
-.credits > :not(summary) { margin-top: var(--s-2); max-width: 110ch; }
-.credits a { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
 
 /* ---------------------------------------------------------------- footer.closing: the close and the footer, one screen
    The page ends on one more section: <footer class="footer closing [footer--dark | footer--statement |
@@ -587,34 +358,20 @@ html:not([data-tone="dark"]) :is(.frame--cta, .frame--lit, .footer--statement) {
 footer.closing { border-top: 0; }
 footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto; row-gap: var(--s-8); }
 .closing__cta { min-height: 0; display: flex; flex-direction: column; gap: var(--s-6); }
-.closing__cta > .section-head--split, .closing__cta > .section-head { margin-bottom: 0; }
+.closing__cta > .section-head { margin-bottom: 0; }
 .closing__cta h2 { max-width: 20ch; }
-.closing__cta > .close__media { flex: 1 1 0; min-height: clamp(120px, 18svh, 160px); position: relative; overflow: clip; border-radius: var(--r-lg); background: var(--surface); }
-.close__media > img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: var(--pos, 50% 50%); }
 .closing__cta.close--type > .btn--xl { align-self: stretch; }
 /* the 640px button (product, service, place) stays within half the .wrap, so it never stands over half of it off its
    right line: on a place's 1200px column it is 600 */
 @media (min-width: 640px) { .closing__cta.close--type > .btn--xl:not(.btn--wide) { width: min(50%, 640px); } }
-/* the name across the .wrap: sized in plain CSS from the container (8 letters fill 1280) */
-.close__word { margin-top: auto; font: var(--display-weight) clamp(64px, 14.5vw, 216px)/.86 var(--font-display); letter-spacing: -0.045em;
-               white-space: nowrap; overflow: clip; color: var(--ink); }
 .closing__links { display: grid; gap: var(--s-7); }
 .closing__links > .footer__legal { margin-top: 0; }
 .closing__links .footer__lede { font-size: var(--t-lead); max-width: 30ch; }
-/* a phone: a close with a photograph takes a screen of its own (the photograph fills what the words
-   leave) and the links the next; a close in type stays one screen with its links */
-@media (max-width: 639px) {
-  footer.closing:has(> .wrap > .closing__cta > .close__media) { --hm: 2; }
-  footer.closing:has(> .wrap > .closing__cta > .close__media) > .wrap { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); row-gap: calc(var(--padt) + var(--padb) + var(--bar)); }
-  footer.closing:has(> .wrap > .closing__cta > .close__media) .closing__links { align-self: start; }
-}
 @media (max-width: 639px) {
   footer.closing > .wrap { row-gap: var(--s-7); }
   .closing__links { gap: var(--s-5); }
   .closing__links > .grid { row-gap: var(--s-5); }
   .closing__links .footer__col { grid-column: auto / span 6; }
-  .closing__cta > .close__media { min-height: 140px; }
-  .close__word { font-size: clamp(56px, 19vw, 96px); }
 }
 /* a phone: every link and control outside a line of running text is a 44px target (the bar's name, the
    footer's links, its legal row and credits line, a text link, the pill, a small button, the socials);
@@ -622,15 +379,10 @@ footer.closing > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto;
    notice", is 44px too, so the rows keep one rhythm); a pill that is only a label keeps its 32px */
 @media (max-width: 639px) {
   :root { --btn-h-sm: 44px; }
-  .nav__logo,
-  .link,
-  :is(a, button).pill { min-height: 44px; }
-  :is(a, button).pill { height: auto; }
+  .nav__logo { min-height: 44px; }
   .footer ul:has(> li > a) { gap: 0; }
   .footer ul:has(> li > a) > li:not(:has(> a)) { display: flex; align-items: center; min-height: 44px; }
   :is(.footer ul, .footer__legal, .footer__nav) a:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
-  /* a block, not a flex row: "Credits" stays on the line after the sources instead of wrapping alone */
-  .credits > summary { display: block; min-height: 44px; padding-block: 12px; line-height: 20px; }
   .socials a, .footer__legal .socials a { width: 44px; height: 44px; }
 }
 
@@ -651,16 +403,6 @@ html[data-buttons] .btn--xl::after { width: 0.6em; height: 0.6em; }
    colours, lower left on the photograph (.photo-band--left: centred on the left side; --light is the
    same box, kept for old markup). On a phone, and on a place at every width (a place photograph
    carries no words), the photograph stands alone and the words go under it on the ground. */
-/* from 640: a solid box in the section's colours, 32px in from the photograph's lower-left corner;
-   on a full-bleed band it starts on the page's left line */
-@media (min-width: 640px) {
-  :root:not([data-type="place"]) .photo-band__text {
-    width: fit-content; max-width: min(560px, calc(100% - 2 * var(--s-6))); margin: var(--s-6);
-    padding: var(--s-6); background: var(--bg); border-radius: var(--r-md);
-  }
-  :root:not([data-type="place"]) .photo-band--bleed > .photo-band__text { margin: var(--s-8) max(var(--gut), (100% - var(--container)) / 2); }
-  :root:not([data-type="place"]) main > .photo-band--hero:first-child > .photo-band__text { margin-top: calc(var(--nav) + var(--hgap)); padding-top: var(--s-6); }
-}
 
 /* .pl-photo: every single in-flow photograph on a place (visit, menu, story, booking, close).
    It keeps its ratio (--pl-r as a number: 1.3333 for 4:3, .8 for 4:5, 1 for 1:1) and its column, and
@@ -668,25 +410,6 @@ html[data-buttons] .btn--xl::after { width: 0.6em; height: 0.6em; }
    for a photograph in the right-hand column). Square corners, nothing on it.
      <figure class="pl-photo" style="--pl-r: .8"><img src=".." alt=".." loading="lazy"></figure> */
 :root { --pl-room: calc(100svh - var(--padt) - var(--padb) - var(--bar)); }
-/* the visit screen on a phone ends in its photograph: the .pl-photo after the words (the last in its row of the
-   split) takes what they leave of the screen, from its own ratio to 4:5 at most, so the screen never ends in an
-   empty band (the row becomes a column, its gaps kept) */
-@media (max-width: 639px) {
-  [data-place="visit"] > .wrap:not(.grid) > .grid:has(> .pl-photo:last-child) { flex: 1 0 auto; }
-}
-@media (max-width: 639px) {
-  /* a whole drawing (wider than tall) in a phone frame: the frame shortens to it, so a desk or a bike is
-     not a small line across a tall empty box (a hero stage still grows to the first screen) */
-  .frame:not(:has(> .frame__text)):has(> .drawing:not(.drawing--crop)) { --ratio: 80%; }
-}
-
-/* .rows: a list read across, a name (and a line) left, a value right, hairlines between: a menu, a
-   price list, services with prices, specs, hours. Never cards for these. */
-.rows { border-top: 0; }   /* each row closes with its own rule; no rule above the first */
-.rows > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-1) var(--s-5); padding-block: var(--s-4); border-bottom: 1px solid var(--line); }
-/* no rule above the first row, so no padding either: its words start on the line beside it (a photograph's top) */
-.rows > li:first-child { padding-top: 0; }
-.rows > li > p { grid-column: 1; color: var(--ink); max-width: 56ch; }
 /* with script on, hidden from the first frame until the page script has read the screen, so it never shows over the hero */
 @media (max-width: 639px) and (scripting: enabled) {
   :root:not(:has(> body > nav.actionbar[data-bar="always"])) main > :is(.hero, .section--hero) { --bar: 0px; }
@@ -705,8 +428,6 @@ html[data-buttons] .btn--xl::after { width: 0.6em; height: 0.6em; }
 
 /* ---------------------------------------------------------------- highlight + entrance + motion */
 /* data-hl (older markup) is plain ink from the first frame: nothing on the page changes colour on load; a heading's second half in .muted is the one highlight */
-/* the hero's words are set on the first frame: no entrance (.enter stays a no-op for old markup) */
-.enter { animation: none; }
 @keyframes fade { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
   /* a card loop of motion.css ([data-m-loop]) holds its own finished frame */

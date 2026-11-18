@@ -10,9 +10,6 @@
 .lv-post__body { display: grid; gap: 6px; min-width: 0; justify-items: start; }
 .lv-post .lv-post__title { margin: 0; font-size: 16px; line-height: 22px; font-weight: 500; letter-spacing: 0; color: var(--p-ink); text-wrap: pretty; }
 .lv-post .lv-post__meta { margin: 0; font-size: 13px; line-height: 18px; color: var(--p-muted); }
-.lv-post--compact { gap: 10px; }
-.lv-post--compact .lv-post__body { gap: 2px; }
-.lv-post--compact .lv-post__title { font-size: 15px; line-height: 20px; }
 
 /* A reply in a thread. */
 .lv-reply { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; font-family: var(--font-text); text-align: left; }

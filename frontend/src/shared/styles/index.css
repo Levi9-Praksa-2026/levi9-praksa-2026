@@ -20,7 +20,6 @@
 /* the page's source, for Tailwind's class scan */
 @source "../../";
 
-
 /* Tailwind's grid utility and the design system's 12-column .grid share a name, and the design system's grid sets every child
    across the row (.grid > * { grid-column: 1 / -1 }). The design system's grid is `.grid.ui-grid` (every design system
    component and <Grid> render both); any other .grid is Tailwind's plain display: grid, with none of the
@@ -45,7 +44,6 @@
 
 /* layout.css sets the centred hero's lead in --muted, too light for body text. The lead is body text: ink it. */
 @layer ui {
-  .hero--centred .hero__lead { color: var(--ink); }
 }
 
 /* inside the design system's grid, start-<n> is the column a child starts on (base.css). Tailwind

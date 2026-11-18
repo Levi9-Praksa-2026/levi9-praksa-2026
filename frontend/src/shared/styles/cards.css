@@ -7,34 +7,6 @@
 */
 
 /* ---------------------------------------------------------------- the card */
-.card {
-  --c-r: 20px;                      /* card radius */
-  --c-pad: 28px;                    /* text padding = the panel's side inset */
-  --c-gap: 8px;                     /* an inset panel's margin; its radius is --c-r minus this */
-  --c-border: color-mix(in oklab, var(--ink) 8%, transparent);
-  --c-text: color-mix(in oklab, var(--ink) 84%, var(--card));   /* card text: the ink, a touch softer than titles */
-  --c-hi: oklch(from var(--card) 1 0 0 / clamp(0, calc(0.09 - l * 0.09), 0.07));
-  --c-sh: oklch(from var(--card) 0 0 0 / calc(0.07 - l * 0.04));
-  position: relative; display: flex; flex-direction: column; min-width: 0;
-  padding: var(--c-pad); border-radius: var(--c-r);
-  background: var(--card); color: var(--ink);
-  border: 1px solid var(--c-border);
-  box-shadow: inset 0 1px 0 var(--c-hi), 0 1px 2px var(--c-sh);
-  overflow: clip;
-  gap: 0;
-}
-@media (min-width: 1024px) { .card { --c-pad: 32px; } }
-@media (max-width: 639px) { .card { --c-r: 18px; --c-pad: 20px; } }
-
-.card > h3 {
-  margin: 0; font-family: var(--font-text); font-size: 18px; line-height: 26px; font-weight: 560;
-  letter-spacing: -0.012em; color: var(--ink); text-wrap: balance;
-}
-/* the two lines under a title: 16px in the ink (a touch softer than the title), never small grey text */
-.card > p {
-  margin: 8px 0 0; font-size: 16px; line-height: 24px; color: var(--c-text);
-  max-width: 46ch; text-wrap: pretty;
-}
 
 /* ---------------------------------------------------------------- the inset panel */
 /* Default (x.ai): aligned with the text column and running off the card's bottom edge.
@@ -61,9 +33,6 @@
     radial-gradient(60% 80% at 100% 100%, color-mix(in oklab, var(--ground-accent, #a8794a) 34%, var(--ground-bg, #d9ccb7)), transparent 72%),
     radial-gradient(50% 60% at 85% 10%, color-mix(in oklab, var(--ground-surface, #e9e0d2) 60%, transparent), transparent 70%);
 }
-.card > .panel { margin-top: 32px; margin-bottom: calc(-1 * var(--c-pad) - 1px); }
-/* base.css spaces the text above a panel itself; here the panel carries the 32px */
-.card > :has(+ .panel) { margin-bottom: 0; }
 /* a crisp 1px edge over the ground and over any fragment it crops */
 .panel::after {
   content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; border-radius: inherit;
@@ -79,9 +48,6 @@
 /* ---------------------------------------------------------------- where a fragment sits */
 
 /* ---------------------------------------------------------------- variants */
-
-/* pricing */
-.plan { gap: 0; }
 
 /* on a phone a fragment fits the panel's width (see the placements), so it is only cut at the bottom:
    the side fades go, the bottom fade stays */

@@ -12,30 +12,10 @@
 :root { --ic-white: #fff; --ic-ok: var(--ok, #2f9e5b); }
 
 /* ------------------------------------------------------------ the icon itself */
-:is(.ground-inverse, .ic-dark) .ic-ink { filter: invert(1); }
-:is(.ground-inverse, .ic-dark) .ic-paper { filter: none; }
 
 /* ------------------------------------------------------------ the tile behind a logo */
-/* on a dark ground --ink is light, so an ink tile is a dark plate (the ground lifted a little) instead (its black marks are
-   inverted to white either way) */
-:is(.ground-inverse, .ic-dark) .ic-tile--ink { --tile-bg: color-mix(in oklab, var(--ink) 10%, var(--bg)); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
-/* dark grounds: a light tile, so every brand colour reads and black marks need no inversion */
-:is(.ground-inverse, .ic-dark) .ic-tile:not(.ic-tile--glyph, .ic-tile--accent, .ic-tile--ink) {
-  --tile-bg: color-mix(in oklab, var(--ink) 94%, var(--bg)); --tile-line: transparent; color: var(--bg);
-  box-shadow: 0 1px 2px color-mix(in oklab, var(--bg) 70%, transparent);
-}
-:is(.ground-inverse, .ic-dark) .ic-tile:not(.ic-tile--ink, .ic-tile--brand) .ic-ink { filter: none; }
-:is(.ground-inverse, .ic-dark) .ic-tile:not(.ic-tile--ink, .ic-tile--brand) .ic-paper { filter: invert(1); }
-:is(.ground-inverse, .ic-dark) .ic-tile--glyph { --tile-bg: color-mix(in oklab, var(--ink) 9%, var(--bg)); }
-:is(.ground-inverse, .ic-dark) .ic-tile--accent { --tile-bg: color-mix(in oklab, var(--accent) 22%, var(--bg)); }
 
 /* ------------------------------------------------------------ chip: icon and a name */
-/* on a dark ground a brand colour (Salesforce blue, Dropbox, Jira) or a dark file icon (InDesign) sits close to the
-   ground: a bare mark in a chip or on a file card gets a small light plate, as a tile does */
-:is(.ground-inverse, .ic-dark) :is(.ic-chip, .ic-file) > img.ic { box-sizing: content-box; padding: 3px; border-radius: 7px; background: color-mix(in oklab, var(--ink) 94%, var(--bg)); }
-:is(.ground-inverse, .ic-dark) .ic-file > img.ic { padding: 4px; border-radius: 10px; }
-:is(.ground-inverse, .ic-dark) :is(.ic-chip, .ic-file) > img.ic-ink { filter: none; }
-:is(.ground-inverse, .ic-dark) :is(.ic-chip, .ic-file) > img.ic-paper { filter: invert(1); }
 
 /* ------------------------------------------------------------ list row: tile, text, a value at the end */
 

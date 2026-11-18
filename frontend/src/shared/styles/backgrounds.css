@@ -83,47 +83,6 @@
 }
 
 /* ---------------------------------------------------------------- the contract of every ground */
-.bg-horizon {
-  position: relative; isolation: isolate; overflow: clip;
-  --bg: var(--p-bg); --surface: var(--p-surface); --ink: var(--p-ink);
-  /* muted leans to the ink (60/40), so a tint under it never costs the 4.5:1 */
-  --muted: color-mix(in oklab, var(--p-ink) 60%, var(--p-muted));
-  --accent: var(--p-accent); --accent-ink: var(--p-accent-ink);
-  --action: var(--p-action); --action-ink: var(--p-action-ink);
-  --card: var(--g-card);
-  --line: color-mix(in oklab, var(--ink) 11%, transparent);
-  --line-strong: color-mix(in oklab, var(--ink) 20%, transparent);
-  --fx-bg: var(--bg); --fx-surface: var(--surface); --fx-ink: var(--ink); --fx-muted: var(--muted);
-  --fx-accent: var(--accent); --fx-accent-ink: var(--accent-ink);
-  --ui-font: var(--font-text); --ui-mono: var(--font-mono); --ui-radius: var(--r-md);
-  background-color: var(--bg); color: var(--ink);
-}   /* the base the grain blends with */
-
-/* dark grounds take the dark side's tokens */
-.bg-horizon {
-  --bg: color-mix(in oklab, var(--g-dark-bg) 80%, black);
-  --surface: color-mix(in oklab, var(--g-dark-surface) 80%, black);
-  --ink: var(--g-dark-ink);
-  --muted: color-mix(in oklab, var(--g-dark-ink) 60%, var(--g-dark-muted));
-  --accent: var(--g-dark-accent); --accent-ink: var(--g-dark-accent-ink);
-  --action: var(--g-dark-action); --action-ink: var(--g-dark-action-ink);
-  --card: color-mix(in oklab, var(--bg) 88%, var(--ink));
-  /* the light on a dark ground: the ground's own colour and the hue, then pulled toward the ink */
-  --lit: color-mix(in oklab, color-mix(in oklab, var(--bg) 55%, var(--g-hue)) 68%, var(--ink));
-}
-
-/* Spacing. A ground that changes the colour is spaced like the system's own bands, and a little more; a soft one a half
-   step more than a plain section; and each holds a screen of its own (min-height, the words centred), so a shot of one
-   section never shows the next. The system's own variants keep what they set: the hero (.section--hero: its top, its
-   screen-high box), .section--flush-top and .section--rule are never touched. --g-screen on a section sets its minimum
-   height (0px = the words' own height). */
-.section:is(.bg-band, .bg-field, .bg-grain, .bg-horizon, .bg-deep, .bg-photo):not(.section--hero, .section--flush-top, .section--rule) { padding-block: calc(var(--section-band) * 1.25); }
-.section:is(.bg-band, .bg-field, .bg-grain, .bg-dusk, .bg-horizon, .bg-deep):not(.section--hero) { min-height: var(--g-screen, min(88svh, 860px)); display: grid; align-content: center; }
-/* on a phone the stacked words already fill the screen: the sections keep their padding and no minimum height */
-@media (max-width: 767px) {
-  .section:is(.bg-band, .bg-field, .bg-grain, .bg-dusk, .bg-horizon, .bg-deep, .bg-mist, .bg-halo, .bg-ruled, .bg-dots, .bg-liquid):not(.section--hero) { min-height: var(--g-screen, 0px); }
-}
-main > section.section.bg-horizon:last-of-type { padding-bottom: calc(var(--section-band) * 1.25 + 150px) !important; }
 
 /* ---------------------------------------------------------------- 1 mist: a soft gradient field */
 
@@ -152,27 +111,6 @@ main > section.section.bg-horizon:last-of-type { padding-bottom: calc(var(--sect
 /* ---------------------------------------------------------------- 13 photo: a full-bleed photograph under a calm scrim */
 
 /* ---------------------------------------------------------------- 14 horizon: a dark band with a lit horizon */
-/* a dome of the page's dark tone rising from the bottom edge, its rim a thin line of light that is brightest at the
-   top and fades to both sides, with the glow above it (the planet's edge in x.ai's dark pages) */
-.section.bg-horizon:not(.section--flush-top, .section--rule) { padding-bottom: calc(var(--section-band) * 1.25 + 150px); }   /* (0,3,0), after the spacing block: keeps the dome's room, hero or not */
-.bg-horizon::before {
-  content: ""; position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: 640px; pointer-events: none;
-  background:
-    radial-gradient(26% 74px at 50% calc(100% - 140px), color-mix(in oklab, var(--lit) calc(70% * var(--g-kd)), transparent), transparent),
-    radial-gradient(54% 76% at 50% 100%, color-mix(in oklab, var(--lit) calc(44% * var(--g-kd)), transparent), transparent 74%),
-    radial-gradient(120% 84% at 50% 100%, color-mix(in oklab, var(--g-hue) calc(22% * var(--g-kd)), transparent), transparent 76%);
-}
-.bg-horizon::after {
-  /* a dome as wide as 170% of the section and never less than 1200px, so its curve stays a flat planet's rim on a phone (a
-     dome as wide as the phone is a pointed arch) */
-  content: ""; position: absolute; z-index: -1; left: 50%; translate: -50% 0; width: max(170%, 1200px); bottom: -560px; height: 700px; pointer-events: none;
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  background: radial-gradient(60% 100% at 50% 0, color-mix(in oklab, var(--lit) 34%, var(--bg)), var(--bg) 72%);
-  border-top: 2px solid color-mix(in oklab, var(--lit) 90%, white);
-  box-shadow: 0 -12px 56px -8px color-mix(in oklab, var(--lit) 62%, transparent), 0 -1px 16px color-mix(in oklab, var(--lit) 70%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent 5%, #000 36%, #000 64%, transparent 95%);
-          mask-image: linear-gradient(90deg, transparent 5%, #000 36%, #000 64%, transparent 95%);
-}
 
 /* ---------------------------------------------------------------- 15 deep: near-black with a spotlight and grain, x.ai's dark */
 

@@ -163,8 +163,6 @@
 }
 html[data-radius="soft"]  { --r-sm: 8px; --r-md: 12px; --r-lg: 20px; --r-btn: 8px; }
 html[data-radius="round"] { --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-btn: 999px; }
-/* cards.css takes its card and panel radii from this scale */
-html[data-radius] .card { --c-r: var(--r-lg); }
 html[data-radius] .panel { --p-r: var(--r-md); }
 
 /* a phone: the header 56, the sections padded 96 / 48, the hero's words 40 under the header and its
