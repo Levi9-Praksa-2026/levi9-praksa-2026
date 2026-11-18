@@ -1,3 +1,8 @@
 package com.levi9.reddit.community.contracts;
 
-public record CommunityResponse(Long id, String name, int memberCount) {}
+/**
+ * One community in a list. Deliberately small: the detail endpoint carries the rest.
+ * The name is the community's identifier in URLs.
+ */
+public record CommunityResponse(String name, int memberCount) {
+}
