@@ -37,6 +37,7 @@
   --color-p-ink: var(--p-ink);
   --color-p-muted: var(--p-muted);
   --color-p-accent: var(--p-accent);
+  --color-p-surface: var(--p-surface);
   --color-current: currentColor;
   --color-transparent: transparent;
 
@@ -76,6 +77,13 @@
   --spacing-icon: var(--icon);
   --container-container: var(--container);
   --container-measure: 62ch;
+}
+
+/* Animations */
+@theme {
+  /* the offices album: the running clock under the current tab */
+  --animate-album-run: album-run 3s linear forwards;
+  @keyframes album-run { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 }
 
 /* Nav states (Nav.tsx). sheet: the phone menu is open. sheet-expanded: an accordion item inside it is open.
