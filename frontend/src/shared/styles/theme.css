@@ -32,6 +32,11 @@
   --color-action-ink: var(--action-ink);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  /* the fixed palette, for pieces that keep their look on any ground band (posts, replies, chips) */
+  --color-p-bg: var(--p-bg);
+  --color-p-ink: var(--p-ink);
+  --color-p-muted: var(--p-muted);
+  --color-p-accent: var(--p-accent);
   --color-current: currentColor;
   --color-transparent: transparent;
 
