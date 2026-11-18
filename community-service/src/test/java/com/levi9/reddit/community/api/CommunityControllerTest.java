@@ -1,8 +1,17 @@
 package com.levi9.reddit.community.api;
 
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -11,6 +20,8 @@ import com.levi9.reddit.community.contracts.CommunityDetailResponse;
 import com.levi9.reddit.community.contracts.CommunityResponse;
 import com.levi9.reddit.community.contracts.PageResponse;
 import com.levi9.reddit.community.core.exception.CommunityNotFoundException;
+import com.levi9.reddit.community.core.exception.ConflictException;
+import com.levi9.reddit.community.core.exception.ErrorType;
 import com.levi9.reddit.community.infrastructure.CommunityService;
 import java.time.Instant;
 import java.util.List;
@@ -102,5 +113,128 @@ class CommunityControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.errorType").value("COMMUNITY_NOT_FOUND"));
+    }
+
+    @Test
+    void create_returnsCreatedCommunity() throws Exception {
+        given(communityService.create("backend", "Backend discussion", MockCaller.ID))
+                .willReturn(new CommunityDetailResponse(1L, "backend", "Backend discussion", 0, CREATED));
+
+        mockMvc.perform(post("/api/communities")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"backend","description":"Backend discussion"}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("backend"))
+                .andExpect(jsonPath("$.description").value("Backend discussion"));
+
+        verify(communityService).create("backend", "Backend discussion", MockCaller.ID);
+    }
+
+    @Test
+    void create_withInvalidName_returnsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/communities")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"bad name!","description":null}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("name"))
+                .andExpect(jsonPath("$.errorType").doesNotExist());
+
+        verifyNoInteractions(communityService);
+    }
+
+    @Test
+    void create_withRedditPrefix_returnsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/communities")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"r/backend","description":null}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("name"));
+
+        verifyNoInteractions(communityService);
+    }
+
+    @Test
+    void create_withTakenName_returnsConflictProblemDetail() throws Exception {
+        given(communityService.create(anyString(), nullable(String.class), anyLong()))
+                .willThrow(new ConflictException(ErrorType.COMMUNITY_NAME_TAKEN, "Community name is already taken: backend"));
+
+        mockMvc.perform(post("/api/communities")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"backend","description":null}
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.errorType").value("COMMUNITY_NAME_TAKEN"));
+    }
+
+    @Test
+    void updateDescription_changesOnlyTheDescription() throws Exception {
+        mockMvc.perform(patch("/api/communities/{name}", "backend")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"description":"New description"}
+                                """))
+                .andExpect(status().isOk());
+
+        verify(communityService).updateDescription("backend", "New description");
+    }
+
+    @Test
+    void updateDescription_withInvalidName_returnsBadRequest() throws Exception {
+        mockMvc.perform(patch("/api/communities/{name}", "bad!name")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"description":"New description"}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(communityService);
+    }
+
+    @Test
+    void updateDescription_withTooLongDescription_returnsBadRequest() throws Exception {
+        String description = "x".repeat(2001);
+
+        mockMvc.perform(patch("/api/communities/{name}", "backend")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"" + description + "\"}"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(communityService);
+    }
+
+    @Test
+    void deactivate_shutsDownCommunity() throws Exception {
+        mockMvc.perform(delete("/api/communities/{name}", "backend"))
+                .andExpect(status().isNoContent());
+
+        verify(communityService).deactivate("backend");
+    }
+
+    @Test
+    void deactivate_missingCommunity_returnsProblemDetail() throws Exception {
+        willThrow(new CommunityNotFoundException("missing")).given(communityService).deactivate(eq("missing"));
+
+        mockMvc.perform(delete("/api/communities/{name}", "missing"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorType").value("COMMUNITY_NOT_FOUND"));
+    }
+
+    @Test
+    void reactivate_undoesShutdown() throws Exception {
+        mockMvc.perform(post("/api/communities/{name}/reactivate", "backend"))
+                .andExpect(status().isNoContent());
+
+        verify(communityService).reactivate("backend");
     }
 }

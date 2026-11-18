@@ -78,6 +78,10 @@ public class Community {
         this.active = false;
     }
 
+    public void reactivate() {
+        this.active = true;
+    }
+
     public void updateMemberCount(int count) {
         if (count < 0) {
             throw new IllegalArgumentException("Member count cannot be negative");
