@@ -69,7 +69,7 @@ export function Arrow({ size = 'md' }: { size?: ButtonSize }) {
   )
 }
 
-export function buttonClasses({ variant = 'primary', size = 'md', className }: Pick<ButtonLookProps, 'variant' | 'size' | 'className'>) {
+function buttonClasses({ variant = 'primary', size = 'md', className }: Pick<ButtonLookProps, 'variant' | 'size' | 'className'>) {
   return cx(base, sizes[size], size === 'hero' && variant === 'secondary' ? heroSecondary : variants[variant], className)
 }
 
