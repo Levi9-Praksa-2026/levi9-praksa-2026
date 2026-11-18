@@ -73,8 +73,12 @@ function MenuPanel({ menu }: { menu: NavMenu }) {
     >
       <div className={cx('wrap', grid12, 'gap-y-card-gap sheet:w-full sheet:gap-y-4')}>
         {menu.cards.map(card => (
-          <AppLink key={card.href + card.label} href={card.href} className={cx('col-span-full grid min-w-0 gap-3 sheet:gap-1 sheet:py-2', cardSpan(menu.cards.length))}>
-            <div className="panel [--p-h:160px] [--ratio:56.25%] sheet:hidden">{card.visual}</div>
+          <AppLink key={card.href + card.label} href={card.href} className={cx('group/card col-span-full grid min-w-0 gap-3 sheet:gap-1 sheet:py-2', cardSpan(menu.cards.length))}>
+            <div
+              className="relative isolate block min-h-40 flex-[1_0_auto] overflow-clip rounded-md bg-[var(--ground-bg)] after:pointer-events-none after:absolute after:inset-0 after:z-[4] after:rounded-[inherit] after:shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--ink)_7%,transparent),inset_0_1px_0_color-mix(in_oklab,var(--ink)_4%,transparent)] after:content-[''] sheet:hidden"
+            >
+              {card.visual}
+            </div>
             <span className="font-text text-[length:var(--t-card)] leading-[1.3] font-medium tracking-[-0.01em]">{card.label}</span>
             <span className="text-small leading-normal text-muted">{card.line}</span>
           </AppLink>

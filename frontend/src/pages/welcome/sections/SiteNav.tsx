@@ -28,7 +28,7 @@ export function SiteNav({ items, register, login }: SiteNavProps) {
           label: o.label,
           href: '#offices',
           line: 'See the office',
-          visual: <PhotoImg photo={o.photo} className="frame__img" />,
+          visual: <PhotoImg photo={o.photo} className="absolute inset-0 z-0 size-full max-w-none object-cover transition-transform duration-400 ease-ui group-hover/card:scale-[1.03] group-hover/card:duration-600 motion-reduce:group-hover/card:scale-100" />,
         })),
       },
     },

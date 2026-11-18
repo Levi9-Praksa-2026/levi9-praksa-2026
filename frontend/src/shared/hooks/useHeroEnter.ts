@@ -6,14 +6,14 @@ import { fontsReady } from '@/shared/lib/env'
 import { useIsoLayoutEffect } from '@/shared/hooks/useIsoLayoutEffect'
 
 /**
- * waiting: the words are held by motion.css (html.m-enter) until the fonts are in.
+ * waiting: the words are held by hero-enter.css (html.m-enter) until the fonts are in.
  * entering: the h1 rises line by line out of word masks, then what follows fades up.
  * entered: done; the h1 is plain text again.
  * still: it stands as written (reduced motion, no head line, scrolled past).
  */
 export type EnterPhase = 'waiting' | 'entering' | 'entered' | 'still'
 
-/** The class motion.css reads for each phase. */
+/** The class hero-enter.css reads for each phase. */
 export const phaseClass: Record<EnterPhase, string> = {
   waiting: '',
   entering: 'is-entering',
@@ -87,7 +87,7 @@ export function useHeroEnter(ref: RefObject<HTMLElement | null>, enabled: boolea
       const hero = ref.current
       // no head line, or the visitor is already below the hero (a reload half way down): it stands
       if (!hero || !root.classList.contains('m-enter') || hero.getBoundingClientRect().bottom < 0) setPhase('still')
-      // the safety mark passed first: motion.css fades the words in; the hero is done once that is through
+      // the safety mark passed first: hero-enter.css fades the words in; the hero is done once that is through
       else if (root.classList.contains('m-enter-done')) late = window.setTimeout(() => setPhase('entered'), 1150)
       else setPhase('entering')
     })

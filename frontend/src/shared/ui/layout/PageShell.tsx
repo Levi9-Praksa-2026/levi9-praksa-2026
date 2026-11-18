@@ -99,7 +99,7 @@ export function PageShell({
     }
   }, [title])
 
-  // The hero's entrance (motion.css): the words wait under html.m-enter from the first paint, and a
+  // The hero's entrance (hero-enter.css): the words wait under html.m-enter from the first paint, and a
   // 700ms safety mark lets CSS show them if the entrance never starts. A layout effect runs before
   // the browser paints, so it does what the static page's head line does.
   useIsoLayoutEffect(() => {

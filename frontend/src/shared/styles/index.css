@@ -1,10 +1,9 @@
 /*
-  The shared design system and Tailwind v4 in one stylesheet. Both entries import it (app and welcome);
-  the welcome page also imports marketing.css (motion and section grounds).
+  The one stylesheet both entries import (the forum app and the welcome page).
 
-  Layers, lowest first: Tailwind's preflight (the reset), the design system (theme.css tokens, then base, cards,
-  layout, icons; marketing.css adds motion and grounds), then Tailwind's theme and utilities. So a utility on an
-  element always beats the design system's class on it. The tokens and their Tailwind names are in theme.css.
+  Layers, lowest first: Tailwind's preflight (the reset), then the Levddit tokens and element defaults
+  (theme.css, base.css), then Tailwind's theme and utilities, so a utility always wins over a default.
+  The tokens and their Tailwind names live in theme.css. The welcome page also imports hero-enter.css.
 */
 @layer reset, ui, theme, base, components, utilities;
 
@@ -12,8 +11,6 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "./theme.css";
 @import "./base.css" layer(ui);
-@import "./cards.css" layer(ui);
-@import "./icons.css" layer(ui);
 @import "tailwindcss/utilities.css" layer(utilities);
 
 /* the page's source, for Tailwind's class scan */
