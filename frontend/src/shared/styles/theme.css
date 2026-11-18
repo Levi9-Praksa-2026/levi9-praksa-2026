@@ -1,0 +1,14 @@
+/* Levddit brand tokens: white ground, ink #141833, Levi9 blue #2b3fa0, Albert Sans, round corners.
+   Unlayered, so it beats the shared layers. Both entries load it through index.css. */
+:root {
+  --p-bg: #ffffff; --p-surface: #f1f3fa; --p-ink: #141833; --p-muted: #62677b;
+  --p-accent: #2b3fa0; --p-accent-ink: #ffffff; --p-action: #2b3fa0; --p-action-ink: #ffffff;
+  --p-inv-bg: #141833; --p-inv-surface: #212640; --p-inv-ink: #ffffff; --p-inv-muted: #9c9fad;
+  --p-inv-accent: #ffffff; --p-inv-accent-ink: #141833; --p-inv-action: #ffffff; --p-inv-action-ink: #141833;
+  --font-display: "Albert Sans", system-ui, sans-serif;
+  --font-text: "Albert Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 500;
+  --display-tracking: -0.025em;
+  --display-tracking-xl: -0.035em;
+}
