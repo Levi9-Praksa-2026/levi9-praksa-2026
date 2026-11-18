@@ -1,0 +1,131 @@
+/* Offices photo album: the current photo centred and large, its neighbours peeking at the sides,
+   the arrows together at the foot of the centre photo, the office names as small tabs under it. */
+.lv-album__head { text-align: center; margin-inline: auto; }
+.lv-album__head p { margin-inline: auto; }
+
+.lv-album { position: relative; }
+/* The side photos bleed past the page edges evenly; the section clips them so the page never scrolls sideways. */
+#offices { overflow-x: clip; }
+.lv-album__stage {
+  position: relative;
+  height: clamp(300px, 54vh, 500px);
+}
+.lv-album__slide {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(62%, 800px);
+  height: 100%;
+  margin: 0;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface);
+  translate: -50% 0;
+  transition:
+    translate 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    scale 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 620ms ease,
+    filter 620ms ease;
+  will-change: translate, scale;
+}
+.lv-album__slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lv-album__slide[data-pos='centre'] { z-index: 3; opacity: 1; scale: 1; }
+.lv-album__slide[data-pos='left'],
+.lv-album__slide[data-pos='right'] { z-index: 2; opacity: 0.55; scale: 0.8; filter: saturate(0.7); cursor: pointer; }
+.lv-album__slide[data-pos='left'] { translate: -122% 0; }
+.lv-album__slide[data-pos='right'] { translate: 22% 0; }
+.lv-album__slide[data-pos='left']:hover,
+.lv-album__slide[data-pos='right']:hover { opacity: 0.8; }
+.lv-album__slide[data-pos='back'] { z-index: 1; opacity: 0; scale: 0.6; pointer-events: none; }
+
+/* The office's name on its photo, bottom-left, on a soft shade so it reads on any sky. */
+.lv-album__name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 64px 28px 24px;
+  background: linear-gradient(to top, rgb(10 16 48 / 0.55), transparent);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: clamp(24px, 2.6vw, 38px);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  transition: opacity 400ms ease 200ms;
+}
+.lv-album__slide:not([data-pos='centre']) .lv-album__name { opacity: 0; transition-delay: 0ms; }
+
+/* The arrows: together, centred at the foot of the centre photo. */
+.lv-album__arrows {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 20px;
+  translate: -50% 0;
+  display: flex;
+  gap: 10px;
+}
+.lv-album__arrow {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.92);
+  color: var(--p-accent);
+  cursor: pointer;
+  box-shadow: 0 6px 20px -8px rgb(10 16 48 / 0.45);
+  transition: scale 160ms ease, background-color 160ms ease;
+}
+.lv-album__arrow:hover { background: #ffffff; scale: 1.06; }
+.lv-album__arrow:active { scale: 0.96; }
+.lv-album__arrow:focus-visible { outline: 2px solid #ffffff; outline-offset: 3px; }
+.lv-album__arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The names under the album: small tabs, the current one in ink with the clock running under it. */
+.lv-album__tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 28px;
+  margin-top: 28px;
+}
+.lv-album__tab {
+  appearance: none;
+  min-height: 44px;
+  padding: 10px 0 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: 500 16px/1.2 var(--font-text);
+  color: var(--muted);
+  transition: color 160ms ease;
+}
+.lv-album__tab:hover,
+.lv-album__tab[aria-pressed='true'] { color: var(--ink); }
+.lv-album__tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 4px; }
+.lv-album__run { display: block; height: 2px; margin-top: 8px; background: var(--line); overflow: hidden; border-radius: 2px; }
+.lv-album__tab[aria-pressed='true'] .lv-album__run { background: color-mix(in oklab, var(--p-accent) 18%, transparent); }
+.lv-album__bar { display: block; height: 100%; background: var(--p-accent); transform-origin: left; animation: lv-album-run 3s linear forwards; }
+@keyframes lv-album-run { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@media (max-width: 767px) {
+  .lv-album__stage { height: clamp(240px, 42vh, 340px); }
+  .lv-album__slide { width: 84%; }
+  .lv-album__slide[data-pos='left'] { translate: -150% 0; }
+  .lv-album__slide[data-pos='right'] { translate: 50% 0; }
+  .lv-album__tabs { gap: 4px 18px; }
+  .lv-album__tab { font-size: 14px; }
+  .lv-album__arrow { width: 44px; height: 44px; }
+  /* On a phone the arrows sit under the photo, clear of the picture and its name. */
+  .lv-album__arrows { bottom: auto; top: calc(100% + 16px); }
+  .lv-album__arrow { background: var(--p-surface); box-shadow: none; }
+  .lv-album__tabs { margin-top: 84px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lv-album__slide, .lv-album__name { transition: none; }
+}
