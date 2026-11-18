@@ -32,7 +32,7 @@ public class CommunityController {
     @Operation(summary = "Active communities, paginated; each item has only its name and member count")
     public PageResponse<CommunityResponse> findCommunities(
             @RequestParam(defaultValue = "new")
-            @Pattern(regexp = "(?i)new|top", message = "'hot' is not available yet; use new or top") String sort,
+            @Pattern(regexp = "(?i)new|top", message = "sort must be new or top") String sort,
             @RequestParam(required = false) @Size(max = 50) String name,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {

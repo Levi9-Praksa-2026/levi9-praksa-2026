@@ -78,11 +78,14 @@ class CommunityControllerTest {
 
     @Test
     void findCommunities_sortIsCaseInsensitive() throws Exception {
-        given(communityService.findCommunities(CommunitySort.NEW, null, 0, 20))
+        // TOP is not the default, so this proves the value was actually parsed.
+        given(communityService.findCommunities(CommunitySort.TOP, null, 0, 20))
                 .willReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
 
-        mockMvc.perform(get("/api/communities").param("sort", "NEW"))
+        mockMvc.perform(get("/api/communities").param("sort", "TOP"))
                 .andExpect(status().isOk());
+
+        verify(communityService).findCommunities(CommunitySort.TOP, null, 0, 20);
     }
 
     @Test
@@ -91,8 +94,7 @@ class CommunityControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.errors[0].field").value("sort"))
-                .andExpect(jsonPath("$.errors[0].message").value(
-                        org.hamcrest.Matchers.containsString("not available yet")));
+                .andExpect(jsonPath("$.errors[0].message").value("sort must be new or top"));
 
         verifyNoInteractions(communityService);
     }
@@ -102,7 +104,8 @@ class CommunityControllerTest {
         mockMvc.perform(get("/api/communities").param("sort", "cheapest"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.errors[0].field").value("sort"));
+                .andExpect(jsonPath("$.errors[0].field").value("sort"))
+                .andExpect(jsonPath("$.errors[0].message").value("sort must be new or top"));
 
         verifyNoInteractions(communityService);
     }
