@@ -3,11 +3,15 @@ package com.levi9.reddit.post.infrastructure;
 import com.levi9.reddit.post.contracts.CommentResponse;
 import com.levi9.reddit.post.contracts.PageResponse;
 import com.levi9.reddit.post.contracts.PostResponse;
+import com.levi9.reddit.post.contracts.TopPeriod;
 import com.levi9.reddit.post.core.exception.PostNotFoundException;
 import com.levi9.reddit.post.core.model.Comment;
 import com.levi9.reddit.post.core.model.Post;
 import com.levi9.reddit.post.infrastructure.repository.CommentRepository;
 import com.levi9.reddit.post.infrastructure.repository.PostRepository;
+import java.time.Clock;
+import java.time.Duration;
+import java.util.List;
 import java.util.function.Function;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,12 +27,16 @@ public class PostQueryService {
     // id breaks ties, so two rows with the same timestamp never swap places between pages.
     private static final Sort NEWEST_FIRST = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
 
+    private static final Duration WEEK = Duration.ofDays(7);
+
     private final PostRepository posts;
     private final CommentRepository comments;
+    private final Clock clock;
 
-    public PostQueryService(PostRepository posts, CommentRepository comments) {
+    public PostQueryService(PostRepository posts, CommentRepository comments, Clock clock) {
         this.posts = posts;
         this.comments = comments;
+        this.clock = clock;
     }
 
     /**
@@ -52,6 +60,19 @@ public class PostQueryService {
             result = posts.findByRemovedAtIsNull(pageable);
         }
         return toPage(result, PostQueryService::toResponse);
+    }
+
+    /**
+     * The 10 posts with the highest score. Removed posts don't count.
+     * {@link TopPeriod#WEEK} looks only at posts created in the last 7 days.
+     */
+    public List<PostResponse> findTop(TopPeriod period) {
+        List<Post> top = switch (period) {
+            case ALL -> posts.findTop10ByRemovedAtIsNullOrderByScoreDescIdDesc();
+            case WEEK -> posts.findTop10ByCreatedAtGreaterThanEqualAndRemovedAtIsNullOrderByScoreDescIdDesc(
+                    clock.instant().minus(WEEK));
+        };
+        return top.stream().map(PostQueryService::toResponse).toList();
     }
 
     public PostResponse getPost(Long id) {

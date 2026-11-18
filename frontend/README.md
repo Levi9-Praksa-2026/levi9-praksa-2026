@@ -1,32 +1,29 @@
-# React + TypeScript + Vite
+# Levddit frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React, TypeScript, Vite, React Router and Tailwind v4.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm ci
+npm run dev     # http://localhost:5173
+npm run lint
+npm run build   # type check + production build into dist/
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Layout
+
+- `src/app/`: entry point, router and the root layout every forum screen renders in.
+- `src/pages/`: one folder per route (`home`, `auth`, `not-found`).
+- `src/pages/welcome/` + `welcome/index.html`: the welcome page at `/welcome/`. It is a separate document,
+  not a React Router route, so links to it reload the page. The 3D globe (three.js) loads lazily and only there.
+- `src/features/`: feature code shared by several pages, such as posts and communities.
+- `src/shared/`: design system styles, UI primitives, config and helpers. Nothing here imports from `pages` or `features`.
+
+Import from `src` with the `@/` alias, for example `import { routes } from '@/shared/config/routes'`.
+All paths live in `src/shared/config/routes.ts`.
+
+## Docker
+
+The image builds the static site and serves it with nginx. `nginx.conf` sends every unknown path to
+`index.html`, so refreshing a route such as `/login` works, and
+`/welcome` redirects to `/welcome/` (`absolute_redirect off` keeps the host and port).
+`VITE_API_URL` (the gateway URL) is baked in at build time.

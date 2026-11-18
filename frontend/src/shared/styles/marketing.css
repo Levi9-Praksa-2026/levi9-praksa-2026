@@ -1,0 +1,4 @@
+/* Marketing layer: the micro-interactions and hero entrance (motion.css) and the section grounds
+   (backgrounds.css). The welcome page imports it after index.css; the forum app does not. */
+@import "./motion.css" layer(ui);
+@import "./backgrounds.css" layer(ui);
