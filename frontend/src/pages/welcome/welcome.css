@@ -21,60 +21,7 @@
   overflow: visible;
 }
 
-/* The brand band: the Levi9 9 as a large cut-off mark behind the statement. */
-.lv-anywhere { position: relative; overflow: hidden; isolation: isolate; }
-.lv-anywhere::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  right: -8vw;
-  bottom: -18vh;
-  width: min(68vw, 980px);
-  aspect-ratio: 1;
-  background: #ffffff;
-  opacity: 0.09;
-  -webkit-mask: url(/brand/levi9-mark-2048.png) center / contain no-repeat;
-  mask: url(/brand/levi9-mark-2048.png) center / contain no-repeat;
-  pointer-events: none;
-}
-@media (max-width: 767px) {
-  .lv-anywhere::after { width: 110vw; right: -40vw; bottom: -6vh; }
-}
 
-/* How to join: ruled steps with large numerals, a thread beside them. */
-.lv-join { align-items: center; row-gap: var(--s-6); }
-.lv-join__steps { list-style: none; margin: 0; padding: 0; border-bottom: 1px solid var(--line-strong); }
-.lv-join__step {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 16px;
-  padding: 28px 0;
-  border-top: 1px solid var(--line-strong);
-}
-.lv-join__num {
-  font-family: var(--font-display);
-  font-size: 40px;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--p-accent);
-}
-.lv-join__title { margin: 0; font-size: 20px; line-height: 1.3; font-weight: 500; color: var(--ink); }
-.lv-join__body { margin: 6px 0 0; font-size: 15px; line-height: 1.5; color: var(--muted); }
-
-.lv-thread {
-  display: grid;
-  gap: 20px;
-  padding: 28px;
-  border-radius: var(--r-lg);
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgb(20 24 51 / 0.05), 0 18px 40px -18px rgb(43 63 160 / 0.28);
-}
-.lv-thread__replies {
-  display: grid;
-  gap: 18px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-}
 
 /* Phone: the globe alone in the hero, its labels smaller. */
 @media (max-width: 767px) {
