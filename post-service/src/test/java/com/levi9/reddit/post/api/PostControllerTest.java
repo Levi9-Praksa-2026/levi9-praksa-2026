@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.levi9.reddit.post.contracts.CommentResponse;
 import com.levi9.reddit.post.contracts.PageResponse;
 import com.levi9.reddit.post.contracts.PostResponse;
+import com.levi9.reddit.post.contracts.TopPeriod;
 import com.levi9.reddit.post.core.exception.PostNotFoundException;
 import com.levi9.reddit.post.infrastructure.PostQueryService;
 import java.time.Instant;
@@ -69,6 +70,35 @@ class PostControllerTest {
     void findPosts_withNonNumericPage_returnsBadRequest() throws Exception {
         mockMvc.perform(get("/api/posts").param("page", "abc"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void findTop_withoutPeriod_isPublicAndDefaultsToAllTime() throws Exception {
+        PostResponse post = new PostResponse(1L, "Hello", "Body", 2L, "luka", 7L, 42, 0, CREATED, null);
+        when(postQueryService.findTop(TopPeriod.ALL)).thenReturn(List.of(post));
+
+        mockMvc.perform(get("/api/posts/top"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Hello"))
+                .andExpect(jsonPath("$[0].score").value(42));
+    }
+
+    @Test
+    void findTop_withWeekPeriod_passesWeek() throws Exception {
+        PostResponse post = new PostResponse(1L, "Fresh", "Body", 2L, "luka", 7L, 5, 0, CREATED, null);
+        when(postQueryService.findTop(TopPeriod.WEEK)).thenReturn(List.of(post));
+
+        mockMvc.perform(get("/api/posts/top").param("period", "WEEK"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Fresh"));
+    }
+
+    @Test
+    void findTop_withUnknownPeriod_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/posts/top").param("period", "YEAR"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(postQueryService);
     }
 
     @Test
