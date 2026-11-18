@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -21,33 +24,39 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
 class SecurityConfig {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            @Value("${app.mock-auth.enabled:true}") boolean mockAuthEnabled) throws Exception {
+            ObjectProvider<ObjectMapper> objectMappers,
+            @Value("${app.mock-auth.enabled:false}") boolean mockAuthEnabled) throws Exception {
+        ObjectMapper mapper = objectMappers.getIfAvailable(Jackson2ObjectMapperBuilder.json()::build);
+
         http
                 .csrf(AbstractHttpConfigurer::disable) // no cookies: the token travels in a header
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/communities", "/api/communities/**").permitAll()
+                        // URL rules run before validation, so a non-admin gets 403 even with an invalid body.
+                        .requestMatchers(HttpMethod.POST, "/api/communities", "/api/communities/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/communities/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/communities/**").hasRole("ADMIN")
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/error").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint((request, response, failure) -> writeProblem(
-                                MAPPER, response, HttpStatus.UNAUTHORIZED, "Authentication is required",
+                                mapper, response, HttpStatus.UNAUTHORIZED, "Authentication is required",
                                 request.getRequestURI()))
                         .accessDeniedHandler((request, response, failure) -> writeProblem(
-                                MAPPER, response, HttpStatus.FORBIDDEN, "Access is denied",
+                                mapper, response, HttpStatus.FORBIDDEN, "Access is denied",
                                 request.getRequestURI())));
 
         if (mockAuthEnabled) {
-            // Temporary: auth-service cannot issue tokens yet. Real JWT validation replaces this.
+            log.warn("MOCK AUTH ENABLED: every unauthenticated request is treated as ROLE_ADMIN. "
+                    + "Never enable app.mock-auth in production.");
             http.addFilterBefore(new MockAuthenticationFilter(), AnonymousAuthenticationFilter.class);
         }
         return http.build();

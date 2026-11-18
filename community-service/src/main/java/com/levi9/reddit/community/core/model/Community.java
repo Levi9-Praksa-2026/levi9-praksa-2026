@@ -13,6 +13,9 @@ import java.util.Objects;
 @Entity
 @Table(name = "communities")
 public class Community {
+    /** Plain name only; the {@code r/} prefix is a frontend display concern. */
+    public static final String NAME_PATTERN = "[A-Za-z0-9_-]{1,50}";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
