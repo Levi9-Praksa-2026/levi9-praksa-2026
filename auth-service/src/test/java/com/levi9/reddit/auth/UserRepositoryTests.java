@@ -33,6 +33,15 @@ class UserRepositoryTests {
     }
 
     @Test
+    void findsAUserByEmailIgnoringCase() {
+        users.save(user("Marko", "Marko@Example.test"));
+
+        assertThat(users.findByEmailIgnoringCase("marko@example.TEST"))
+                .hasValueSatisfying(found -> assertThat(found.getUsername()).isEqualTo("Marko"));
+        assertThat(users.findByEmailIgnoringCase("ana@example.test")).isEmpty();
+    }
+
+    @Test
     void findsAUserByUsernameIgnoringCase() {
         users.save(user("Marko", "marko@example.test"));
 
@@ -72,6 +81,8 @@ class UserRepositoryTests {
         assertThat(users.existsByUsernameIgnoringCase("marko")).isTrue();
         assertThat(users.existsByEmailIgnoringCase("marko@example.test")).isTrue();
         assertThat(users.findByUsernameIgnoringCase("marko"))
+                .hasValueSatisfying(found -> assertThat(found.isDeleted()).isTrue());
+        assertThat(users.findByEmailIgnoringCase("marko@example.test"))
                 .hasValueSatisfying(found -> assertThat(found.isDeleted()).isTrue());
     }
 

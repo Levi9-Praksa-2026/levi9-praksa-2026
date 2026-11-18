@@ -16,6 +16,10 @@ import java.util.Optional;
  */
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    /** Login looks users up by email. */
+    @Query("select u from User u where lower(u.email) = lower(:email)")
+    Optional<User> findByEmailIgnoringCase(@Param("email") String email);
+
     @Query("select u from User u where lower(u.username) = lower(:username)")
     Optional<User> findByUsernameIgnoringCase(@Param("username") String username);
 
