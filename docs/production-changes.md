@@ -39,6 +39,14 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - **Local:** Postgres is published on `5432` so you can connect from the host.
 - **Production:** do not publish the database port. Only the services should reach it.
 
+## community-service
+
+### Mock authentication
+- **Local:** `app.mock-auth.enabled=true` (the default) puts a hard-coded `ROLE_ADMIN` caller with user id `1`
+  into the security context. auth-service cannot issue access tokens yet, so this keeps the ADMIN endpoints usable.
+- **Production:** set `APP_MOCKAUTH_ENABLED=false` and wire the real JWT resource server as described in
+  `security-convention.md`. Leaving the flag on would let anyone perform ADMIN operations.
+
 ## post-service
 
 ### S3
