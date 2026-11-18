@@ -4,9 +4,12 @@ import com.levi9.reddit.community.contracts.CommunityDetailResponse;
 import com.levi9.reddit.community.contracts.CommunityResponse;
 import com.levi9.reddit.community.contracts.PageResponse;
 import com.levi9.reddit.community.core.exception.CommunityNotFoundException;
+import com.levi9.reddit.community.core.exception.ConflictException;
+import com.levi9.reddit.community.core.exception.ErrorType;
 import com.levi9.reddit.community.core.model.Community;
 import com.levi9.reddit.community.infrastructure.repository.CommunityRepository;
 import java.util.function.Function;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +39,51 @@ public class CommunityService {
     public CommunityDetailResponse getCommunity(String name) {
         Community community = communities.findActiveByName(name)
                 .orElseThrow(() -> new CommunityNotFoundException(name));
+        return new CommunityDetailResponse(
+                community.getId(),
+                community.getName(),
+                community.getDescription(),
+                community.getMemberCount(),
+                community.getCreatedAt());
+    }
+
+    @Transactional
+    public CommunityDetailResponse create(String name, String description, long creatorId) {
+        if (communities.findByName(name).isPresent()) {
+            throw new ConflictException(ErrorType.COMMUNITY_NAME_TAKEN, "Community name is already taken: " + name);
+        }
+        Community community = new Community(name, creatorId);
+        community.updateDescription(description);
+        try {
+            Community saved = communities.save(community);
+            communities.flush(); // surface a concurrent duplicate here, where we can map it to 409
+            return detail(saved);
+        } catch (DataIntegrityViolationException ex) {
+            throw new ConflictException(ErrorType.COMMUNITY_NAME_TAKEN, "Community name is already taken: " + name);
+        }
+    }
+
+    @Transactional
+    public void updateDescription(String name, String description) {
+        findForAdmin(name).updateDescription(description);
+    }
+
+    @Transactional
+    public void deactivate(String name) {
+        findForAdmin(name).deactivate();
+    }
+
+    @Transactional
+    public void reactivate(String name) {
+        findForAdmin(name).reactivate();
+    }
+
+    private Community findForAdmin(String name) {
+        return communities.findByName(name)
+                .orElseThrow(() -> new CommunityNotFoundException(name));
+    }
+
+    private static CommunityDetailResponse detail(Community community) {
         return new CommunityDetailResponse(
                 community.getId(),
                 community.getName(),

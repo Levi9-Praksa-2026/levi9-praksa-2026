@@ -17,7 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -121,6 +124,82 @@ class CommunityServiceApplicationTests {
                 .andExpect(jsonPath("$.memberCount").value(7))
                 .andExpect(jsonPath("$.createdAt").exists())
                 .andExpect(jsonPath("$.posts").doesNotExist());
+    }
+
+    @Test
+    @Transactional
+    void createsCommunityWithMockCreator() throws Exception {
+        mockMvc.perform(post("/api/communities")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"backend","description":"Backend discussion"}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.name").value("backend"))
+                .andExpect(jsonPath("$.description").value("Backend discussion"));
+
+        entityManager.flush();
+        Community stored = communityRepository.findByName("backend").orElseThrow();
+        assertThat(stored.getCreatorId()).isEqualTo(1L);
+        assertThat(stored.isActive()).isTrue();
+    }
+
+    @Test
+    @Transactional
+    void creatingSameNameAgainReturnsConflict() throws Exception {
+        communityRepository.save(new Community("backend", 1L));
+        entityManager.flush();
+
+        mockMvc.perform(post("/api/communities")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"BACKEND","description":null}
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.errorType").value("COMMUNITY_NAME_TAKEN"));
+    }
+
+    @Test
+    @Transactional
+    void patchesDescriptionAndKeepsTheName() throws Exception {
+        communityRepository.save(new Community("backend", 1L));
+        entityManager.flush();
+
+        mockMvc.perform(patch("/api/communities/backend")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"description":"New description"}
+                                """))
+                .andExpect(status().isOk());
+
+        entityManager.flush();
+        assertThat(communityRepository.findByName("backend").orElseThrow().getDescription())
+                .isEqualTo("New description");
+    }
+
+    @Test
+    @Transactional
+    void deactivateHidesTheCommunityAndReactivateBringsItBack() throws Exception {
+        communityRepository.save(new Community("backend", 1L));
+        entityManager.flush();
+
+        mockMvc.perform(delete("/api/communities/backend"))
+                .andExpect(status().isNoContent());
+        entityManager.flush();
+
+        assertThat(communityRepository.findByName("backend").orElseThrow().isActive()).isFalse();
+        mockMvc.perform(get("/api/communities/backend"))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(post("/api/communities/backend/reactivate"))
+                .andExpect(status().isNoContent());
+        entityManager.flush();
+
+        assertThat(communityRepository.findByName("backend").orElseThrow().isActive()).isTrue();
+        mockMvc.perform(get("/api/communities/backend"))
+                .andExpect(status().isOk());
     }
 
     @Test
