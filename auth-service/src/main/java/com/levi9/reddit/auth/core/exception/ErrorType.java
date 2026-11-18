@@ -12,6 +12,8 @@ public enum ErrorType {
     REGISTRATION_FAILED,
     /** The refresh token was rotated seconds ago by another request: use the tokens that one received. */
     REFRESH_IN_PROGRESS,
+    /** Too many login or register attempts from one client IP. The {@code Retry-After} header says when to retry. */
+    RATE_LIMITED,
     USER_BANNED,
     USER_NOT_FOUND,
     ACCOUNT_DELETION_FORBIDDEN

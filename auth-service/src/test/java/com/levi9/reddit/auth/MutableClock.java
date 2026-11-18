@@ -7,11 +7,11 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
-/** A clock tests can move forward, to check rules about time (expiry, grace window) without waiting. */
-class MutableClock extends Clock {
+/** A clock tests can move forward, to check rules about time (expiry, grace window, rate limits) without waiting. */
+public class MutableClock extends Clock {
     private volatile Instant now = Instant.now().truncatedTo(ChronoUnit.MICROS);
 
-    void advance(Duration duration) {
+    public void advance(Duration duration) {
         now = now.plus(duration);
     }
 

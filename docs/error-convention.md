@@ -29,6 +29,7 @@ Every service returns errors as RFC 9457 problem details (`application/problem+j
 | `UnauthorizedException` | 401    |
 | `ForbiddenException`    | 403    |
 | `ConflictException`     | 409    |
+| `TooManyRequestsException` | 429, with a `Retry-After` header in seconds (auth-service rate limits) |
 
 Add `NotFoundException` (404) and `ValidationException` (422, well-formed but breaks a business rule) when your
 service needs them: add them to `permits` in `DomainException` and the compiler shows the switch to update.
