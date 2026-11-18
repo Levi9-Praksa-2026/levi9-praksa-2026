@@ -22,20 +22,22 @@ export const phaseClass: Record<EnterPhase, string> = {
 }
 
 const EASE = 'cubic-bezier(.22, 1, .36, 1)'
-const MEDIA = '[data-enter-media], .hero__bg, .hero__media, .hero__stage, .hero__art, .hero__window, .hero-visual, .ly-collage'
+/** The hero's picture: it settles in place (hero-enter.css) and never rises with the words. */
+const MEDIA = '[data-enter-media], .hero__media'
 const TEXT = 'h1 ~ *, :has(> h1) ~ *, :has(~ h1)'
-const LEAF = 'p, dl, ul, ol, a, button, img, picture, video, figure, blockquote, h2, h3, .pill, .btn'
+const LEAF = 'p, dl, ul, ol, a, button, img, picture, video, figure, blockquote, h2, h3'
 
 /** What rises after the h1, as whole blocks in reading order:
-    a box of layout is opened, a button row gives one step a button, a picture never moves here. */
+    a box of layout is opened, a button row ([data-enter-row], ButtonRow) gives each button its own step,
+    a picture never moves here. */
 function enterSteps(hero: HTMLElement, h1: HTMLElement): HTMLElement[] {
   const all = [...hero.querySelectorAll<HTMLElement>(MEDIA)]
   const media = all.filter(m => !all.some(o => o !== m && o.contains(m)))
   const out: HTMLElement[] = []
   const take = (el: HTMLElement) => {
-    if (el === h1 || el.contains(h1) || out.includes(el) || el.matches('img, picture, video, canvas, .frame__img')) return
+    if (el === h1 || el.contains(h1) || out.includes(el) || el.matches('img, picture, video, canvas')) return
     if (media.includes(el) || media.some(m => el.contains(m))) return
-    if (el.matches('.btn-row')) {
+    if (el.matches('[data-enter-row]')) {
       ;[...el.children].forEach(c => take(c as HTMLElement))
       return
     }

@@ -29,14 +29,15 @@ export type ButtonProps = LinkButtonProps | ActionButtonProps
 
 const base =
   'group relative inline-flex items-center gap-2 rounded-btn border font-text leading-none tracking-normal whitespace-nowrap cursor-pointer ' +
+  // the press: 1px down and 1.5% smaller (translate and scale are their own properties in Tailwind v4, so they are what transitions)
   'motion-safe:active:translate-y-px motion-safe:active:scale-[.985]'
 
 const sizes: Record<ButtonSize, string> = {
-  md: 'justify-center h-btn px-6 text-body font-medium transition-[background-color,color,border-color,box-shadow,transform] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-px',
-  nav: 'justify-center h-11 px-[18px] text-[15px] font-semibold md:h-12 md:px-6 md:text-body transition-[background-color,color,border-color,box-shadow,transform] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-px',
-  hero: 'justify-center h-14 px-[34px] text-[17px] font-semibold md:h-[62px] md:text-[18px] transition-[translate,box-shadow,background-color] duration-180 ease-[ease] motion-safe:hover:-translate-y-[3px] motion-safe:active:translate-y-0',
+  md: 'justify-center h-btn px-6 text-body font-medium transition-[background-color,color,border-color,box-shadow,translate,scale] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-px',
+  nav: 'justify-center h-11 px-[18px] text-[15px] font-semibold md:h-12 md:px-6 md:text-body transition-[background-color,color,border-color,box-shadow,translate,scale] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-px',
+  hero: 'justify-center h-14 px-[34px] text-[17px] font-semibold md:h-[62px] md:text-[18px] transition-[translate,scale,box-shadow,background-color] duration-180 ease-[ease] motion-safe:hover:-translate-y-[3px]',
   xl:
-    'w-full h-12 px-12 justify-between text-[18px] font-medium transition-[background-color,color,border-color,box-shadow,transform] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-0.5 ' +
+    'w-full h-12 px-12 justify-between text-[18px] font-medium transition-[background-color,color,border-color,box-shadow,translate,scale] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-0.5 ' +
     'sm:h-[clamp(64px,3vw+40px,88px)] sm:font-display sm:font-[number:var(--display-weight)] sm:text-[clamp(22px,0.95vw+18px,32px)] sm:tracking-[var(--display-tracking)]',
 }
 
@@ -109,7 +110,7 @@ export interface ButtonRowProps {
 /** An action row: the main action and at most one quieter one. On a phone they stack and the quiet one becomes a link. */
 export function ButtonRow({ primary, secondary, arrow = false, size = 'md', primaryClassName, className }: ButtonRowProps) {
   return (
-    <div className={cx('flex flex-wrap items-center max-sm:w-full max-sm:flex-col max-sm:items-stretch', size === 'hero' ? 'gap-3.5' : 'gap-3', className)}>
+    <div data-enter-row="" className={cx('flex flex-wrap items-center max-sm:w-full max-sm:flex-col max-sm:items-stretch', size === 'hero' ? 'gap-3.5' : 'gap-3', className)}>
       <Button href={primary.href} onClick={primary.onClick} arrow={arrow} size={size} className={primaryClassName}>{primary.label}</Button>
       {secondary && (
         <Button
