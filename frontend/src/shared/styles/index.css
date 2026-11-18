@@ -2,74 +2,24 @@
   The shared design system and Tailwind v4 in one stylesheet. Both entries import it (app and welcome);
   the welcome page also imports marketing.css (motion and section grounds).
 
-  Layers, lowest first: the design system (base, cards, layout, icons; marketing.css adds motion and grounds), then Tailwind's theme
-  and utilities. So a utility on an element always beats the design system's class on it, and theme.css is unlayered and beats both, the way the
-  <style> after the links does on a static page. Tailwind's preflight is not loaded: base.css is the reset.
-
-  Tailwind's own palette, font sizes, fonts and radii are switched off, so the only colours, sizes and
-  faces a component can name are the design system's: bg-surface, text-muted, font-display, text-h2, rounded-btn.
-  Spacing (4px steps) and breakpoints (sm 640, lg 1024, xl 1280) are Tailwind's; they match the design system's.
+  Layers, lowest first: Tailwind's preflight (the reset), the design system (theme.css tokens, then base, cards,
+  layout, icons; marketing.css adds motion and grounds), then Tailwind's theme and utilities. So a utility on an
+  element always beats the design system's class on it. The tokens and their Tailwind names are in theme.css.
 */
-@layer ui, theme, base, components, utilities;
+@layer reset, ui, theme, base, components, utilities;
 
+@import "tailwindcss/preflight.css" layer(reset);
 @import "tailwindcss/theme.css" layer(theme);
+@import "./theme.css";
 @import "./base.css" layer(ui);
 @import "./cards.css" layer(ui);
 @import "./layout.css" layer(ui);
 @import "./icons.css" layer(ui);
 @import "tailwindcss/utilities.css" layer(utilities);
-@import "./theme.css";
 
 /* the page's source, for Tailwind's class scan */
 @source "../../";
 
-@theme {
-  --color-*: initial;
-  --font-*: initial;
-  --text-*: initial;
-  --radius-*: initial;
-}
-
-/* Names only: each utility reads the design system's role variable, so a theme change restyles it and a ground band
-   (.ground-surface, .ground-inverse) flips it: text-ink is light inside .ground-inverse. There are no
-   inv-* utilities; an inverse band is the .ground-inverse class. */
-@theme inline reference {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-card: var(--card);
-  --color-ink: var(--ink);
-  --color-muted: var(--muted);
-  --color-accent: var(--accent);
-  --color-accent-ink: var(--accent-ink);
-  --color-action: var(--action);
-  --color-action-ink: var(--action-ink);
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-  --color-current: currentColor;
-  --color-transparent: transparent;
-
-  --font-display: var(--font-display);
-  --font-text: var(--font-text);
-  --font-mono: var(--font-mono);
-
-  --text-label: var(--t-label);
-  --text-small: var(--t-small);
-  --text-body: var(--t-body);
-  --text-lead: var(--t-lead);
-  --text-card: var(--t-card);
-  --text-h3: var(--t-h3);
-  --text-h2: var(--t-h2);
-  --text-h1: var(--t-h1);
-  --text-stat: var(--t-stat);
-
-  --radius-sm: var(--r-sm);
-  --radius-md: var(--r-md);
-  --radius-lg: var(--r-lg);
-  --radius-btn: var(--r-btn);
-  --radius-full: 999px;
-
-  --ease-ui: var(--ease);
-}
 
 /* Tailwind's grid utility and the design system's 12-column .grid share a name, and the design system's grid sets every child
    across the row (.grid > * { grid-column: 1 / -1 }). The design system's grid is `.grid.ui-grid` (every design system
