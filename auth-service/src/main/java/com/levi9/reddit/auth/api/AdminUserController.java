@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+// TODO(auth): only works once auth-service is a resource server for /api/users/** (see SecurityConfig).
+// Check that the OAuth access token still carries the user id in sub and the roles claim.
 @RestController
 @RequestMapping("/api/users/{username}/ban")
 @PreAuthorize("hasRole('ADMIN')")

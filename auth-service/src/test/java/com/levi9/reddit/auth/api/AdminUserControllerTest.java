@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Security filters stay on: the role check is part of what is tested.
-// No-token -> 401 is not tested yet: the resource server is wired by the OAuth work.
+// TODO(auth): add no-token -> 401 for both endpoints once the resource server is wired.
 @WebMvcTest(AdminUserController.class)
 @Import(SecurityConfig.class)
 class AdminUserControllerTest {

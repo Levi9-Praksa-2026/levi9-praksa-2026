@@ -29,6 +29,8 @@ public class UserBanService {
             throw new ConflictException(ErrorType.USER_ALREADY_BANNED, "User is already banned");
         }
         user.ban(adminId, reason.strip(), Instant.now());
+        // TODO(auth): revoke the user's sessions here once OAuth is in (remove their authorizations),
+        // and make the refresh grant reject banned users. Until then a ban takes effect when tokens expire.
     }
 
     @Transactional
