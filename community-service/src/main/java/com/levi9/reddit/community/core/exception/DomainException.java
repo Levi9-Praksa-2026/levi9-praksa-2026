@@ -3,7 +3,7 @@ package com.levi9.reddit.community.core.exception;
 import java.util.Objects;
 
 public abstract sealed class DomainException extends RuntimeException
-        permits NotFoundException {
+        permits NotFoundException, ConflictException {
     private final ErrorType errorType;
 
     protected DomainException(ErrorType errorType, String detail) {
