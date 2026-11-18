@@ -27,4 +27,12 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select c from Community c where lower(c.name) = lower(:name) and c.active = true")
     Optional<Community> findActiveByNameForUpdate(@Param("name") String name);
+
+    /**
+     * Same lock, but also finds inactive communities. Needed by leave: a user must be able to leave a
+     * community that was shut down, otherwise the membership row stays forever.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Community c where lower(c.name) = lower(:name)")
+    Optional<Community> findByNameForUpdate(@Param("name") String name);
 }

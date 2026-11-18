@@ -62,7 +62,7 @@ class CommunityMembershipServiceTest {
     @Test
     void leaveRemovesMembershipAndDecrementsCount() {
         Community community = community("backend", 3);
-        given(communities.findActiveByNameForUpdate("backend")).willReturn(Optional.of(community));
+        given(communities.findByNameForUpdate("backend")).willReturn(Optional.of(community));
         given(members.existsById(memberId())).willReturn(true);
 
         service.leave("backend", USER_ID);
@@ -74,7 +74,7 @@ class CommunityMembershipServiceTest {
     @Test
     void leaveWhenNotAMemberChangesNothing() {
         Community community = community("backend", 3);
-        given(communities.findActiveByNameForUpdate("backend")).willReturn(Optional.of(community));
+        given(communities.findByNameForUpdate("backend")).willReturn(Optional.of(community));
         given(members.existsById(memberId())).willReturn(false);
 
         service.leave("backend", USER_ID);
@@ -84,9 +84,10 @@ class CommunityMembershipServiceTest {
     }
 
     @Test
-    void leaveNeverMakesTheCountNegative() {
-        Community community = community("backend", 0);
-        given(communities.findActiveByNameForUpdate("backend")).willReturn(Optional.of(community));
+    void leaveFindsInactiveCommunities() {
+        Community community = community("backend", 1);
+        community.deactivate();
+        given(communities.findByNameForUpdate("backend")).willReturn(Optional.of(community));
         given(members.existsById(memberId())).willReturn(true);
 
         service.leave("backend", USER_ID);

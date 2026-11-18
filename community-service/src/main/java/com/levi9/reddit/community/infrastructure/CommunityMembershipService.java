@@ -33,19 +33,19 @@ public class CommunityMembershipService {
         community.updateMemberCount(community.getMemberCount() + 1);
     }
 
-    /** Leaving when not a member is harmless: the call changes nothing. */
+    /**
+     * Leaving when not a member is harmless: the call changes nothing. Inactive communities are included,
+     * otherwise a member of a shut-down community could never remove the membership.
+     */
     @Transactional
     public void leave(String name, long userId) {
-        Community community = communities.findActiveByNameForUpdate(name)
+        Community community = communities.findByNameForUpdate(name)
                 .orElseThrow(() -> new CommunityNotFoundException(name));
         CommunityMemberId memberId = new CommunityMemberId(community.getId(), userId);
         if (!members.existsById(memberId)) {
             return;
         }
         members.deleteById(memberId);
-        // Never go below zero, even if the stored counter has drifted.
-        if (community.getMemberCount() > 0) {
-            community.updateMemberCount(community.getMemberCount() - 1);
-        }
+        community.updateMemberCount(community.getMemberCount() - 1);
     }
 }
