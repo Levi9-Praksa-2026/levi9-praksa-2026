@@ -1,9 +1,7 @@
 package com.levi9.reddit.community.api;
 
 import com.levi9.reddit.community.core.exception.DomainException;
-import com.levi9.reddit.community.core.exception.ErrorType;
 import com.levi9.reddit.community.core.exception.NotFoundException;
-import com.levi9.reddit.community.infrastructure.PostServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -33,19 +31,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
-    // A failing dependency is not this service's bug. Tell the caller to retry, without leaking internals.
-    @ExceptionHandler(PostServiceUnavailableException.class)
-    ProblemDetail handlePostServiceUnavailable(PostServiceUnavailableException ex) {
-        log.warn("Post service call failed: {}", ex.getMessage());
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_GATEWAY, "Community posts could not be loaded");
-        problem.setTitle("Post service unavailable");
-        problem.setProperty("errorType", ErrorType.POST_SERVICE_UNAVAILABLE.name());
-        return problem;
-    }
-
-    // Security exceptions thrown from method security must reach Spring Security's own handling,
-    // otherwise the catch-all below would turn a 401/403 into a 500.
     @ExceptionHandler({AccessDeniedException.class, AuthenticationException.class})
     void rethrowSecurity(RuntimeException ex) {
         throw ex;
@@ -57,8 +42,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // Bean Validation failures: keep Spring's 400 and add which fields failed.
-    // The rejected value is left out on purpose, it could be a password.
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {

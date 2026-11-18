@@ -34,7 +34,7 @@ public class CommunityController {
     }
 
     @GetMapping("/{name}")
-    @Operation(summary = "A single community with all its details and its posts; 404 if it doesn't exist or is inactive")
+    @Operation(summary = "A single community with all its details; 404 if it doesn't exist or is inactive")
     public CommunityDetailResponse getCommunity(@PathVariable @Size(max = 50) String name) {
         return communityService.getCommunity(name);
     }

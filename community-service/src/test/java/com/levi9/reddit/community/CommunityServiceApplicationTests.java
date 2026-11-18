@@ -1,28 +1,22 @@
 package com.levi9.reddit.community;
 
-import com.levi9.reddit.community.contracts.PostResponse;
 import com.levi9.reddit.community.core.model.Community;
 import com.levi9.reddit.community.core.model.CommunityMember;
 import com.levi9.reddit.community.core.model.CommunityMemberId;
-import com.levi9.reddit.community.infrastructure.PostServiceClient;
 import com.levi9.reddit.community.infrastructure.repository.CommunityMemberRepository;
 import com.levi9.reddit.community.infrastructure.repository.CommunityRepository;
 import jakarta.persistence.EntityManager;
-import java.time.Instant;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -44,9 +38,6 @@ class CommunityServiceApplicationTests {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockitoBean
-    private PostServiceClient postService;
 
     @Test
     @Transactional
@@ -116,16 +107,11 @@ class CommunityServiceApplicationTests {
 
     @Test
     @Transactional
-    void getsCommunityWithAllItsDetailsAndPosts() throws Exception {
+    void getsCommunityWithAllItsDetails() throws Exception {
         Community community = communityRepository.save(new Community("backend", 42L));
         community.updateDescription("Backend discussion");
         community.updateMemberCount(7);
         entityManager.flush();
-
-        PostResponse post = new PostResponse(
-                11L, "Hello", "Body", 2L, "luka", community.getId(), 3, 0,
-                Instant.parse("2026-11-01T10:00:00Z"), null);
-        given(postService.findPostsByCommunity(community.getId())).willReturn(List.of(post));
 
         mockMvc.perform(get("/api/communities/{name}", "backend"))
                 .andExpect(status().isOk())
@@ -134,7 +120,7 @@ class CommunityServiceApplicationTests {
                 .andExpect(jsonPath("$.creatorId").doesNotExist())
                 .andExpect(jsonPath("$.memberCount").value(7))
                 .andExpect(jsonPath("$.createdAt").exists())
-                .andExpect(jsonPath("$.posts[0].title").value("Hello"));
+                .andExpect(jsonPath("$.posts").doesNotExist());
     }
 
     @Test

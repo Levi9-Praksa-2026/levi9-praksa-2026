@@ -10,10 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.levi9.reddit.community.contracts.CommunityDetailResponse;
 import com.levi9.reddit.community.contracts.CommunityResponse;
 import com.levi9.reddit.community.contracts.PageResponse;
-import com.levi9.reddit.community.contracts.PostResponse;
 import com.levi9.reddit.community.core.exception.CommunityNotFoundException;
 import com.levi9.reddit.community.infrastructure.CommunityService;
-import com.levi9.reddit.community.infrastructure.PostServiceUnavailableException;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -80,10 +78,9 @@ class CommunityControllerTest {
     }
 
     @Test
-    void getCommunity_returnsEveryDetailAndItsPosts() throws Exception {
-        PostResponse post = new PostResponse(11L, "Hello", "Body", 2L, "luka", 1L, 3, 0, CREATED, null);
+    void getCommunity_returnsEveryDetail() throws Exception {
         given(communityService.getCommunity("backend")).willReturn(new CommunityDetailResponse(
-                1L, "backend", "Backend discussion", 7, CREATED, List.of(post)));
+                1L, "backend", "Backend discussion", 7, CREATED));
 
         mockMvc.perform(get("/api/communities/{name}", "backend"))
                 .andExpect(status().isOk())
@@ -93,9 +90,7 @@ class CommunityControllerTest {
                 .andExpect(jsonPath("$.creatorId").doesNotExist())
                 .andExpect(jsonPath("$.memberCount").value(7))
                 .andExpect(jsonPath("$.createdAt").exists())
-                .andExpect(jsonPath("$.posts[0].id").value(11))
-                .andExpect(jsonPath("$.posts[0].title").value("Hello"))
-                .andExpect(jsonPath("$.posts[0].authorUsername").value("luka"));
+                .andExpect(jsonPath("$.posts").doesNotExist());
     }
 
     @Test
@@ -107,16 +102,5 @@ class CommunityControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.errorType").value("COMMUNITY_NOT_FOUND"));
-    }
-
-    @Test
-    void getCommunity_whenPostServiceIsDown_returnsBadGateway() throws Exception {
-        given(communityService.getCommunity("backend"))
-                .willThrow(new PostServiceUnavailableException("post-service down", null));
-
-        mockMvc.perform(get("/api/communities/{name}", "backend"))
-                .andExpect(status().isBadGateway())
-                .andExpect(jsonPath("$.title").value("Post service unavailable"))
-                .andExpect(jsonPath("$.errorType").value("POST_SERVICE_UNAVAILABLE"));
     }
 }

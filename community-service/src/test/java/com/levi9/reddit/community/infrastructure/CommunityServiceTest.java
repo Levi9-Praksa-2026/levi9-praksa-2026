@@ -9,11 +9,9 @@ import static org.mockito.Mockito.when;
 import com.levi9.reddit.community.contracts.CommunityDetailResponse;
 import com.levi9.reddit.community.contracts.CommunityResponse;
 import com.levi9.reddit.community.contracts.PageResponse;
-import com.levi9.reddit.community.contracts.PostResponse;
 import com.levi9.reddit.community.core.exception.CommunityNotFoundException;
 import com.levi9.reddit.community.core.model.Community;
 import com.levi9.reddit.community.infrastructure.repository.CommunityRepository;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -33,9 +31,6 @@ class CommunityServiceTest {
 
     @Mock
     private CommunityRepository communities;
-
-    @Mock
-    private PostServiceClient postService;
 
     @InjectMocks
     private CommunityService service;
@@ -60,14 +55,11 @@ class CommunityServiceTest {
     }
 
     @Test
-    void getCommunity_returnsAllDetailsAndPosts() {
+    void getCommunity_returnsAllDetails() {
         Community community = new Community("backend", 42L);
         community.updateDescription("Backend discussion");
         community.updateMemberCount(7);
-        when(communities.findByNameIgnoreCaseAndActiveTrue("backend")).thenReturn(Optional.of(community));
-        PostResponse post = new PostResponse(
-                11L, "Hello", "Body", 2L, "luka", 1L, 3, 0, Instant.parse("2026-11-01T10:00:00Z"), null);
-        when(postService.findPostsByCommunity(community.getId())).thenReturn(List.of(post));
+        when(communities.findActiveByName("backend")).thenReturn(Optional.of(community));
 
         CommunityDetailResponse result = service.getCommunity("backend");
 
@@ -76,12 +68,11 @@ class CommunityServiceTest {
         assertThat(result.description()).isEqualTo("Backend discussion");
         assertThat(result.memberCount()).isEqualTo(7);
         assertThat(result.createdAt()).isEqualTo(community.getCreatedAt());
-        assertThat(result.posts()).containsExactly(post);
     }
 
     @Test
     void getCommunity_missingOrInactive_throwsNotFound() {
-        when(communities.findByNameIgnoreCaseAndActiveTrue("missing")).thenReturn(Optional.empty());
+        when(communities.findActiveByName("missing")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.getCommunity("missing"))
                 .isInstanceOf(CommunityNotFoundException.class)
