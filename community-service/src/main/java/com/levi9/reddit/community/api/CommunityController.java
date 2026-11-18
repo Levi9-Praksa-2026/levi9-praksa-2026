@@ -2,6 +2,7 @@ package com.levi9.reddit.community.api;
 
 import com.levi9.reddit.community.contracts.CommunityDetailResponse;
 import com.levi9.reddit.community.contracts.CommunityResponse;
+import com.levi9.reddit.community.contracts.CommunitySort;
 import com.levi9.reddit.community.contracts.CreateCommunityRequest;
 import com.levi9.reddit.community.contracts.PageResponse;
 import com.levi9.reddit.community.contracts.UpdateCommunityRequest;
@@ -13,6 +14,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.Locale;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,11 +39,15 @@ public class CommunityController {
     }
 
     @GetMapping
-    @Operation(summary = "Active communities, alphabetically; each item has only its name and member count")
+    @Operation(summary = "Active communities, paginated; each item has only its name and member count")
     public PageResponse<CommunityResponse> findCommunities(
+            @RequestParam(defaultValue = "new")
+            @Pattern(regexp = "(?i)new|top", message = "sort must be new or top") String sort,
+            @RequestParam(required = false) @Size(max = 50) String name,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-        return communityService.findCommunities(page, size);
+        return communityService.findCommunities(
+                CommunitySort.valueOf(sort.toUpperCase(Locale.ROOT)), name, page, size);
     }
 
     @GetMapping("/{name}")

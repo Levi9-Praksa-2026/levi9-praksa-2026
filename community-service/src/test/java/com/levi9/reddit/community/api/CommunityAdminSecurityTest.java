@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.levi9.reddit.community.contracts.CommunityDetailResponse;
+import com.levi9.reddit.community.contracts.CommunitySort;
 import com.levi9.reddit.community.contracts.PageResponse;
 import com.levi9.reddit.community.infrastructure.CommunityService;
 import java.time.Instant;
@@ -97,7 +98,7 @@ class CommunityAdminSecurityTest {
 
     @Test
     void readsStayPublic() throws Exception {
-        given(communityService.findCommunities(0, 20))
+        given(communityService.findCommunities(CommunitySort.NEW, null, 0, 20))
                 .willReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
 
         mockMvc.perform(get("/api/communities"))
