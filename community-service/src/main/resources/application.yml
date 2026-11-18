@@ -18,3 +18,7 @@ spring:
       hibernate.default_schema: community
       hibernate.jdbc.time_zone: UTC
       hibernate.query.fail_on_pagination_over_collection_fetch: true
+
+app:
+  mock-auth:
+    enabled: true   # local only: hard-coded admin caller until auth-service issues tokens
