@@ -65,3 +65,13 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - **Production:** the flag defaults to `false` in code, so leave `APP_MOCKAUTH_ENABLED` unset or `false` and wire the
   real JWT resource server as described in `security-convention.md`. Turning it on would let anyone act as any user,
   including ADMIN, by sending a header.
+
+### Community stub
+- **Local:** community-service does not have the `/internal/communities/...` endpoints yet, so
+  `APP_COMMUNITYSTUB_ENABLED=true` replaces those calls with a stub: every community is active and every user is a
+  member of every community. `APP_COMMUNITYSTUB_UNAVAILABLECOMMUNITYIDS` and `APP_COMMUNITYSTUB_NONMEMBERUSERIDS`
+  (comma-separated ids, `999` in `docker-compose.yml`) carve out exceptions, so creating a post in community `999`
+  gives 422 and creating one as user `999` (`X-Mock-User-Id: 999`) gives 403. Startup logs a WARN while the stub is
+  registered.
+- **Production:** leave `APP_COMMUNITYSTUB_*` unset. The flag defaults to `false`; without it and without the real
+  community-service client the app fails to start instead of letting everyone post everywhere.

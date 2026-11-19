@@ -59,7 +59,7 @@ public class PostQueryService {
         } else {
             result = posts.findByRemovedAtIsNull(pageable);
         }
-        return toPage(result, PostQueryService::toResponse);
+        return toPage(result, PostMapper::toResponse);
     }
 
     /**
@@ -72,12 +72,12 @@ public class PostQueryService {
             case WEEK -> posts.findTop10ByCreatedAtGreaterThanEqualAndRemovedAtIsNullOrderByScoreDescIdDesc(
                     clock.instant().minus(WEEK));
         };
-        return top.stream().map(PostQueryService::toResponse).toList();
+        return top.stream().map(PostMapper::toResponse).toList();
     }
 
     public PostResponse getPost(Long id) {
         return posts.findByIdAndRemovedAtIsNull(id)
-                .map(PostQueryService::toResponse)
+                .map(PostMapper::toResponse)
                 .orElseThrow(() -> new PostNotFoundException(id));
     }
 
@@ -97,20 +97,6 @@ public class PostQueryService {
                 page.getSize(),
                 page.getTotalElements(),
                 page.getTotalPages());
-    }
-
-    private static PostResponse toResponse(Post post) {
-        return new PostResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getAuthorId(),
-                post.getAuthorUsername(),
-                post.getCommunityId(),
-                post.getScore(),
-                post.getCommentCount(),
-                post.getCreatedAt(),
-                post.getUpdatedAt());
     }
 
     private static CommentResponse toResponse(Comment comment) {

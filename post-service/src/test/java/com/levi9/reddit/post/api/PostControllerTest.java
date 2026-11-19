@@ -13,6 +13,7 @@ import com.levi9.reddit.post.contracts.PageResponse;
 import com.levi9.reddit.post.contracts.PostResponse;
 import com.levi9.reddit.post.contracts.TopPeriod;
 import com.levi9.reddit.post.core.exception.PostNotFoundException;
+import com.levi9.reddit.post.infrastructure.PostCommandService;
 import com.levi9.reddit.post.infrastructure.PostQueryService;
 import java.time.Instant;
 import java.util.List;
@@ -34,6 +35,9 @@ class PostControllerTest {
 
     @MockitoBean
     private PostQueryService postQueryService;
+
+    @MockitoBean
+    private PostCommandService postCommandService;
 
     @Test
     void findPosts_isPublicAndUsesDefaultPaging() throws Exception {
@@ -61,7 +65,9 @@ class PostControllerTest {
     @Test
     void findPosts_withTooLargePageSize_returnsBadRequest() throws Exception {
         mockMvc.perform(get("/api/posts").param("size", "1000"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Request validation failed"))
+                .andExpect(jsonPath("$.errors[0].field").value("size"));
 
         verifyNoInteractions(postQueryService);
     }

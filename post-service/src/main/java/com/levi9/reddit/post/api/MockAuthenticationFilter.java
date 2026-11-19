@@ -53,7 +53,8 @@ final class MockAuthenticationFilter extends OncePerRequestFilter {
 
         String userId = headerOrDefault(request, USER_ID_HEADER, DEFAULT_USER_ID);
         if (!userId.matches("\\d{1,18}")) {
-            response.sendError(HttpStatus.BAD_REQUEST.value(), USER_ID_HEADER + " must be a positive number");
+            ProblemResponses.write(request, response, HttpStatus.BAD_REQUEST,
+                    USER_ID_HEADER + " must be a positive number");
             return;
         }
         String username = headerOrDefault(request, USERNAME_HEADER, DEFAULT_USERNAME);

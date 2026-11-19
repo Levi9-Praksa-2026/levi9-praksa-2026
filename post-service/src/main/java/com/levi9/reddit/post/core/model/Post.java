@@ -67,6 +67,12 @@ public class Post {
     protected Post() {}
 
     public Post(String title, Long authorId, String authorUsername, Long communityId) {
+        this(title, null, authorId, authorUsername, communityId);
+    }
+
+    /** A new post; {@code updatedAt} stays null until the author edits it. */
+    public Post(String title, String content, Long authorId, String authorUsername, Long communityId) {
+        this.content = content;
         this.title = Objects.requireNonNull(title, "title");
         this.authorId = Objects.requireNonNull(authorId, "authorId");
         this.authorUsername = Objects.requireNonNull(authorUsername, "authorUsername");

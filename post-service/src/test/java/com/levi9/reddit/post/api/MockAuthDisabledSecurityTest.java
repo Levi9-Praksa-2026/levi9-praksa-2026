@@ -1,7 +1,11 @@
 package com.levi9.reddit.post.api;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.springframework.http.MediaType;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +24,14 @@ class MockAuthDisabledSecurityTest {
     private MockMvc mockMvc;
 
     @Test
-    void protectedRoute_withoutCaller_isRejected() throws Exception {
+    void protectedRoute_withoutCaller_isRejectedWithProblemDetail() throws Exception {
         mockMvc.perform(get(WhoAmIController.PATH))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.detail").value("Authentication is required"))
+                .andExpect(jsonPath("$.instance").value(WhoAmIController.PATH))
+                .andExpect(jsonPath("$.errorType").doesNotExist());
     }
 
     @Test

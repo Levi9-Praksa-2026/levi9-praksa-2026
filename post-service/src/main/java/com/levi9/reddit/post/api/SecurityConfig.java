@@ -6,13 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 /**
  * Reading posts and comments is public. Everything else needs a caller.
@@ -37,10 +35,11 @@ class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/error").permitAll()
                         .anyRequest().authenticated())
-                // No login mechanism is configured yet, so Spring's default would answer 403 to a missing caller.
-                // TODO: problem-detail body as in community-service (see security-convention.md, "Errors").
+                // Problem details for errors raised before any controller runs. Without the entry point Spring would
+                // also answer 403 instead of 401 to a missing caller, since no login mechanism is configured yet.
                 .exceptionHandling(errors -> errors
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+                        .authenticationEntryPoint(ProblemResponses.unauthorized())
+                        .accessDeniedHandler(ProblemResponses.forbidden()));
 
         if (mockAuthEnabled) {
             log.warn("MOCK AUTH ENABLED: every request without a token gets a made-up caller (X-Mock-* headers). "

@@ -45,7 +45,9 @@ class MockAuthEnabledSecurityTest {
     @Test
     void protectedRoute_withInvalidUserId_returnsBadRequest() throws Exception {
         mockMvc.perform(get(WhoAmIController.PATH).header(MockAuthenticationFilter.USER_ID_HEADER, "abc"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value("X-Mock-User-Id must be a positive number"));
     }
 
     @Test

@@ -9,6 +9,7 @@ import com.levi9.reddit.post.core.exception.NotPostAuthorException;
 import com.levi9.reddit.post.core.exception.PostNotFoundException;
 import com.levi9.reddit.post.core.exception.PostRemovalForbiddenException;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -35,5 +36,14 @@ class ApiExceptionHandlerTest {
         assertThat(problem.getStatus()).isEqualTo(status);
         assertThat(problem.getProperties()).containsEntry("errorType", errorType);
         assertThat(problem.getDetail()).isEqualTo(ex.getMessage());
+    }
+
+    @Test
+    void unexpectedException_isBare500WithoutInternals() {
+        ProblemDetail problem = handler.handleUnexpected(new IllegalStateException("db password is hunter2"));
+
+        assertThat(problem.getStatus()).isEqualTo(500);
+        assertThat(problem.getDetail()).isNull();
+        assertThat(problem.getProperties()).isNull();
     }
 }
