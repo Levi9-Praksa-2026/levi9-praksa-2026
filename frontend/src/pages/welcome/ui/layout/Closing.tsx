@@ -3,9 +3,9 @@ import { Button } from '@/shared/ui/Button'
 import { cn } from '@/shared/lib/cn'
 import { AppLink } from '@/shared/ui/Link'
 import type { ActionItem, LinkItem } from '@/shared/ui/types'
-import { Brand, type BrandProps } from '@/shared/ui/layout/Brand'
-import { SectionHead } from '@/shared/ui/Section'
-import { grid12, screenSection, screenWrap } from '@/shared/ui/layout/screen'
+import { Brand, type BrandProps } from '@/shared/ui/Brand'
+import { SectionHead } from '@/pages/welcome/ui/Section'
+import { grid12, screenSection, screenWrap } from '@/pages/welcome/ui/layout/screen'
 
 export interface FooterColumn {
   title: string

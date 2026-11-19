@@ -1,7 +1,6 @@
-'use client'
 import { cn } from '@/shared/lib/cn'
 import { useEffect, useRef, useState } from 'react'
-import { useLoop } from '@/shared/hooks/useLoop'
+import { useLoop } from '@/pages/welcome/ui/hero/useLoop'
 
 export interface LiveWordProps {
   /** The first word is the one at rest (and the one read aloud); the rest take turns. */
@@ -9,9 +8,9 @@ export interface LiveWordProps {
 }
 
 /**
- * One live word in a word hero's h1: it changes every 2 s for two rounds,
+ * One live word in a heading (the JoinAnywhere h2): it changes every 2 s for two rounds,
  * rests on the first word, and plays a round again when a mouse enters the headline. The slot is as
- * wide as its widest word, so no other word moves. Use it only inside `<HeroTitle>`.
+ * wide as its widest word, so no other word moves.
  */
 export function LiveWord({ words }: LiveWordProps) {
   const ref = useRef<HTMLSpanElement>(null)

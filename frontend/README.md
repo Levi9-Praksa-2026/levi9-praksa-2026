@@ -16,8 +16,11 @@ npm run build   # type check + production build into dist/
 - `src/pages/`: one folder per route (`home`, `auth`, `not-found`).
 - `src/pages/welcome/` + `welcome/index.html`: the welcome page at `/welcome/`. It is a separate document,
   not a React Router route, so links to it reload the page. The 3D globe (three.js) loads lazily and only there.
+  Its own building blocks live in `src/pages/welcome/ui/`: the hero and its entrance (`hero/`), the marketing
+  nav, closing band and page shell (`layout/`), and the one-screen `Section`. Forum screens do not use them.
 - `src/features/`: feature code shared by several pages, such as posts and communities.
-- `src/shared/`: the theme, UI primitives, config and helpers. Nothing here imports from `pages` or `features`.
+- `src/shared/`: the theme, the primitives every screen uses (`Button`, `AppLink`, `Brand`), the API layer, config
+  and helpers. Nothing here imports from `pages` or `features`.
 
 Import from `src` with the `@/` alias, for example `import { routes } from '@/shared/config/routes'`.
 All paths live in `src/shared/config/routes.ts`.
@@ -53,7 +56,7 @@ Tailwind v4 utilities, written on the elements. The stylesheets in `src/shared/s
 - Ground bands: a section with `ground-surface`, `ground-inverse` or `ground-brand` flips the colour roles,
   so `text-ink` is white on the blue band without any extra class.
 - `base.css`: element defaults only (body, headings, paragraphs, focus ring).
-- `hero-enter.css`: the hero's entrance animation, the one choreographed piece kept as CSS.
+- `src/pages/welcome/ui/hero/hero-enter.css`: the hero's entrance animation, the one choreographed piece kept as CSS.
 - `features/offices/office-globe.css`: the globe's labels, which three-globe creates outside React.
 
 Rules of thumb:
@@ -66,8 +69,8 @@ Rules of thumb:
 - No colour or size outside the theme: Tailwind's `bg-white` or `text-gray-500` produce nothing here.
   A one-off value can be arbitrary (`text-[15px]`), a value that repeats belongs in `theme.css`.
 - States that span components have named variants in `theme.css`: `sheet:` (phone menu open),
-  `item-open:` (a desktop nav menu shown), `expanded:`, `menu-instant:`, `noscript:`.
-- Layout helpers live in `src/shared/ui/layout/screen.ts`: `screenSection`, `screenWrap` (one screen per
+  `item-open:` (a desktop nav menu shown), `expanded:`, `menu-instant:`.
+- Layout helpers live in `src/pages/welcome/ui/layout/screen.ts`: `screenSection`, `screenWrap` (one screen per
   section) and `grid12` (the 12-column grid; children use `col-span-*` from `lg`).
 
 ## Docker

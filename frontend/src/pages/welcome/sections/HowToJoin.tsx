@@ -1,8 +1,8 @@
-import { Section, SectionHead } from '@/shared/ui/Section'
+import { Section, SectionHead } from '@/pages/welcome/ui/Section'
 import { PostCard } from '@/features/posts/PostCard'
 import { ReplyCard } from '@/features/posts/ReplyCard'
 import { cn } from '@/shared/lib/cn'
-import { grid12 } from '@/shared/ui/layout/screen'
+import { grid12 } from '@/pages/welcome/ui/layout/screen'
 import type { Post, Reply } from '@/features/posts/types'
 
 export interface JoinStep {

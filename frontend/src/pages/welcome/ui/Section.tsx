@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { cssVars } from '@/shared/lib/style'
-import type { Ground, Screens } from '@/shared/ui/types'
-import { screenSection, screenWrap } from '@/shared/ui/layout/screen'
+import type { Ground, Screens } from '@/pages/welcome/ui/types'
+import { screenSection, screenWrap } from '@/pages/welcome/ui/layout/screen'
 
 export interface SectionProps {
   id: string

@@ -110,10 +110,6 @@
   margin-inline: auto;
 }
 
-@custom-variant noscript {
-  @media (scripting: none) { @slot; }
-}
-
 @layer ui {
 /* ---------------------------------------------------------------- tokens */
 :root {

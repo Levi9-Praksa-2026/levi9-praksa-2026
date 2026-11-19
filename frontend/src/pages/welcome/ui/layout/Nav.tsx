@@ -3,10 +3,10 @@ import { Button } from '@/shared/ui/Button'
 import { cn } from '@/shared/lib/cn'
 import { AppLink } from '@/shared/ui/Link'
 import type { ActionItem, LinkItem } from '@/shared/ui/types'
-import { Brand, type BrandProps } from '@/shared/ui/layout/Brand'
-import { useNavSheet } from '@/shared/hooks/useNavSheet'
-import { useScrollSpy } from '@/shared/hooks/useScrollSpy'
-import { grid12 } from '@/shared/ui/layout/screen'
+import { Brand, type BrandProps } from '@/shared/ui/Brand'
+import { useNavSheet } from '@/pages/welcome/ui/layout/useNavSheet'
+import { useScrollSpy } from '@/pages/welcome/ui/layout/useScrollSpy'
+import { grid12 } from '@/pages/welcome/ui/layout/screen'
 
 export interface NavMenuCard extends LinkItem {
   line: string
@@ -124,7 +124,6 @@ export function Nav({ brand, items, primary, secondary, skipTo = '#top', skipLab
             'flex min-w-0 flex-1 gap-1 self-stretch max-lg:hidden lg:max-xl:gap-0',
             'sheet:fixed sheet:inset-x-0 sheet:top-nav sheet:bottom-0 sheet:flex sheet:flex-col sheet:gap-0 sheet:overflow-y-auto sheet:bg-bg sheet:px-gut sheet:pt-4 sheet:pb-[calc(var(--btn-h)*2+56px)]',
             'sheet:transition-[opacity,translate] sheet:duration-200 sheet:ease-ui sheet:starting:-translate-y-2 sheet:starting:opacity-0',
-            'noscript:max-lg:mr-3 noscript:max-lg:flex noscript:max-lg:overflow-x-auto noscript:max-lg:border-r noscript:max-lg:border-line noscript:max-lg:pr-2 noscript:max-lg:[scrollbar-width:none] noscript:max-sm:hidden',
           )}
           aria-label="Main"
         >
@@ -195,7 +194,7 @@ export function Nav({ brand, items, primary, secondary, skipTo = '#top', skipLab
         <button
           ref={toggleRef}
           type="button"
-          className="hidden size-11 flex-none cursor-pointer place-items-center rounded-btn border border-line-strong bg-transparent text-ink max-lg:inline-grid sheet:ml-auto noscript:hidden"
+          className="hidden size-11 flex-none cursor-pointer place-items-center rounded-btn border border-line-strong bg-transparent text-ink max-lg:inline-grid sheet:ml-auto"
           aria-expanded={sheet.open}
           aria-label="Menu"
           onClick={() => sheet.setOpen(!sheet.open)}
