@@ -5,6 +5,7 @@ import com.levi9.reddit.community.contracts.CommunityResponse;
 import com.levi9.reddit.community.contracts.CommunitySort;
 import com.levi9.reddit.community.contracts.CreateCommunityRequest;
 import com.levi9.reddit.community.contracts.PageResponse;
+import com.levi9.reddit.community.infrastructure.CommunityMembershipService;
 import com.levi9.reddit.community.contracts.UpdateCommunityRequest;
 import com.levi9.reddit.community.core.model.Community;
 import com.levi9.reddit.community.infrastructure.CommunityService;
@@ -16,12 +17,16 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.Locale;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,9 +39,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Communities")
 public class CommunityController {
     private final CommunityService communityService;
+    private final CommunityMembershipService membershipService;
 
-    public CommunityController(CommunityService communityService) {
+    public CommunityController(CommunityService communityService, CommunityMembershipService membershipService) {
         this.communityService = communityService;
+        this.membershipService = membershipService;
     }
 
     // TODO: GET /api/communities?status=inactive (ADMIN) from the endpoints doc is not implemented yet.
@@ -59,6 +66,22 @@ public class CommunityController {
         return communityService.getCommunity(name);
     }
 
+    @PutMapping("/{name}/members/me")
+    @Operation(summary = "Join a community; calling it twice is harmless")
+    public ResponseEntity<Void> join(@PathVariable @Size(max = 50) String name,
+                                     @AuthenticationPrincipal Jwt jwt) {
+        membershipService.join(name, Long.parseLong(jwt.getSubject()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{name}/members/me")
+    @Operation(summary = "Leave a community; leaving when not a member is harmless")
+    public ResponseEntity<Void> leave(@PathVariable @Size(max = 50) String name,
+                                      @AuthenticationPrincipal Jwt jwt) {
+        membershipService.leave(name, Long.parseLong(jwt.getSubject()));
+        return ResponseEntity.noContent().build();
+    }
+    
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a community (ADMIN)")

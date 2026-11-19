@@ -5,9 +5,11 @@ import { useFinePointer, useReducedMotion } from '@/shared/hooks/useMediaQuery'
 import { useHero } from '@/shared/lib/hero-context'
 import { LiveWord, type LiveWordProps } from '@/shared/ui/hero/LiveWord'
 
-/** The chosen mark set before the h1's words (`.ly-mark`, the centred hero). */
+const markStroke = "before:absolute before:top-[27%] before:h-[42%] before:w-[13%] before:-skew-x-12 before:rounded-[99px] before:bg-bg before:content-[''] after:absolute after:top-[27%] after:h-[42%] after:w-[13%] after:-skew-x-12 after:rounded-[99px] after:bg-bg after:content-['']"
+
+/** A round mark set before the h1's words. */
 export function TitleMark() {
-  return <span className="ly-mark" aria-hidden="true" />
+  return <span className={`relative mx-[.06em] inline-block size-[.8em] rounded-full bg-ink align-[-0.06em] before:left-[31%] after:left-[56%] ${markStroke}`} aria-hidden="true" />
 }
 
 type Token =
@@ -146,7 +148,7 @@ export function HeroTitle({ children, letters, className }: HeroTitleProps) {
       const br = unit !== undefined && breaks?.has(unit) ? <br className="ly-br" /> : null
       const body = t.kind === 'node' ? t.node : (
         <span className="ly-u" style={{ whiteSpace: 'nowrap' }} aria-hidden="true">
-          {letters ? [...t.text].map((ch, k) => <span key={k} className="ly-l">{ch}</span>) : t.text}
+          {letters ? [...t.text].map((ch, k) => <span key={k} className="ly-l inline-block [font-stretch:var(--wd,inherit)] [font-weight:var(--w,inherit)] transition-[font-weight,font-stretch] duration-320 ease-ui motion-reduce:transition-none">{ch}</span>) : t.text}
         </span>
       )
       return <Fragment key={i}>{br}{body}</Fragment>
@@ -158,7 +160,12 @@ export function HeroTitle({ children, letters, className }: HeroTitleProps) {
     <h1
       ref={ref}
       id={titleId}
-      className={cx(letters && 'ly-letters', units && lock.state === 'locked' && 'ly-locked', className)}
+      className={cx(
+        'text-[clamp(40px,3.048vw+28.11px,72px)] leading-[1.02] tracking-[var(--display-tracking-xl,var(--display-tracking))]',
+        // locked: the measured lines are fixed, so nothing may re-wrap them
+        units && lock.state === 'locked' ? 'whitespace-nowrap [text-wrap:nowrap]' : 'text-balance',
+        className,
+      )}
       data-ly-letters={letters}
       aria-label={reworked || hasMark ? label : undefined}
     >
@@ -168,7 +175,7 @@ export function HeroTitle({ children, letters, className }: HeroTitleProps) {
 }
 
 /** Letters near a fine pointer take a heavier weight (and a wider width on `wdth`), set per letter
-    as CSS variables the design system's layout.css reads; nothing re-renders while the pointer moves. */
+    as CSS variables the letters read; nothing re-renders while the pointer moves. */
 function useLetters(ref: RefObject<HTMLHeadingElement | null>, letters: 'wght' | 'wdth' | undefined): void {
   const fine = useFinePointer()
   const reduced = useReducedMotion()
