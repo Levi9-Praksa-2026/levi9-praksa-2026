@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * The register rate limit, per client IP (workspace DECISIONS.md, 2026-11-18). A small limit here so the rules are
  * visible: 3 per minute, one back every 20 s. The context is shared between tests, so each test uses its own client
- * IP and starts with a full budget. The login limit is a servlet filter and is tested in its own class.
+ * IP and starts with a full budget. The login limit is a servlet filter and is tested in {@code LoginTests}.
  */
 @WebMvcTest(AuthController.class)
 @Import({SecurityConfig.class, RateLimitTest.TestClock.class})
@@ -138,7 +139,7 @@ class RateLimitTest {
     }
 
     private ResultActions postJson(String body, String clientIp) throws Exception {
-        return mvc.perform(post("/api/auth/register").with(from(clientIp))
+        return mvc.perform(post("/api/auth/register").with(from(clientIp)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(body));
     }
 

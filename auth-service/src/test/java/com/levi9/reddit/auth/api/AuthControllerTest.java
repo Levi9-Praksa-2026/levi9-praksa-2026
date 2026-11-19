@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -64,12 +65,20 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.passwordHash").doesNotExist());
     }
 
-    // --- Only register is open ---
+    // --- Only register is open, and only with the CSRF token ---
 
     @Test
-    void otherRoutesAndMethodsStillNeedAToken() throws Exception {
-        mvc.perform(get("/api/auth/register")).andExpect(status().isForbidden());
-        postJson("/api/auth/logout", "{}").andExpect(status().isForbidden());
+    void otherRoutesAndMethodsNeedALogin() throws Exception {
+        mvc.perform(get("/api/auth/register")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/users/me")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void registerWithoutTheCsrfTokenIs403() throws Exception {
+        mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(REGISTER_BODY))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(auth);
     }
 
     // --- Bad input: 400 before the service runs ---
@@ -91,7 +100,7 @@ class AuthControllerTest {
     void missingOrMalformedBodiesAre400() throws Exception {
         postJson("/api/auth/register", "{}").andExpect(status().isBadRequest());
         postJson("/api/auth/register", "{not json").andExpect(status().isBadRequest());
-        mvc.perform(post("/api/auth/register")).andExpect(status().is4xxClientError());
+        mvc.perform(post("/api/auth/register").with(csrf())).andExpect(status().is4xxClientError());
 
         verifyNoInteractions(auth);
     }
@@ -111,7 +120,7 @@ class AuthControllerTest {
     }
 
     private ResultActions postJson(String path, String body) throws Exception {
-        return mvc.perform(post(path).contentType(MediaType.APPLICATION_JSON).content(body));
+        return mvc.perform(post(path).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body));
     }
 
     private static ResultActions expectProblem(ResultActions result, int status, String errorType) throws Exception {
