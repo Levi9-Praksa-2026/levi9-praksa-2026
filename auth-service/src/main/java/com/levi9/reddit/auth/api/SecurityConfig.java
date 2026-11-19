@@ -17,8 +17,8 @@ class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/.well-known/jwks.json", "/actuator/health/**").permitAll()
-                        // How a client gets a token, so these can't require one. Only POST: no other method exists.
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh")
+                        // Signing up cannot require being signed in. Only POST: no other method exists.
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register")
                         .permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated());

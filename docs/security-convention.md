@@ -8,7 +8,7 @@ gateway, community-service and post-service only check them.
 | Token | What it is | Lifetime | Where it is checked |
 |---|---|---|---|
 | Access token | JWT signed by auth-service with RS256 | 15 minutes | Gateway and every service, with the public key. No database. |
-| Refresh token | Random opaque string, stored only as a SHA-256 hash | 7 days | Only auth-service, against `auth.refresh_tokens` |
+| Refresh token | Opaque string issued by Spring Authorization Server, rotated on every use | 7 days | Only auth-service, against `auth.oauth2_authorization` |
 
 - **Only auth-service holds the private key.** It signs access tokens and nothing else ever can.
 - **Everyone else gets the public key** from auth-service's JWKS endpoint, `GET /.well-known/jwks.json`. A public
@@ -18,7 +18,7 @@ gateway, community-service and post-service only check them.
 
 ## How a request travels
 
-1. The frontend logs in through the gateway: `POST /api/auth/login`. auth-service returns both tokens in the body.
+1. The user logs in through the OAuth authorization code flow (the gateway is the client). No token reaches the browser.
 2. Every later request carries `Authorization: Bearer <access token>` and goes to the **gateway**.
 3. The gateway checks the token (signature, expiry, issuer). Invalid or expired: 401, the request stops here.
    Valid: it forwards the request with the **same, unchanged** `Authorization` header.
