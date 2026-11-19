@@ -97,4 +97,29 @@ class AuthServiceApplicationTests {
         assertThat(refreshTokenRepository.findById(otherToken.getId()).orElseThrow().getRevokedAt()).isNull();
     }
 
+    @Test
+    @Transactional
+    void passwordChangePersistsAndRevokesOnlyTheUsersTokens() {
+        User user = userRepository.save(new User("reader", "reader@example.test",
+                passwordEncoder.encode("old secret"), "First", "Last"));
+        User other = userRepository.save(new User("other", "other@example.test", "hash", "Other", "User"));
+        Instant expiresAt = Instant.now().plusSeconds(60);
+        RefreshToken first = refreshTokenRepository.save(new RefreshToken(user.getId(), "first", expiresAt));
+        RefreshToken second = refreshTokenRepository.save(new RefreshToken(user.getId(), "second", expiresAt));
+        RefreshToken otherToken = refreshTokenRepository.save(new RefreshToken(other.getId(), "other", expiresAt));
+        entityManager.flush();
+        entityManager.clear();
+
+        userService.changePassword(user.getId(), "old secret", "new secret");
+        entityManager.flush();
+        entityManager.clear();
+
+        String hash = userRepository.findById(user.getId()).orElseThrow().getPasswordHash();
+        assertThat(passwordEncoder.matches("new secret", hash)).isTrue();
+        assertThat(passwordEncoder.matches("old secret", hash)).isFalse();
+        assertThat(refreshTokenRepository.findById(first.getId()).orElseThrow().getRevokedAt()).isNotNull();
+        assertThat(refreshTokenRepository.findById(second.getId()).orElseThrow().getRevokedAt()).isNotNull();
+        assertThat(refreshTokenRepository.findById(otherToken.getId()).orElseThrow().getRevokedAt()).isNull();
+    }
+
 }

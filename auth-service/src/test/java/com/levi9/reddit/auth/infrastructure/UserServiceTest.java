@@ -34,6 +34,30 @@ class UserServiceTest {
     }
 
     @Test
+    void changesPasswordAndRevokesTokens() {
+        when(users.findUserById(42L)).thenReturn(Optional.of(user));
+
+        service.changePassword(42L, "secret", "new secret");
+
+        assertThat(passwords.matches("new secret", user.getPasswordHash())).isTrue();
+        assertThat(passwords.matches("secret", user.getPasswordHash())).isFalse();
+        verify(tokens).revokeAllActiveByUserId(eq(42L), any(Instant.class));
+    }
+
+    @Test
+    void rejectsPasswordChangeWithWrongCurrentPassword() {
+        when(users.findUserById(42L)).thenReturn(Optional.of(user));
+        String previousHash = user.getPasswordHash();
+
+        assertThatThrownBy(() -> service.changePassword(42L, "wrong", "new secret"))
+                .isInstanceOfSatisfying(UnauthorizedException.class,
+                        error -> assertThat(error.getErrorType()).isEqualTo(ErrorType.INVALID_CREDENTIALS));
+
+        assertThat(user.getPasswordHash()).isEqualTo(previousHash);
+        verifyNoInteractions(tokens);
+    }
+
+    @Test
     void deletesUserAndRevokesTokens() {
         service.delete(1L, "secret");
         assertThat(user.isDeleted()).isTrue();

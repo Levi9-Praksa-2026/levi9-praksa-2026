@@ -42,7 +42,7 @@ public class UserService {
         User user = requireProfileUser(users.findByIdForUpdate(userId));
         String email = request.getEmail();
         if (email != null && !email.equals(user.getEmail())) {
-            requirePassword(user, request.getCurrentPassword());
+            verifyPassword(user, request.getCurrentPassword());
         }
 
         user.updateProfile(request.getFirstName(), request.getLastName(), email);
@@ -64,7 +64,7 @@ public class UserService {
         if (user.getRole() != UserRole.USER) {
             throw new ForbiddenException(ErrorType.ACCOUNT_DELETION_FORBIDDEN, "This account cannot be deleted");
         }
-        requirePassword(user, password);
+        verifyPassword(user, password);
         user.delete();
         refreshTokens.revokeAllActiveByUserId(userId, Instant.now());
     }
@@ -74,7 +74,17 @@ public class UserService {
                 user.getFirstName(), user.getLastName());
     }
 
-    private void requirePassword(User user, String password) {
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = users.findUserById(userId)
+                .filter(candidate -> !candidate.isDeleted())
+                .orElseThrow(() -> new NotFoundException(ErrorType.USER_NOT_FOUND, "User not found"));
+        verifyPassword(user, currentPassword);
+        user.changePasswordHash(passwords.encode(newPassword));
+        refreshTokens.revokeAllActiveByUserId(userId, Instant.now());
+    }
+
+    private void verifyPassword(User user, String password) {
         if (password == null || !passwords.matches(password, user.getPasswordHash())) {
             throw new UnauthorizedException(ErrorType.INVALID_CREDENTIALS, "Invalid password");
         }

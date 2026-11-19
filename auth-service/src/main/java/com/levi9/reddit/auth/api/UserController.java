@@ -1,5 +1,6 @@
 package com.levi9.reddit.auth.api;
 
+import com.levi9.reddit.auth.contracts.ChangePasswordRequest;
 import com.levi9.reddit.auth.contracts.DeleteUserRequest;
 import com.levi9.reddit.auth.contracts.UpdateUserRequest;
 import com.levi9.reddit.auth.contracts.UserProfileResponse;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,13 +33,13 @@ public class UserController {
 
     @GetMapping("/me")
     public UserProfileResponse getMe(@AuthenticationPrincipal Jwt jwt) {
-        return userService.getProfile(profileUserId(jwt));
+        return userService.getProfile(authenticatedUserId(jwt));
     }
 
     @PatchMapping("/me")
     public UserProfileResponse updateMe(@AuthenticationPrincipal Jwt jwt,
                                         @Valid @RequestBody UpdateUserRequest request) {
-        return userService.updateProfile(profileUserId(jwt), request);
+        return userService.updateProfile(authenticatedUserId(jwt), request);
     }
 
     @DeleteMapping("/me")
@@ -46,7 +48,14 @@ public class UserController {
         userService.delete(CURRENT_USER_ID, request.password());
     }
 
-    private static long profileUserId(Jwt jwt) {
+    @PutMapping("/me/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeMyPassword(@AuthenticationPrincipal Jwt jwt,
+                                 @Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(authenticatedUserId(jwt), request.currentPassword(), request.newPassword());
+    }
+
+    private static long authenticatedUserId(Jwt jwt) {
         if (jwt != null) {
             try {
                 long userId = Long.parseLong(jwt.getSubject());
