@@ -20,3 +20,8 @@ feature changes a membership or vote and updates a stored count or score, write
 both within the same service transaction.
 
 Run the backend checks with `./mvnw verify` using Java 25 and Docker.
+
+The community list is `GET /api/communities?sort=new|top&name=&page=&size=`. It returns active communities
+with only their name and member count; the default order is `new`. The endpoints document also defines
+`sort=hot`, but that is not implemented yet — it needs activity data from post-service's
+`/internal/posts/community-activity`, which is a separate piece of work.

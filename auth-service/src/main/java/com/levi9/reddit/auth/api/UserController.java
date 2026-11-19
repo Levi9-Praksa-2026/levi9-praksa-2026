@@ -2,15 +2,19 @@ package com.levi9.reddit.auth.api;
 
 import com.levi9.reddit.auth.contracts.ChangePasswordRequest;
 import com.levi9.reddit.auth.contracts.DeleteUserRequest;
+import com.levi9.reddit.auth.contracts.UpdateUserRequest;
+import com.levi9.reddit.auth.contracts.UserProfileResponse;
 import com.levi9.reddit.auth.core.exception.ErrorType;
 import com.levi9.reddit.auth.core.exception.UnauthorizedException;
-import com.levi9.reddit.auth.core.service.UserService;
+import com.levi9.reddit.auth.infrastructure.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -25,6 +29,17 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping("/me")
+    public UserProfileResponse getMe(@AuthenticationPrincipal Jwt jwt) {
+        return userService.getProfile(authenticatedUserId(jwt));
+    }
+
+    @PatchMapping("/me")
+    public UserProfileResponse updateMe(@AuthenticationPrincipal Jwt jwt,
+                                        @Valid @RequestBody UpdateUserRequest request) {
+        return userService.updateProfile(authenticatedUserId(jwt), request);
     }
 
     @DeleteMapping("/me")

@@ -118,6 +118,18 @@ public class User {
         return createdAt;
     }
 
+    public void updateProfile(String firstName, String lastName, String email) {
+        if (firstName != null) {
+            this.firstName = firstName;
+        }
+        if (lastName != null) {
+            this.lastName = lastName;
+        }
+        if (email != null) {
+            this.email = email;
+        }
+    }
+
     public void changePasswordHash(String passwordHash) {
         this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
     }

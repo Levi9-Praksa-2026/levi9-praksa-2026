@@ -3,7 +3,7 @@ package com.levi9.reddit.auth;
 import com.levi9.reddit.auth.core.model.RefreshToken;
 import com.levi9.reddit.auth.core.model.User;
 import com.levi9.reddit.auth.core.model.UserRole;
-import com.levi9.reddit.auth.core.service.UserService;
+import com.levi9.reddit.auth.infrastructure.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.levi9.reddit.auth.infrastructure.repository.RefreshTokenRepository;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
