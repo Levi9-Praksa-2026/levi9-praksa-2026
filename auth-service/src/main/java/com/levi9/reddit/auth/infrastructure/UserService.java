@@ -12,6 +12,7 @@ import com.levi9.reddit.auth.core.model.User;
 import com.levi9.reddit.auth.core.model.UserRole;
 import com.levi9.reddit.auth.infrastructure.security.AuthorizationRevoker;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
+import java.time.Instant;
 import java.util.Optional;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -79,7 +80,7 @@ public class UserService {
                 .filter(candidate -> !candidate.isDeleted())
                 .orElseThrow(() -> new NotFoundException(ErrorType.USER_NOT_FOUND, "User not found"));
         verifyPassword(user, currentPassword);
-        user.changePasswordHash(passwords.encode(newPassword));
+        user.changePasswordHash(passwords.encode(newPassword), Instant.now());
         authorizations.revokeAllOf(userId);
     }
 

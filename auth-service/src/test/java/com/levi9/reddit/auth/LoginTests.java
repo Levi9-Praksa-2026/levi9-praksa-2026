@@ -2,6 +2,7 @@ package com.levi9.reddit.auth;
 
 import com.jayway.jsonpath.JsonPath;
 import com.levi9.reddit.auth.core.model.User;
+import com.levi9.reddit.auth.infrastructure.UserService;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,9 @@ class LoginTests {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private UserService userService;
 
     private User marko;
 
@@ -180,6 +184,75 @@ class LoginTests {
                 .andExpect(header().string(HttpHeaders.RETRY_AFTER, "20"));
 
         login(new MockHttpSession(), nextIp(), "marko@example.test", PASSWORD).andExpect(status().isOk());
+    }
+
+    // --- A login session that outlives what it was for ---
+    // Deleting authorizations stops refreshes, but auth-service's own login session survives and can get a new code
+    // without a password. These go back through /oauth2/authorize with that old session: a code still comes back,
+    // but exchanging it is refused, so no tokens.
+
+    @Test
+    void aDeletedAccountsOldLoginSessionGetsNoMoreTokens() throws Exception {
+        MockHttpSession browser = loggedInBrowser(PASSWORD);
+
+        marko.delete();
+        users.save(marko);
+
+        exchange(authorizeAgain(browser))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("invalid_grant"));
+    }
+
+    @Test
+    void aBannedAccountsOldLoginSessionGetsNoMoreTokens() throws Exception {
+        MockHttpSession browser = loggedInBrowser(PASSWORD);
+
+        marko.ban(marko.getId(), "spam", Instant.now());
+        users.save(marko);
+
+        exchange(authorizeAgain(browser))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("invalid_grant"));
+    }
+
+    @Test
+    void afterAPasswordChangeOldLoginsGetNoTokensButANewLoginDoes() throws Exception {
+        MockHttpSession before = loggedInBrowser(PASSWORD);
+
+        userService.changePassword(marko.getId(), PASSWORD, "a brand new passphrase");
+
+        exchange(authorizeAgain(before))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("invalid_grant"));
+        MockHttpSession after = loggedInBrowser("a brand new passphrase");
+        exchange(authorizeAgain(after)).andExpect(status().isOk());
+    }
+
+    /** A browser that has logged in to auth-service through the authorize redirect, as in the journey above. */
+    private MockHttpSession loggedInBrowser(String password) throws Exception {
+        MockHttpSession browser = new MockHttpSession();
+        mvc.perform(get(authorizeUri()).session(browser).accept(MediaType.TEXT_HTML))
+                .andExpect(status().is3xxRedirection());
+        login(browser, nextIp(), "marko@example.test", password).andExpect(status().isOk());
+        return browser;
+    }
+
+    /** {@code /oauth2/authorize} with an existing login session: no password asked, a code in the redirect. */
+    private String authorizeAgain(MockHttpSession browser) throws Exception {
+        String location = mvc.perform(get(authorizeUri()).session(browser))
+                .andExpect(status().is3xxRedirection())
+                .andReturn().getResponse().getHeader(HttpHeaders.LOCATION);
+        assertThat(location).startsWith(REDIRECT_URI);
+        return UriComponentsBuilder.fromUriString(location).build().getQueryParams().getFirst("code");
+    }
+
+    private ResultActions exchange(String code) throws Exception {
+        return mvc.perform(post("/oauth2/token")
+                .with(httpBasic(GATEWAY_CLIENT_ID, "test-gateway-secret"))
+                .param("grant_type", "authorization_code")
+                .param("code", code)
+                .param("redirect_uri", REDIRECT_URI)
+                .param("code_verifier", VERIFIER));
     }
 
     /** As the React page does it: fetch the token for this session, then post the form with it in the header. */

@@ -28,8 +28,11 @@ with the gateway as a **BFF** (backend for frontend): the browser never holds a 
 **Rotation:** every refresh returns a new refresh token, and the old one stops working.
 
 **Revocation:** a password change or an account deletion deletes the user's authorizations, so the gateway's next
-refresh fails and its session loses the tokens. An access token already issued keeps working until it expires,
-at most 15 minutes: that is the trade-off of self-contained tokens, and why they are short.
+refresh fails and its session loses the tokens. That alone is not enough: auth-service's own login session survives
+and could get a new code from `/oauth2/authorize` without a password. So every token issue also checks the user, and
+refuses (`invalid_grant`) when the account is deleted or banned, or the password changed after that login. An access
+token already issued keeps working until it expires, at most 15 minutes: that is the trade-off of self-contained
+tokens, and why they are short.
 
 ## Logging in
 

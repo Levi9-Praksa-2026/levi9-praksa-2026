@@ -1,6 +1,5 @@
 package com.levi9.reddit.auth.infrastructure.security;
 
-import com.levi9.reddit.auth.core.model.User;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
@@ -16,13 +15,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
-import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -35,8 +32,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -140,27 +135,9 @@ public class AuthorizationServerConfig {
         return decoder;
     }
 
-    /**
-     * Adds {@code username} and {@code roles} (e.g. {@code ["USER"]}) to access and ID tokens, the same claim names
-     * the services read before. {@code sub} is already the user id: it is the principal name. Read from the database
-     * at every issue, so a role change shows up at the next refresh.
-     */
+    /** Refuses tokens a user may no longer have, and adds {@code username} and {@code roles}: see {@link TokenClaims}. */
     @Bean
     OAuth2TokenCustomizer<JwtEncodingContext> tokenClaims(UserRepository users) {
-        return context -> {
-            boolean accessToken = OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType());
-            boolean idToken = OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue());
-            if (!accessToken && !idToken) {
-                return;
-            }
-            long userId = Long.parseLong(context.getPrincipal().getName());
-            User user = users.findById(userId)
-                    .orElseThrow(() -> new IllegalStateException("No user " + userId + " for a token being issued"));
-            // A plain ArrayList, not List.of: the claims are stored as JSON with the authorization and read back on
-            // refresh, and Spring's Jackson allowlist accepts ArrayList but not the JDK's internal immutable lists.
-            context.getClaims()
-                    .claim("username", user.getUsername())
-                    .claim("roles", new ArrayList<>(List.of(user.getRole().name())));
-        };
+        return new TokenClaims(users);
     }
 }
