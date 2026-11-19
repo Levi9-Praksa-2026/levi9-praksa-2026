@@ -17,9 +17,10 @@ import tools.jackson.databind.json.JsonMapper;
 import java.time.Clock;
 
 /**
- * Everything that is not an authorization server endpoint (those are matched first, by
- * {@code AuthorizationServerConfig}). Login is Spring Security's form login with JSON answers; the session it creates
- * is what the authorize endpoint then sees, so the browser is logged in to auth-service itself (single sign-on).
+ * Everything that is neither an authorization server endpoint ({@code AuthorizationServerConfig}, order 1) nor the
+ * user API ({@link UserApiSecurityConfig}, order 2): login, register, the CSRF token, health and the API docs. Login
+ * is Spring Security's form login with JSON answers; the session it creates is what the authorize endpoint then sees,
+ * so the browser is logged in to auth-service itself (single sign-on).
  */
 @Configuration(proxyBeanMethods = false)
 class SecurityConfig {
@@ -31,7 +32,7 @@ class SecurityConfig {
             PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/api/auth/register");
 
     @Bean
-    @Order(2)
+    @Order(3)
     SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimitProperties limits, Clock clock, JsonMapper json)
             throws Exception {
         LoginResponses loginResponses = new LoginResponses(json);
