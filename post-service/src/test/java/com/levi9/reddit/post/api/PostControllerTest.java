@@ -118,8 +118,9 @@ class PostControllerTest {
 
         mockMvc.perform(get("/api/posts/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.title").value("Post not found"))
-                .andExpect(jsonPath("$.status").value(404));
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.errorType").value("POST_NOT_FOUND"))
+                .andExpect(jsonPath("$.detail").value("Post not found: 99"));
     }
 
     @Test
