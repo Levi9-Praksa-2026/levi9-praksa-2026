@@ -4,7 +4,7 @@ import com.levi9.reddit.auth.core.exception.ErrorType;
 import com.levi9.reddit.auth.core.exception.ForbiddenException;
 import com.levi9.reddit.auth.core.exception.NotFoundException;
 import com.levi9.reddit.auth.core.exception.UnauthorizedException;
-import com.levi9.reddit.auth.core.service.UserService;
+import com.levi9.reddit.auth.infrastructure.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
