@@ -1,5 +1,5 @@
 'use client'
-import { cx } from '@/shared/lib/env'
+import { cn } from '@/shared/lib/cn'
 import { useEffect, useRef, useState } from 'react'
 import { useLoop } from '@/shared/hooks/useLoop'
 
@@ -58,7 +58,7 @@ export function LiveWord({ words }: LiveWordProps) {
   return (
     <span ref={ref} className="ly-word relative -mb-[.1em] inline-grid overflow-clip align-bottom [overflow-clip-margin:.14em]">
       {words.map((word, k) => (
-        <span key={word} aria-hidden="true" className={cx(
+        <span key={word} aria-hidden="true" className={cn(
             'col-start-1 row-start-1 justify-self-start whitespace-nowrap pb-[.1em] transition-[translate,opacity] duration-600 ease-ui motion-reduce:transition-none',
             'bg-[linear-gradient(var(--accent),var(--accent))] bg-no-repeat [background-position:0_calc(100%-.05em)] [background-size:100%_max(3px,.05em)]',
             k === at ? undefined : k === out ? '-translate-y-[105%] opacity-0' : 'translate-y-[105%] opacity-0',

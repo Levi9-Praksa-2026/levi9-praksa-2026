@@ -38,6 +38,10 @@ Tailwind v4 utilities, written on the elements. The stylesheets in `src/shared/s
 - `features/offices/office-globe.css`: the globe's labels, which three-globe creates outside React.
 
 Rules of thumb:
+- Class strings go through `cn` (`src/shared/lib/cn.ts`: clsx + tailwind-merge). When two classes set the same
+  thing, the later one wins, so a `className` passed to a component overrides the component's own class
+  (`<PostCard className="p-3" />`). A token added to `theme.css` must also be added to `cn.ts`, or tailwind-merge
+  guesses its group and may drop it; `npm test` checks the groups.
 - A look that repeats is a component with its classes inside (`Button`, `Section`, `PostCard`),
   not a CSS class and not `@apply`. Variants are a prop that picks a class string (see `Button.tsx`).
 - No colour or size outside the theme: Tailwind's `bg-white` or `text-gray-500` produce nothing here.

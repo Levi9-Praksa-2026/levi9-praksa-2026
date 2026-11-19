@@ -1,6 +1,7 @@
 'use client'
 import { Children, Fragment, isValidElement, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode, type RefObject } from 'react'
-import { cx, fontsReady } from '@/shared/lib/env'
+import { fontsReady } from '@/shared/lib/env'
+import { cn } from '@/shared/lib/cn'
 import { useFinePointer, useReducedMotion } from '@/shared/hooks/useMediaQuery'
 import { useHero } from '@/shared/lib/hero-context'
 import { LiveWord, type LiveWordProps } from '@/shared/ui/hero/LiveWord'
@@ -160,7 +161,7 @@ export function HeroTitle({ children, letters, className }: HeroTitleProps) {
     <h1
       ref={ref}
       id={titleId}
-      className={cx(
+      className={cn(
         'text-[clamp(40px,3.048vw+28.11px,72px)] leading-[1.02] tracking-[var(--display-tracking-xl,var(--display-tracking))]',
         // locked: the measured lines are fixed, so nothing may re-wrap them
         units && lock.state === 'locked' ? 'whitespace-nowrap [text-wrap:nowrap]' : 'text-balance',

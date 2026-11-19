@@ -5,7 +5,7 @@ import type { ActionItem } from '@/shared/ui/types'
 import { lazy, Suspense } from 'react'
 import type { GlobePlace } from '@/features/offices/OfficeGlobe'
 import { PostCard } from '@/features/posts/PostCard'
-import { cx } from '@/shared/lib/env'
+import { cn } from '@/shared/lib/cn'
 import { grid12 } from '@/shared/ui/layout/screen'
 import type { Post } from '@/features/posts/types'
 
@@ -31,7 +31,7 @@ export function Hero({ kicker, title, lead, places, focus, globeLabel, post, reg
   return (
     <HeroShell variant="split">
       <div className="wrap relative z-[1] flex h-full flex-col gap-y-12 max-sm:h-auto">
-        <div className={cx('hero-text h-full min-h-0 grid-rows-[minmax(0,1fr)] content-stretch items-stretch gap-y-card-gap', grid12)}>
+        <div className={cn('hero-text h-full min-h-0 grid-rows-[minmax(0,1fr)] content-stretch items-stretch gap-y-card-gap', grid12)}>
           <div className="col-span-full min-w-0 self-start lg:col-span-5">
             <p className="flex items-center gap-2 text-small text-muted">
               <span className="size-2 flex-none rounded-full bg-p-accent" aria-hidden="true" />

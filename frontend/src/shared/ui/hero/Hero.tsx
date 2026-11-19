@@ -1,6 +1,6 @@
 'use client'
 import { useId, useRef, type CSSProperties, type ReactNode } from 'react'
-import { cx } from '@/shared/lib/env'
+import { cn } from '@/shared/lib/cn'
 import { HeroContext } from '@/shared/lib/hero-context'
 import { phaseClass, useHeroEnter } from '@/shared/hooks/useHeroEnter'
 
@@ -33,7 +33,7 @@ export function Hero({ variant, enter = true, className, style, data, children }
     <HeroContext.Provider value={{ phase, titleId }}>
       <section
         ref={ref}
-        className={cx(
+        className={cn(
           'hero relative isolate h-svh min-h-0 pt-[calc(var(--nav)+var(--photo,0px)+var(--hgap))] pb-[calc(var(--hpadb)+var(--bar))]',
           'max-sm:grid max-sm:h-auto max-sm:min-h-svh max-sm:grid-cols-[minmax(0,1fr)] max-sm:grid-rows-[1fr] max-sm:auto-rows-auto',
           `hero--${variant}`,
