@@ -45,11 +45,11 @@ class UserControllerTest {
         mvc.perform(put("/api/users/me/password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"currentPassword":"old secret","newPassword":"new secret"}
+                                {"currentPassword":"old secret","newPassword":"new secret phrase"}
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(userService).changePassword(42L, "old secret", "new secret");
+        verify(userService).changePassword(42L, "old secret", "new secret phrase");
     }
 
     @Test
@@ -57,7 +57,7 @@ class UserControllerTest {
         mvc.perform(put("/api/users/me/password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"currentPassword":"old secret","newPassword":"new secret"}
+                                {"currentPassword":"old secret","newPassword":"new secret phrase"}
                                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.errorType").value("INVALID_CREDENTIALS"));
@@ -71,12 +71,40 @@ class UserControllerTest {
         mvc.perform(put("/api/users/me/password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"currentPassword":"old secret","newPassword":"new secret"}
+                                {"currentPassword":"old secret","newPassword":"new secret phrase"}
                                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.errorType").value("INVALID_CREDENTIALS"));
 
         verifyNoInteractions(userService);
+    }
+
+    @Test
+    void rejectsNewPasswordBelowMinimumLength() throws Exception {
+        authenticateAs("42");
+        mvc.perform(put("/api/users/me/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"currentPassword":"old secret","newPassword":"12345678901"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("newPassword"))
+                .andExpect(jsonPath("$.errors[0].message").value("New password must be at least 12 characters"));
+
+        verifyNoInteractions(userService);
+    }
+
+    @Test
+    void acceptsNewPasswordAtMinimumLengthWithShortCurrentPassword() throws Exception {
+        authenticateAs("42");
+        mvc.perform(put("/api/users/me/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"currentPassword":"old secret","newPassword":"123456789012"}
+                                """))
+                .andExpect(status().isNoContent());
+
+        verify(userService).changePassword(42L, "old secret", "123456789012");
     }
 
     @Test
