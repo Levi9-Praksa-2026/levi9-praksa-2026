@@ -6,6 +6,7 @@ React, TypeScript, Vite, React Router and Tailwind v4.
 npm ci
 npm run dev     # http://localhost:5173
 npm run lint
+npm test        # unit tests (Vitest)
 npm run build   # type check + production build into dist/
 ```
 
@@ -20,6 +21,24 @@ npm run build   # type check + production build into dist/
 
 Import from `src` with the `@/` alias, for example `import { routes } from '@/shared/config/routes'`.
 All paths live in `src/shared/config/routes.ts`.
+
+## Data (mocked for now)
+
+`src/shared/api/` is the only place that knows about the backend:
+
+- `contracts/`: the request and response types, copied field for field from the Java DTOs
+  (`*Response.java`, `*Request.java`). A field marked "contract gap" is a proposal the backend does not
+  send yet; it changes once the team decides.
+- `communities.ts`, `posts.ts`, `users.ts`: one async function per endpoint, named after what it does
+  (`listPosts`, `votePost`, `joinCommunity`), with the method and path in its comment. Pages call only these.
+- `errors.ts`: every failure is an `ApiError` with the backend's problem details (`status`, `errorType`, `errors`).
+- `mock/`: for now the functions answer from in-memory data with the services' rules (401 without a login,
+  403 for a non-member, 404 for a removed post, 409 for a taken name, 422 for voting on your own post)
+  after a fake 150 to 400 ms delay, so every screen gets a loading state from the start.
+  The mock starts logged in as `demo_user`; `mockSignInAs('admin')` or `mockSignInAs(null)` switches.
+
+When the backend is ready, each function body becomes a request; the signatures and the pages stay.
+Login and register are not here: they come with the new auth flow.
 
 ## Styling
 
