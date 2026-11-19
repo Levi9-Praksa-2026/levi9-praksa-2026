@@ -80,6 +80,8 @@ public class CommunityController {
                                       @AuthenticationPrincipal Jwt jwt) {
         membershipService.leave(name, Long.parseLong(jwt.getSubject()));
         return ResponseEntity.noContent().build();
+    }
+    
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a community (ADMIN)")
