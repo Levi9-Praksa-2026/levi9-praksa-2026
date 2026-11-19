@@ -1,5 +1,8 @@
 server:
   port: 8081
+  # Behind the gateway, the client's address arrives in X-Forwarded-For. Tomcat reads it from the right, skips
+  # private-network hops (the gateway) and uses the first public one as the remote address (rate limits use it).
+  forward-headers-strategy: native
 
 spring:
   application:
@@ -25,3 +28,12 @@ app:
     access-token-ttl: 15m
     refresh-token-ttl: 7d
     generate-key: false   # production default; key comes from APP_JWT_PRIVATE_KEY + APP_JWT_KEY_ID
+  # Per client IP, refilled gradually (10 per minute = one back every 6 s). DECISIONS.md 2026-11-18.
+  # Generous on purpose: everyone in one office shares one IP.
+  rate-limit:
+    login:
+      requests: 10
+      per: 1m
+    register:
+      requests: 10
+      per: 1h

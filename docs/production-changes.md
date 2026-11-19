@@ -21,7 +21,22 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - Never commit `private.pem`. Store it in the environment settings of the deploy target or a secret store.
 - If neither a key nor the flag is set, auth-service refuses to start. That is on purpose.
 
+### Rate limits and the client IP
+- Login (10 per minute) and register (10 per hour) are limited per client IP, in memory. One auth-service
+  instance is assumed: with several, each counts on its own, so the real limit multiplies.
+- The client IP comes from the gateway's `X-Forwarded-For` (`server.forward-headers-strategy: native`), which
+  auth-service trusts from any private-network address. **auth-service must only be reachable through the
+  gateway** (never publish its port or open it in a security group), or a caller could pick its own IP.
+
 ## gateway
+
+### Trusted proxies
+- **Local and single EC2:** `trusted-proxies` trusts only loopback, because nothing sits in front of the gateway.
+  The gateway drops a client's own `X-Forwarded-For` and sends the address it saw.
+- **With a load balancer or reverse proxy in front** (ALB, Beanstalk's nginx): the gateway would then see the
+  proxy's address for every request, so every user would share one rate limit. Set
+  `SPRING_CLOUD_GATEWAY_SERVER_WEBMVC_TRUSTEDPROXIES` to match the proxy's addresses, and check with a
+  request through the whole chain which address reaches auth-service before relying on it.
 
 ### CORS origin
 - **Local:** `app.cors.allowed-origins` is `http://localhost:3000`, the frontend container.

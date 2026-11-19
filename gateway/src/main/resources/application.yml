@@ -8,6 +8,11 @@ spring:
     gateway:
       server:
         webmvc:
+          # Without this, the gateway strips X-Forwarded-For and services only ever see the gateway's address
+          # (auth-service rate-limits per client IP). Nothing sits in front of the gateway yet, so only loopback is
+          # trusted: any other caller is the client itself, its own X-Forwarded-For is dropped, and the gateway
+          # sends the address it actually saw. Revisit with a load balancer in front (docs/production-changes.md).
+          trusted-proxies: '127\.0\.0\.1|0:0:0:0:0:0:0:1'
           routes:
             - id: auth-service
               uri: ${AUTH_SERVICE_URL:http://localhost:8081}
