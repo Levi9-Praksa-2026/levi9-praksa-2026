@@ -16,7 +16,7 @@ class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable) // stateless API with bearer tokens, no cookies
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/.well-known/jwks.json", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/health/**").permitAll()
                         // Signing up cannot require being signed in. Only POST: no other method exists.
                         .requestMatchers(HttpMethod.POST, "/api/auth/register")
                         .permitAll()
