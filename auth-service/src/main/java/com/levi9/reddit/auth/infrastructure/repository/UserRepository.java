@@ -1,11 +1,12 @@
 package com.levi9.reddit.auth.infrastructure.repository;
 
 import com.levi9.reddit.auth.core.model.User;
+import jakarta.persistence.LockModeType;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.Optional;
 
 /**
  * Usernames and emails are unique ignoring case ({@code ux_users_username_lower}, {@code ux_users_email_lower}).
@@ -15,6 +16,13 @@ import java.util.Optional;
  * decides what a deleted or banned user gets.
  */
 public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from User u where u.id = :id")
+    Optional<User> findByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<User> findUserById(Long id);
 
     /** Login looks users up by email. */
     @Query("select u from User u where lower(u.email) = lower(:email)")

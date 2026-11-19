@@ -11,17 +11,22 @@ import static org.mockito.Mockito.when;
 import com.levi9.reddit.post.contracts.CommentResponse;
 import com.levi9.reddit.post.contracts.PageResponse;
 import com.levi9.reddit.post.contracts.PostResponse;
+import com.levi9.reddit.post.contracts.TopPeriod;
 import com.levi9.reddit.post.core.exception.PostNotFoundException;
 import com.levi9.reddit.post.core.model.Comment;
 import com.levi9.reddit.post.core.model.Post;
 import com.levi9.reddit.post.infrastructure.repository.CommentRepository;
 import com.levi9.reddit.post.infrastructure.repository.PostRepository;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -39,8 +44,14 @@ class PostQueryServiceTest {
     @Mock
     private CommentRepository comments;
 
-    @InjectMocks
+    private static final Instant NOW = Instant.parse("2026-11-18T12:00:00Z");
+
     private PostQueryService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new PostQueryService(posts, comments, Clock.fixed(NOW, ZoneOffset.UTC));
+    }
 
     @Test
     void findPosts_withoutFilters_returnsAllVisiblePostsNewestFirst() {
@@ -86,6 +97,33 @@ class PostQueryServiceTest {
         service.findPosts(7L, "spring", 0, 20);
 
         verify(posts).findByCommunityIdAndTitleContainingIgnoreCaseAndRemovedAtIsNull(eq(7L), eq("spring"), any());
+    }
+
+    @Test
+    void findTop_all_mapsRepositoryResultInOrder() {
+        Post best = new Post("Best", 1L, "luka", 7L);
+        best.updateScore(50);
+        Post second = new Post("Second", 2L, "ana", 7L);
+        second.updateScore(10);
+        when(posts.findTop10ByRemovedAtIsNullOrderByScoreDescIdDesc()).thenReturn(List.of(best, second));
+
+        List<PostResponse> result = service.findTop(TopPeriod.ALL);
+
+        assertThat(result).extracting(PostResponse::title).containsExactly("Best", "Second");
+        assertThat(result).extracting(PostResponse::score).containsExactly(50, 10);
+    }
+
+    @Test
+    void findTop_week_asksForPostsCreatedInTheLastSevenDays() {
+        Instant weekAgo = NOW.minus(Duration.ofDays(7));
+        Post recent = new Post("Recent", 1L, "luka", 7L);
+        when(posts.findTop10ByCreatedAtGreaterThanEqualAndRemovedAtIsNullOrderByScoreDescIdDesc(weekAgo))
+                .thenReturn(List.of(recent));
+
+        List<PostResponse> result = service.findTop(TopPeriod.WEEK);
+
+        assertThat(result).extracting(PostResponse::title).containsExactly("Recent");
+        verify(posts, never()).findTop10ByRemovedAtIsNullOrderByScoreDescIdDesc();
     }
 
     @Test

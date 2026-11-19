@@ -3,12 +3,14 @@ package com.levi9.reddit.post.api;
 import com.levi9.reddit.post.contracts.CommentResponse;
 import com.levi9.reddit.post.contracts.PageResponse;
 import com.levi9.reddit.post.contracts.PostResponse;
+import com.levi9.reddit.post.contracts.TopPeriod;
 import com.levi9.reddit.post.infrastructure.PostQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +35,12 @@ public class PostController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return postQueryService.findPosts(communityId, q, page, size);
+    }
+
+    @GetMapping("/top")
+    @Operation(summary = "Top 10 posts by score: of all time, or only posts created in the last 7 days")
+    public List<PostResponse> findTop(@RequestParam(defaultValue = "ALL") TopPeriod period) {
+        return postQueryService.findTop(period);
     }
 
     @GetMapping("/{id}")

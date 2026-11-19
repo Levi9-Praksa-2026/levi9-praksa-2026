@@ -34,7 +34,9 @@ services:
 
   community-service:
     build: ./community-service
-    environment: *db-env
+    environment:
+      <<: *db-env
+      APP_MOCKAUTH_ENABLED: "true"   # local only, see docs/production-changes.md
     depends_on:
       postgres:
         condition: service_healthy
