@@ -55,3 +55,13 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - **Local:** `APP_S3_ENDPOINT=http://moto:5000` points post-service at Moto, a fake S3.
 - **Production:** remove `APP_S3_ENDPOINT` so the AWS SDK uses real S3, and set `S3_BUCKET` and `AWS_REGION`
   if they differ from the defaults (`levddit-post-images`, `eu-central-1`).
+
+### Mock authentication
+- **Local:** `docker-compose.yml` sets `APP_MOCKAUTH_ENABLED=true`, which gives every request without a token a
+  made-up JWT caller: by default user id `1`, username `mockuser`, role `USER`. The optional headers
+  `X-Mock-User-Id`, `X-Mock-Username` and `X-Mock-Roles` (comma-separated, e.g. `USER,ADMIN`) switch the caller per
+  request, e.g. to check that editing someone else's post is rejected. auth-service cannot issue access tokens yet,
+  so this keeps the write endpoints usable. Startup logs a WARN while the mock filter is registered.
+- **Production:** the flag defaults to `false` in code, so leave `APP_MOCKAUTH_ENABLED` unset or `false` and wire the
+  real JWT resource server as described in `security-convention.md`. Turning it on would let anyone act as any user,
+  including ADMIN, by sending a header.
