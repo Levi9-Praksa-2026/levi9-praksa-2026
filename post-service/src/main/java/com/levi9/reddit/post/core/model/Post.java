@@ -21,7 +21,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "posts")
 public class Post {
-    private static final int MAX_IMAGES = 3;
+    public static final int MAX_IMAGES = 3;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

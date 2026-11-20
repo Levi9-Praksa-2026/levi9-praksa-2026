@@ -55,6 +55,9 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - **Local:** `APP_S3_ENDPOINT=http://moto:5000` points post-service at Moto, a fake S3.
 - **Production:** remove `APP_S3_ENDPOINT` so the AWS SDK uses real S3, and set `S3_BUCKET` and `AWS_REGION`
   if they differ from the defaults (`levddit-post-images`, `eu-central-1`).
+- **Upload size:** `POST /api/posts` accepts up to 3 images of 5 MB each (`spring.servlet.multipart.*`, 16 MB per
+  request). Any proxy in front of the gateway (load balancer, ingress, nginx) must allow request bodies of at least
+  16 MB, or uploads fail there with 413 before reaching the service.
 
 ### Mock authentication
 - **Local:** `docker-compose.yml` sets `APP_MOCKAUTH_ENABLED=true`, which gives every request without a token a

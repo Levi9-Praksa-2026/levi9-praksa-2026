@@ -1,5 +1,6 @@
 package com.levi9.reddit.post.api;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -18,6 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.levi9.reddit.post.contracts.CreatePostRequest;
 import com.levi9.reddit.post.contracts.EditPostRequest;
+import com.levi9.reddit.post.core.exception.UnsupportedImageTypeException;
+import org.mockito.ArgumentCaptor;
 import com.levi9.reddit.post.contracts.PostResponse;
 import com.levi9.reddit.post.core.exception.CommunityUnavailableException;
 import com.levi9.reddit.post.core.exception.NotCommunityMemberException;
@@ -69,7 +72,7 @@ class PostCommandControllerTest {
     }
 
     private static PostResponse response(long id, String title, Instant updatedAt) {
-        return new PostResponse(id, title, "Body", MARKO.id(), MARKO.username(), 7L, 0, 0, CREATED, updatedAt);
+        return new PostResponse(id, title, "Body", MARKO.id(), MARKO.username(), 7L, 0, 0, CREATED, updatedAt, List.of());
     }
 
     @Nested
@@ -92,7 +95,7 @@ class PostCommandControllerTest {
 
         @Test
         void member_createsPost_201WithLocation_authorFromToken() throws Exception {
-            when(postCommandService.create(any(), any())).thenReturn(response(3, "Hello", null));
+            when(postCommandService.create(any(), any(), any())).thenReturn(response(3, "Hello", null));
 
             mockMvc.perform(multipart("/api/posts").file(validPart).with(as(MARKO)))
                     .andExpect(status().isCreated())
@@ -100,19 +103,19 @@ class PostCommandControllerTest {
                     .andExpect(jsonPath("$.id").value(3))
                     .andExpect(jsonPath("$.authorUsername").value("marko"));
 
-            verify(postCommandService).create(new CreatePostRequest("Hello", "Body", 7L), MARKO);
+            verify(postCommandService).create(new CreatePostRequest("Hello", "Body", 7L), List.of(), MARKO);
         }
 
         @Test
         void authorIdInBody_isIgnored() throws Exception {
-            when(postCommandService.create(any(), any())).thenReturn(response(3, "Hello", null));
+            when(postCommandService.create(any(), any(), any())).thenReturn(response(3, "Hello", null));
             MockMultipartFile sneaky = postPart(
                     "{\"title\":\"Hello\",\"content\":\"Body\",\"communityId\":7,\"authorId\":1,\"authorUsername\":\"boss\"}");
 
             mockMvc.perform(multipart("/api/posts").file(sneaky).with(as(MARKO)))
                     .andExpect(status().isCreated());
 
-            verify(postCommandService).create(new CreatePostRequest("Hello", "Body", 7L), MARKO);
+            verify(postCommandService).create(new CreatePostRequest("Hello", "Body", 7L), List.of(), MARKO);
         }
 
         @Test
@@ -146,7 +149,7 @@ class PostCommandControllerTest {
 
         @Test
         void nonMember_isForbidden() throws Exception {
-            when(postCommandService.create(any(), any())).thenThrow(new NotCommunityMemberException(7L));
+            when(postCommandService.create(any(), any(), any())).thenThrow(new NotCommunityMemberException(7L));
 
             mockMvc.perform(multipart("/api/posts").file(validPart).with(as(MARKO)))
                     .andExpect(status().isForbidden())
@@ -155,11 +158,42 @@ class PostCommandControllerTest {
 
         @Test
         void unavailableCommunity_isUnprocessable() throws Exception {
-            when(postCommandService.create(any(), any())).thenThrow(new CommunityUnavailableException(7L));
+            when(postCommandService.create(any(), any(), any())).thenThrow(new CommunityUnavailableException(7L));
 
             mockMvc.perform(multipart("/api/posts").file(validPart).with(as(MARKO)))
                     .andExpect(status().isUnprocessableContent())
                     .andExpect(jsonPath("$.errorType").value("COMMUNITY_UNAVAILABLE"));
+        }
+
+        @Test
+        void images_arePassedToTheServiceInOrder_emptyFilePartsSkipped() throws Exception {
+            when(postCommandService.create(any(), any(), any())).thenReturn(response(3, "Hello", null));
+            byte[] first = {1, 2, 3};
+            byte[] second = {4, 5};
+
+            mockMvc.perform(multipart("/api/posts")
+                            .file(validPart)
+                            .file(new MockMultipartFile("images", "a.png", "image/png", first))
+                            .file(new MockMultipartFile("images", "", "application/octet-stream", new byte[0]))
+                            .file(new MockMultipartFile("images", "b.jpg", "image/jpeg", second))
+                            .with(as(MARKO)))
+                    .andExpect(status().isCreated());
+
+            ArgumentCaptor<List<byte[]>> images = ArgumentCaptor.captor();
+            verify(postCommandService).create(eq(new CreatePostRequest("Hello", "Body", 7L)), images.capture(), eq(MARKO));
+            assertThat(images.getValue()).containsExactly(first, second);
+        }
+
+        @Test
+        void rejectedImage_isUnprocessable() throws Exception {
+            when(postCommandService.create(any(), any(), any())).thenThrow(new UnsupportedImageTypeException(1));
+
+            mockMvc.perform(multipart("/api/posts")
+                            .file(validPart)
+                            .file(new MockMultipartFile("images", "evil.png", "image/png", new byte[] {1}))
+                            .with(as(MARKO)))
+                    .andExpect(status().isUnprocessableContent())
+                    .andExpect(jsonPath("$.errorType").value("UNSUPPORTED_IMAGE_TYPE"));
         }
     }
 

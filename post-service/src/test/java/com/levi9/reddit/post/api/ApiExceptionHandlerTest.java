@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.levi9.reddit.post.core.exception.CommunityUnavailableException;
 import com.levi9.reddit.post.core.exception.DomainException;
+import com.levi9.reddit.post.core.exception.ImageNotFoundException;
+import com.levi9.reddit.post.core.exception.ImageTooLargeException;
+import com.levi9.reddit.post.core.exception.TooManyImagesException;
+import com.levi9.reddit.post.core.exception.UnsupportedImageTypeException;
 import com.levi9.reddit.post.core.exception.NotCommunityMemberException;
 import com.levi9.reddit.post.core.exception.NotPostAuthorException;
 import com.levi9.reddit.post.core.exception.PostNotFoundException;
@@ -22,10 +26,14 @@ class ApiExceptionHandlerTest {
     static Stream<Arguments> domainExceptions() {
         return Stream.of(
                 Arguments.of(new PostNotFoundException(3L), 404, "POST_NOT_FOUND"),
+                Arguments.of(new ImageNotFoundException(3L, 10L), 404, "IMAGE_NOT_FOUND"),
                 Arguments.of(new NotPostAuthorException(3L), 403, "NOT_POST_AUTHOR"),
                 Arguments.of(new PostRemovalForbiddenException(3L), 403, "POST_REMOVAL_FORBIDDEN"),
                 Arguments.of(new NotCommunityMemberException(1L), 403, "NOT_COMMUNITY_MEMBER"),
-                Arguments.of(new CommunityUnavailableException(1L), 422, "COMMUNITY_UNAVAILABLE"));
+                Arguments.of(new CommunityUnavailableException(1L), 422, "COMMUNITY_UNAVAILABLE"),
+                Arguments.of(new TooManyImagesException(3), 422, "TOO_MANY_IMAGES"),
+                Arguments.of(new UnsupportedImageTypeException(1), 422, "UNSUPPORTED_IMAGE_TYPE"),
+                Arguments.of(new ImageTooLargeException(1, 5L * 1024 * 1024), 422, "IMAGE_TOO_LARGE"));
     }
 
     @ParameterizedTest

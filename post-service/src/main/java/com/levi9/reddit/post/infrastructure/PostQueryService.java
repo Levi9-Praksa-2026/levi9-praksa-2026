@@ -4,9 +4,15 @@ import com.levi9.reddit.post.contracts.CommentResponse;
 import com.levi9.reddit.post.contracts.PageResponse;
 import com.levi9.reddit.post.contracts.PostResponse;
 import com.levi9.reddit.post.contracts.TopPeriod;
+import com.levi9.reddit.post.core.ImageStorage;
+import com.levi9.reddit.post.core.ImageStorage.StoredImage;
+import com.levi9.reddit.post.core.exception.ImageNotFoundException;
 import com.levi9.reddit.post.core.exception.PostNotFoundException;
 import com.levi9.reddit.post.core.model.Comment;
 import com.levi9.reddit.post.core.model.Post;
+import com.levi9.reddit.post.core.model.PostImage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.levi9.reddit.post.infrastructure.repository.CommentRepository;
 import com.levi9.reddit.post.infrastructure.repository.PostRepository;
 import java.time.Clock;
@@ -29,13 +35,18 @@ public class PostQueryService {
 
     private static final Duration WEEK = Duration.ofDays(7);
 
+    private static final Logger log = LoggerFactory.getLogger(PostQueryService.class);
+
     private final PostRepository posts;
     private final CommentRepository comments;
+    private final ImageStorage imageStorage;
     private final Clock clock;
 
-    public PostQueryService(PostRepository posts, CommentRepository comments, Clock clock) {
+    public PostQueryService(
+            PostRepository posts, CommentRepository comments, ImageStorage imageStorage, Clock clock) {
         this.posts = posts;
         this.comments = comments;
+        this.imageStorage = imageStorage;
         this.clock = clock;
     }
 
@@ -79,6 +90,25 @@ public class PostQueryService {
         return posts.findByIdAndRemovedAtIsNull(id)
                 .map(PostMapper::toResponse)
                 .orElseThrow(() -> new PostNotFoundException(id));
+    }
+
+    /**
+     * The file of one image of a visible post. Images of a removed post disappear together with the post.
+     *
+     * @throws PostNotFoundException  the post is missing or removed
+     * @throws ImageNotFoundException the post has no such image, or its file is missing from storage
+     */
+    public StoredImage getImage(Long postId, Long imageId) {
+        Post post = posts.findByIdAndRemovedAtIsNull(postId).orElseThrow(() -> new PostNotFoundException(postId));
+        PostImage image = post.getImages().stream()
+                .filter(candidate -> candidate.getId().equals(imageId))
+                .findFirst()
+                .orElseThrow(() -> new ImageNotFoundException(postId, imageId));
+        return imageStorage.load(image.getS3Key()).orElseThrow(() -> {
+            // The database says the file exists: worth a look, but for the caller it's simply not there.
+            log.warn("Image {} of post {} is missing from storage (key {})", imageId, postId, image.getS3Key());
+            return new ImageNotFoundException(postId, imageId);
+        });
     }
 
     /** Comments of a visible post, newest first. 404 if the post itself is missing or removed. */
