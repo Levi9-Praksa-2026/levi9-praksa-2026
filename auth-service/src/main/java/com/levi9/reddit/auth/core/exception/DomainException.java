@@ -9,7 +9,8 @@ import java.util.Objects;
  * {@code permits}, and every exhaustive switch over it then fails to compile until it is mapped.
  */
 public abstract sealed class DomainException extends RuntimeException
-        permits UnauthorizedException, ForbiddenException, ConflictException, NotFoundException {
+        permits UnauthorizedException, ForbiddenException, ConflictException, NotFoundException,
+        TooManyRequestsException {
     private final ErrorType errorType;
 
     protected DomainException(ErrorType errorType, String detail) {
