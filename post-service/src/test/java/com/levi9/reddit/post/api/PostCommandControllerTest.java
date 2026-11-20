@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -104,6 +105,35 @@ class PostCommandControllerTest {
                     .andExpect(jsonPath("$.authorUsername").value("marko"));
 
             verify(postCommandService).create(new CreatePostRequest("Hello", "Body", 7L), List.of(), MARKO);
+        }
+
+        // What Swagger UI sends: the JSON text field without a Content-Type (or as application/octet-stream).
+        @Test
+        void postPartWithoutJsonContentType_isStillRead() throws Exception {
+            when(postCommandService.create(any(), any(), any())).thenReturn(response(3, "Hello", null));
+            byte[] json = "{\"title\":\"Hello\",\"content\":\"Body\",\"communityId\":7}".getBytes(StandardCharsets.UTF_8);
+
+            mockMvc.perform(multipart("/api/posts")
+                            .file(new MockMultipartFile("post", "", null, json))
+                            .with(as(MARKO)))
+                    .andExpect(status().isCreated());
+            mockMvc.perform(multipart("/api/posts")
+                            .file(new MockMultipartFile("post", "", MediaType.APPLICATION_OCTET_STREAM_VALUE, json))
+                            .with(as(MARKO)))
+                    .andExpect(status().isCreated());
+
+            verify(postCommandService, times(2)).create(new CreatePostRequest("Hello", "Body", 7L), List.of(), MARKO);
+        }
+
+        @Test
+        void postPartWithoutContentType_stillValidated() throws Exception {
+            mockMvc.perform(multipart("/api/posts")
+                            .file(new MockMultipartFile("post", "", null,
+                                    "{\"title\":\"\",\"communityId\":7}".getBytes(StandardCharsets.UTF_8)))
+                            .with(as(MARKO)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors[0].field").value("title"));
+            verifyNoInteractions(postCommandService);
         }
 
         @Test
