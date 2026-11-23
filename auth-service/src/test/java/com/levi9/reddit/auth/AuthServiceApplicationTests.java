@@ -87,7 +87,7 @@ class AuthServiceApplicationTests {
 
     @Test
     @Transactional
-    void passwordChangePersistsAndRevokesOnlyTheUsersAuthorizations() {
+    void passwordChangeWithAnUnknownTokenRevokesAllTheUsersAuthorizationsAndNoOneElses() {
         User user = userRepository.save(new User("reader", "reader@example.test",
                 passwordEncoder.encode("old secret"), "First", "Last"));
         User other = userRepository.save(new User("other", "other@example.test", "hash", "Other", "User"));
@@ -96,7 +96,9 @@ class AuthServiceApplicationTests {
         insertAuthorization("a1", user.getId());
         insertAuthorization("b1", other.getId());
 
-        userService.changePassword(user.getId(), "old secret", "new secret");
+        // No login holds this token, so none is spared. Sparing the caller's own login is tested in LoginTests,
+        // where real tokens exist.
+        userService.changePassword(user.getId(), "old secret", "new secret", "no-such-token");
         entityManager.flush();
         entityManager.clear();
 

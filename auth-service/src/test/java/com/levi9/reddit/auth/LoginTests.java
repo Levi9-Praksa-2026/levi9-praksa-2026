@@ -2,7 +2,6 @@ package com.levi9.reddit.auth;
 
 import com.jayway.jsonpath.JsonPath;
 import com.levi9.reddit.auth.core.model.User;
-import com.levi9.reddit.auth.infrastructure.UserService;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -72,8 +72,6 @@ class LoginTests {
     @Autowired
     private JdbcTemplate jdbc;
 
-    @Autowired
-    private UserService userService;
 
     private User marko;
 
@@ -215,17 +213,54 @@ class LoginTests {
                 .andExpect(jsonPath("$.error").value("invalid_grant"));
     }
 
+    /**
+     * A password change keeps the login it was made from and ends every other one. Two browsers log in; A changes
+     * the password through the API with its own access token, as the gateway would send it.
+     */
     @Test
-    void afterAPasswordChangeOldLoginsGetNoTokensButANewLoginDoes() throws Exception {
-        MockHttpSession before = loggedInBrowser(PASSWORD);
+    void aPasswordChangeKeepsTheLoginItWasMadeFromAndEndsTheOthers() throws Exception {
+        MockHttpSession browserA = loggedInBrowser(PASSWORD);
+        String tokensA = tokenBody(exchange(authorizeAgain(browserA)));
+        MockHttpSession browserB = loggedInBrowser(PASSWORD);
+        String tokensB = tokenBody(exchange(authorizeAgain(browserB)));
 
-        userService.changePassword(marko.getId(), PASSWORD, "a brand new passphrase");
+        mvc.perform(put("/api/users/me/password")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + JsonPath.read(tokensA, "$.access_token"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"a brand new passphrase\"}"))
+                .andExpect(status().isNoContent());
 
-        exchange(authorizeAgain(before))
+        // A carries on: it refreshes, refreshes again (rotation), and the new token works.
+        String refreshedA = tokenBody(refresh(JsonPath.read(tokensA, "$.refresh_token")));
+        String refreshedAgain = tokenBody(refresh(JsonPath.read(refreshedA, "$.refresh_token")));
+        mvc.perform(get("/api/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + JsonPath.read(refreshedAgain, "$.access_token")))
+                .andExpect(status().isOk());
+
+        // B is over, and so is any new login from an auth-service session that predates the change, A's included.
+        refresh(JsonPath.read(tokensB, "$.refresh_token"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("invalid_grant"));
-        MockHttpSession after = loggedInBrowser("a brand new passphrase");
-        exchange(authorizeAgain(after)).andExpect(status().isOk());
+        exchange(authorizeAgain(browserB))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("invalid_grant"));
+        exchange(authorizeAgain(browserA))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("invalid_grant"));
+
+        // Logging in with the new password works.
+        exchange(authorizeAgain(loggedInBrowser("a brand new passphrase"))).andExpect(status().isOk());
+    }
+
+    private ResultActions refresh(String refreshToken) throws Exception {
+        return mvc.perform(post("/oauth2/token")
+                .with(httpBasic(GATEWAY_CLIENT_ID, "test-gateway-secret"))
+                .param("grant_type", "refresh_token")
+                .param("refresh_token", refreshToken));
+    }
+
+    private static String tokenBody(ResultActions result) throws Exception {
+        return result.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
     }
 
     /** A browser that has logged in to auth-service through the authorize redirect, as in the journey above. */

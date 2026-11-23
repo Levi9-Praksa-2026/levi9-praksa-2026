@@ -5,6 +5,7 @@ import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.FactorGrantedAuthority;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
@@ -22,11 +23,12 @@ import java.util.List;
  * two things.
  * <p>
  * <b>Refuses the token</b> ({@code 400 invalid_grant}) when the user may no longer have one: the account is deleted
- * or banned, or the password changed after this login. Deleting the user's authorizations
- * ({@link AuthorizationRevoker}) stops refreshes, but not auth-service's own login session: that session could still
- * get a new code from {@code /oauth2/authorize} without a password. This check is what closes that, at the only place
- * tokens come from. The login time is the {@code FACTOR_PASSWORD} authority Spring Security stamps at login; without
- * it the token is refused too.
+ * or banned, or, for a new login (code exchange), the password changed after that login. Deleting the user's
+ * authorizations ({@link AuthorizationRevoker}) stops refreshes, but not auth-service's own login session: that
+ * session could still get a new code from {@code /oauth2/authorize} without a password. The time check is what
+ * closes that. A refresh needs no time check: a password change deletes every login's row except the one it was
+ * made from. The login time is the {@code FACTOR_PASSWORD} authority Spring Security stamps at login; without it a
+ * new login is refused too.
  * <p>
  * <b>Adds the claims</b> {@code username} and {@code roles} (e.g. {@code ["USER"]}), the names the services read.
  * {@code sub} is already the user id: it is the principal name. Read from the database at every issue, so a role
@@ -48,7 +50,14 @@ class TokenClaims implements OAuth2TokenCustomizer<JwtEncodingContext> {
         }
         Authentication principal = context.getPrincipal();
         User user = users.findById(Long.parseLong(principal.getName())).orElseThrow(TokenClaims::refused);
-        if (user.isDeleted() || user.isBanned() || loggedInBeforePasswordChange(principal, user)) {
+        if (user.isDeleted() || user.isBanned()) {
+            throw refused();
+        }
+        // A new login (code exchange) must come from a password typed after the last change: that is what stops an
+        // old auth-service login session. A refresh continues a login whose row still exists, and a password change
+        // deletes every row but the one it was made from, so the row itself is the proof.
+        boolean newLogin = AuthorizationGrantType.AUTHORIZATION_CODE.equals(context.getAuthorizationGrantType());
+        if (newLogin && loggedInBeforePasswordChange(principal, user)) {
             throw refused();
         }
         // A plain ArrayList, not List.of: the claims are stored as JSON with the authorization and read back on

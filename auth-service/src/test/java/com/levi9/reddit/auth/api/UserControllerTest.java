@@ -49,7 +49,7 @@ class UserControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(userService).changePassword(42L, "old secret", "new secret phrase");
+        verify(userService).changePassword(42L, "old secret", "new secret phrase", "test-token");
     }
 
     @Test
@@ -104,7 +104,7 @@ class UserControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(userService).changePassword(42L, "old secret", "123456789012");
+        verify(userService).changePassword(42L, "old secret", "123456789012", "test-token");
     }
 
     @Test
