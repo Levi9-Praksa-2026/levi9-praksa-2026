@@ -47,6 +47,7 @@
                             <goal>report-aggregate</goal>
                         </goals>
                         <configuration>
+                            <footer>For CI verification results, see coverage-status.html. Missing data is excluded; failed verification may produce partial coverage.</footer>
                             <excludes>
                                 <exclude>**/*Application.class</exclude>
                             </excludes>

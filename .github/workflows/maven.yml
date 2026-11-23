@@ -28,13 +28,18 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Build, test, and check coverage
-        run: ./mvnw -B --no-transfer-progress verify
+        shell: bash
+        run: ./mvnw -B --no-transfer-progress --fail-at-end clean verify 2>&1 | tee maven-verify.log
+      - name: Generate coverage report and service status
+        if: ${{ !cancelled() }}
+        run: python3 .github/scripts/coverage_report.py
       - name: Upload test and coverage reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
         with:
           name: maven-reports
           path: |
+            maven-verify.log
             **/target/surefire-reports/**
             **/target/failsafe-reports/**
             **/target/site/jacoco/**
