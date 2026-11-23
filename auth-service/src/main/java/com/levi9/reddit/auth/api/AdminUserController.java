@@ -16,12 +16,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Admin-only ban and unban. Lives under {@code /api/users/**}, so it is on the resource server chain
- * ({@link UserApiSecurityConfig}): a bearer token from the gateway, {@code roles} as {@code ROLE_*}, and the admin's
- * user id from {@code sub}.
+ * Admin-only ban and unban. Under {@code /api/admin/**}, the team's prefix for every admin route, so it is on the
+ * resource server chain ({@link UserApiSecurityConfig}) and its admin-only URL rule: a bearer token from the gateway,
+ * {@code roles} as {@code ROLE_*}, and the admin's user id from {@code sub}. {@code @PreAuthorize} checks the role a
+ * second time, in case the URL rule is ever changed.
  */
 @RestController
-@RequestMapping("/api/users/{username}/ban")
+@RequestMapping("/api/admin/users/{username}/ban")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
     private final UserBanService bans;

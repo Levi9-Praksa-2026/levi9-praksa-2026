@@ -156,7 +156,18 @@ ResponseEntity<PostResponse> create(@Valid @RequestBody CreatePostRequest reques
 }
 ```
 
-Role gates that only depend on the role ("ADMIN only") can be URL rules or `@PreAuthorize("hasRole('ADMIN')")`
+**Admin routes live under `/api/admin/<resource>/...`** (team convention), e.g. `/api/admin/users/{username}/ban`,
+`/api/admin/communities/{name}`. The `<resource>` segment decides which service the gateway routes to, and each
+service protects the whole prefix with one rule, so a new admin endpoint is admin-only by its path alone:
+
+```java
+.authorizeHttpRequests(auth -> auth
+        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+        ...
+        .anyRequest().authenticated())
+```
+
+Other role gates that only depend on the role can be URL rules or `@PreAuthorize("hasRole('ADMIN')")`
 (needs `@EnableMethodSecurity`). Rules about **which** row ("author or ADMIN", "member of this community") belong
 in the service: pass the caller's id and roles in, and let the service decide.
 

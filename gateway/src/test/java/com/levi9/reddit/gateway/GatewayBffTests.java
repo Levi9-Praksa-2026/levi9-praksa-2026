@@ -148,6 +148,14 @@ class GatewayBffTests {
     }
 
     @Test
+    void adminRoutesForUsersGoToAuthServiceWithTheToken() throws Exception {
+        mvc.perform(post("/api/admin/users/marko/ban").with(loggedInAsMarko()).with(csrfLikeTheBrowser()))
+                .andExpect(status().isOk());
+
+        assertThat(BACKEND.authorizationOf("/api/admin/users/marko/ban")).contains("Bearer access-token");
+    }
+
+    @Test
     void anAnonymousCallGoesThroughWithoutAToken() throws Exception {
         mvc.perform(get("/api/posts")).andExpect(status().isOk());
 

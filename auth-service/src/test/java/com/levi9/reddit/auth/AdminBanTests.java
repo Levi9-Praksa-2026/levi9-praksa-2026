@@ -26,6 +26,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -87,7 +88,7 @@ class AdminBanTests {
 
     @Test
     void withoutATokenNothingHappens() throws Exception {
-        mvc.perform(post("/api/users/marko/ban").contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"spam\"}"))
+        mvc.perform(post("/api/admin/users/marko/ban").contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"spam\"}"))
                 .andExpect(status().isUnauthorized());
 
         assertThat(users.findById(marko.getId()).orElseThrow().isBanned()).isFalse();
@@ -98,15 +99,36 @@ class AdminBanTests {
         String adminToken = token(admin, "ADMIN");
         ban("marko", adminToken).andExpect(status().isNoContent());
 
-        mvc.perform(delete("/api/users/marko/ban").header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+        mvc.perform(delete("/api/admin/users/marko/ban").header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                 .andExpect(status().isNoContent());
 
         assertThat(users.findById(marko.getId()).orElseThrow().isBanned()).isFalse();
         assertThat(authorizationIds()).containsExactly("other-laptop");
     }
 
+    @Test
+    void theOldPathNoLongerBans() throws Exception {
+        mvc.perform(post("/api/users/marko/ban")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token(admin, "ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"reason\":\"spam\"}"))
+                .andExpect(status().isNotFound());
+
+        assertThat(users.findById(marko.getId()).orElseThrow().isBanned()).isFalse();
+    }
+
+    /** The prefix alone is the rule: even a path with no endpoint behind it is refused to a user, not just "not found". */
+    @Test
+    void everythingUnderTheAdminPrefixIsAdminOnlyByItsPath() throws Exception {
+        mvc.perform(get("/api/admin/users/marko/anything").header(HttpHeaders.AUTHORIZATION, "Bearer " + token(other, "USER")))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/users/marko/anything").header(HttpHeaders.AUTHORIZATION, "Bearer " + token(admin, "ADMIN")))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/admin/users/marko/anything")).andExpect(status().isUnauthorized());
+    }
+
     private ResultActions ban(String username, String bearer) throws Exception {
-        return mvc.perform(post("/api/users/{username}/ban", username)
+        return mvc.perform(post("/api/admin/users/{username}/ban", username)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearer)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"reason\":\"spam\"}"));

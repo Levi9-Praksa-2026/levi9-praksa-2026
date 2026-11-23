@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(AdminUserController.class)
 @Import(UserApiSecurityConfig.class)
 class AdminUserControllerTest {
-    private static final String BAN_URL = "/api/users/reader/ban";
+    private static final String BAN_URL = "/api/admin/users/reader/ban";
     private static final String BODY = "{\"reason\":\"spam\"}";
 
     @Autowired
@@ -99,10 +99,10 @@ class AdminUserControllerTest {
         doThrow(new ConflictException(ErrorType.USER_NOT_BANNED, "User is not banned"))
                 .when(bans).unban("reader");
 
-        mvc.perform(post("/api/users/ghost/ban").with(admin()).contentType(MediaType.APPLICATION_JSON).content(BODY))
+        mvc.perform(post("/api/admin/users/ghost/ban").with(admin()).contentType(MediaType.APPLICATION_JSON).content(BODY))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.errorType").value("USER_NOT_FOUND"));
-        mvc.perform(post("/api/users/boss/ban").with(admin()).contentType(MediaType.APPLICATION_JSON).content(BODY))
+        mvc.perform(post("/api/admin/users/boss/ban").with(admin()).contentType(MediaType.APPLICATION_JSON).content(BODY))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.errorType").value("ADMIN_BAN_FORBIDDEN"));
         mvc.perform(post(BAN_URL).with(admin()).contentType(MediaType.APPLICATION_JSON).content(BODY))
