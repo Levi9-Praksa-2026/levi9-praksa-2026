@@ -1,4 +1,4 @@
-package com.levi9.reddit.gateway;
+package com.levi9.reddit.gateway.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Who is logged in, for the page: the browser cannot read any token, so this is how it learns. Answered from the
- * session (the ID token's claims), with no call to auth-service. Without a session: 401 (see {@link SecurityConfig}).
+ * session (the ID token's claims), with no call to auth-service. Without a session: 401 (see {@code SecurityConfig}).
  */
 @RestController
 class MeController {

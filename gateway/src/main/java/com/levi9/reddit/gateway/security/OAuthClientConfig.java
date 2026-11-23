@@ -1,4 +1,4 @@
-package com.levi9.reddit.gateway;
+package com.levi9.reddit.gateway.security;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -22,8 +22,8 @@ import java.util.Map;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(OAuthProperties.class)
-class OAuthClientConfig {
-    static final String REGISTRATION_ID = "levddit";
+public class OAuthClientConfig {
+    public static final String REGISTRATION_ID = "levddit";
 
     /**
      * Written out instead of discovered from the issuer: the browser and the gateway reach auth-service at different

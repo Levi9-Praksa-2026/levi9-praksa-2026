@@ -1,4 +1,4 @@
-package com.levi9.reddit.gateway;
+package com.levi9.reddit.gateway.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

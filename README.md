@@ -7,7 +7,7 @@ at `localhost:5432`. See [the database diagram](docs/Base.mermaid) for the data 
 Each data service owns a PostgreSQL schema. Flyway applies its migrations on
 startup, and Hibernate validates the JPA mappings. Each service uses the usual Spring
 layout: `controller`, `service`, `repository`, `entity`, `dto`, `exception`, `config`
-and `security` (the gateway is small and stays flat).
+and `security`. The gateway only has `controller` and `security`.
 
 | Service | Schema | Models |
 | --- | --- | --- |

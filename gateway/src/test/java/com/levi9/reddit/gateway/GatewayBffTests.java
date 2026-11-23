@@ -1,5 +1,6 @@
 package com.levi9.reddit.gateway;
 
+import com.levi9.reddit.gateway.security.OAuthClientConfig;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import jakarta.servlet.http.Cookie;
