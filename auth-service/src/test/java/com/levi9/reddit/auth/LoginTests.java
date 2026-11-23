@@ -147,8 +147,25 @@ class LoginTests {
 
         assertThat(wrongPassword).contains("\"errorType\":\"INVALID_CREDENTIALS\"");
         assertThat(failedLogin("nobody@example.test", PASSWORD)).isEqualTo(wrongPassword);
-        assertThat(failedLogin("ana@example.test", PASSWORD)).as("banned").isEqualTo(wrongPassword);
+        assertThat(failedLogin("ana@example.test", "wrong password")).as("banned, wrong password").isEqualTo(wrongPassword);
         assertThat(failedLogin("petar@example.test", PASSWORD)).as("deleted").isEqualTo(wrongPassword);
+    }
+
+    /** Only someone who knows the password learns of the ban; a wrong password stays the uniform 401 above. */
+    @Test
+    void aBannedAccountWithTheRightPasswordIsToldWhyWith403AndIsNotLoggedIn() throws Exception {
+        MockHttpSession browser = new MockHttpSession();
+
+        login(browser, nextIp(), "ana@example.test", PASSWORD)
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.errorType").value("USER_BANNED"))
+                .andExpect(jsonPath("$.detail").value("This account is banned"))
+                .andExpect(jsonPath("$.banReason").value("spam"));
+
+        mvc.perform(get(authorizeUri()).session(browser).accept(MediaType.TEXT_HTML))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string(HttpHeaders.LOCATION, "/signin"));
     }
 
     @Test
