@@ -16,9 +16,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.levi9.reddit.community.controller.CommunityController;
-import com.levi9.reddit.community.dto.CommunityDetailResponse;
+import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
-import com.levi9.reddit.community.dto.PageResponse;
+import com.levi9.reddit.community.dto.PageDTO;
 import com.levi9.reddit.community.exception.GlobalExceptionHandler;
 import com.levi9.reddit.community.service.CommunityMembershipService;
 import com.levi9.reddit.community.service.CommunityService;
@@ -97,7 +97,7 @@ class CommunityAdminSecurityTest {
     @Test
     void create_asAdmin_isAllowed() throws Exception {
         given(communityService.create(anyString(), nullable(String.class), anyLong()))
-                .willReturn(new CommunityDetailResponse(1L, "backend", "Backend discussion", 0, Instant.now()));
+                .willReturn(new CommunityDetailDTO(1L, "backend", "Backend discussion", 0, Instant.now()));
 
         mockMvc.perform(post("/api/communities")
                         .with(user("1").roles("ADMIN"))
@@ -140,7 +140,7 @@ class CommunityAdminSecurityTest {
     @Test
     void readsStayPublic() throws Exception {
         given(communityService.findCommunities(CommunitySort.NEW, null, 0, 20))
-                .willReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
+                .willReturn(new PageDTO<>(List.of(), 0, 20, 0, 0));
 
         mockMvc.perform(get("/api/communities"))
                 .andExpect(status().isOk());

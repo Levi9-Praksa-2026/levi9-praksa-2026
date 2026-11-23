@@ -18,10 +18,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.levi9.reddit.community.dto.CommunityDetailResponse;
-import com.levi9.reddit.community.dto.CommunityResponse;
+import com.levi9.reddit.community.dto.CommunityDTO;
+import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
-import com.levi9.reddit.community.dto.PageResponse;
+import com.levi9.reddit.community.dto.PageDTO;
 import com.levi9.reddit.community.exception.CommunityNotFoundException;
 import com.levi9.reddit.community.exception.ConflictException;
 import com.levi9.reddit.community.exception.ErrorType;
@@ -60,7 +60,7 @@ class CommunityControllerTest {
     @Test
     void findCommunities_returnsOnlyNameAndMemberCountPerItem() throws Exception {
         given(communityService.findCommunities(CommunitySort.NEW, null, 0, 20)).willReturn(
-                new PageResponse<>(List.of(new CommunityResponse("backend", 7)), 0, 20, 1, 1));
+                new PageDTO<>(List.of(new CommunityDTO("backend", 7)), 0, 20, 1, 1));
 
         mockMvc.perform(get("/api/communities"))
                 .andExpect(status().isOk())
@@ -78,7 +78,7 @@ class CommunityControllerTest {
     @Test
     void findCommunities_passesPaging() throws Exception {
         given(communityService.findCommunities(CommunitySort.NEW, null, 2, 10)).willReturn(
-                new PageResponse<>(List.of(), 2, 10, 0, 0));
+                new PageDTO<>(List.of(), 2, 10, 0, 0));
 
         mockMvc.perform(get("/api/communities").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
@@ -89,7 +89,7 @@ class CommunityControllerTest {
     @Test
     void findCommunities_passesNameAndSort() throws Exception {
         given(communityService.findCommunities(CommunitySort.TOP, "back", 0, 20))
-                .willReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
+                .willReturn(new PageDTO<>(List.of(), 0, 20, 0, 0));
 
         mockMvc.perform(get("/api/communities").param("sort", "top").param("name", "back"))
                 .andExpect(status().isOk());
@@ -101,7 +101,7 @@ class CommunityControllerTest {
     void findCommunities_sortIsCaseInsensitive() throws Exception {
         // TOP is not the default, so this proves the value was actually parsed.
         given(communityService.findCommunities(CommunitySort.TOP, null, 0, 20))
-                .willReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
+                .willReturn(new PageDTO<>(List.of(), 0, 20, 0, 0));
 
         mockMvc.perform(get("/api/communities").param("sort", "TOP"))
                 .andExpect(status().isOk());
@@ -147,7 +147,7 @@ class CommunityControllerTest {
 
     @Test
     void getCommunity_returnsEveryDetail() throws Exception {
-        given(communityService.getCommunity("backend")).willReturn(new CommunityDetailResponse(
+        given(communityService.getCommunity("backend")).willReturn(new CommunityDetailDTO(
                 1L, "backend", "Backend discussion", 7, CREATED));
 
         mockMvc.perform(get("/api/communities/{name}", "backend"))
@@ -213,7 +213,7 @@ class CommunityControllerTest {
     @Test
     void create_returnsCreatedCommunity() throws Exception {
         given(communityService.create("backend", "Backend discussion", 1L))
-                .willReturn(new CommunityDetailResponse(1L, "backend", "Backend discussion", 0, CREATED));
+                .willReturn(new CommunityDetailDTO(1L, "backend", "Backend discussion", 0, CREATED));
 
         mockMvc.perform(post("/api/communities")
                         .contentType(MediaType.APPLICATION_JSON)
