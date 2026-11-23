@@ -4,7 +4,7 @@ import com.levi9.reddit.auth.dto.RegisterDTO;
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.exception.ConflictException;
 import com.levi9.reddit.auth.exception.ErrorType;
-import com.levi9.reddit.auth.security.SecurityConfig;
+import com.levi9.reddit.auth.config.SecurityConfig;
 import com.levi9.reddit.auth.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

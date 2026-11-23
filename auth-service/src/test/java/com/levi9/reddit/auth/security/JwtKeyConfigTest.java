@@ -1,5 +1,6 @@
 package com.levi9.reddit.auth.security;
 
+import com.levi9.reddit.auth.config.JwtKeyConfig;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;

@@ -1,5 +1,6 @@
 package com.levi9.reddit.auth.security;
 
+import com.levi9.reddit.auth.config.UserApiSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;

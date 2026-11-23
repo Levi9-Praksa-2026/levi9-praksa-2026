@@ -1,5 +1,6 @@
-package com.levi9.reddit.auth.security;
+package com.levi9.reddit.auth.config;
 
+import com.levi9.reddit.auth.security.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;

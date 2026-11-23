@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.levi9.reddit.community.config.SecurityConfig;
 import com.levi9.reddit.community.controller.CommunityController;
 import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;

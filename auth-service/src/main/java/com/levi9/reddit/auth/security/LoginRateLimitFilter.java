@@ -1,5 +1,6 @@
 package com.levi9.reddit.auth.security;
 
+import com.levi9.reddit.auth.config.SecurityConfig;
 import com.levi9.reddit.auth.exception.ErrorType;
 import com.levi9.reddit.auth.exception.GlobalExceptionHandler;
 import jakarta.servlet.FilterChain;

@@ -1,6 +1,7 @@
 package com.levi9.reddit.auth.security;
 
 import com.levi9.reddit.auth.MutableClock;
+import com.levi9.reddit.auth.config.SecurityConfig;
 import com.levi9.reddit.auth.controller.AuthController;
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.service.AuthService;

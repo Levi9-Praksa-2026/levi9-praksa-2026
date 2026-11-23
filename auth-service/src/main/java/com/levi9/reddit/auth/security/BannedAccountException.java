@@ -1,5 +1,6 @@
 package com.levi9.reddit.auth.security;
 
+import com.levi9.reddit.auth.config.AuthenticationConfig;
 import org.springframework.security.authentication.LockedException;
 
 /**

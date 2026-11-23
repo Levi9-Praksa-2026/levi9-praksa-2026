@@ -1,7 +1,9 @@
-package com.levi9.reddit.auth.security;
+package com.levi9.reddit.auth.config;
 
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.repository.UserRepository;
+import com.levi9.reddit.auth.security.BannedAccountException;
+import com.levi9.reddit.auth.security.UserAccountService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
