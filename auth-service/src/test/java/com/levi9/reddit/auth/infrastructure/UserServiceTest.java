@@ -36,11 +36,11 @@ class UserServiceTest {
     void changesPasswordAndRevokesTokens() {
         when(users.findUserById(42L)).thenReturn(Optional.of(user));
 
-        service.changePassword(42L, "secret", "new secret");
+        service.changePassword(42L, "secret", "new secret", "current-token");
 
         assertThat(passwords.matches("new secret", user.getPasswordHash())).isTrue();
         assertThat(passwords.matches("secret", user.getPasswordHash())).isFalse();
-        verify(authorizations).revokeAllOf(42L);
+        verify(authorizations).revokeAllExcept(42L, "current-token");
     }
 
     @Test
@@ -48,7 +48,7 @@ class UserServiceTest {
         when(users.findUserById(42L)).thenReturn(Optional.of(user));
         String previousHash = user.getPasswordHash();
 
-        assertThatThrownBy(() -> service.changePassword(42L, "wrong", "new secret"))
+        assertThatThrownBy(() -> service.changePassword(42L, "wrong", "new secret", "current-token"))
                 .isInstanceOfSatisfying(UnauthorizedException.class,
                         error -> assertThat(error.getErrorType()).isEqualTo(ErrorType.INVALID_CREDENTIALS));
 

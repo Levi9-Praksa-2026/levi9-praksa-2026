@@ -75,13 +75,14 @@ public class UserService {
     }
 
     @Transactional
-    public void changePassword(Long userId, String currentPassword, String newPassword) {
+    public void changePassword(Long userId, String currentPassword, String newPassword, String currentAccessToken) {
         User user = users.findUserById(userId)
                 .filter(candidate -> !candidate.isDeleted())
                 .orElseThrow(() -> new NotFoundException(ErrorType.USER_NOT_FOUND, "User not found"));
         verifyPassword(user, currentPassword);
         user.changePasswordHash(passwords.encode(newPassword), Instant.now());
-        authorizations.revokeAllOf(userId);
+        // Every other login ends; the one making the change continues.
+        authorizations.revokeAllExcept(userId, currentAccessToken);
     }
 
     private void verifyPassword(User user, String password) {
