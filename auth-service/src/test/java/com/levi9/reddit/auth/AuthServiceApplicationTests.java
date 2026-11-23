@@ -1,10 +1,10 @@
 package com.levi9.reddit.auth;
 
-import com.levi9.reddit.auth.core.model.User;
-import com.levi9.reddit.auth.core.model.UserRole;
-import com.levi9.reddit.auth.infrastructure.UserService;
+import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.entity.UserRole;
+import com.levi9.reddit.auth.repository.UserRepository;
+import com.levi9.reddit.auth.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.List;

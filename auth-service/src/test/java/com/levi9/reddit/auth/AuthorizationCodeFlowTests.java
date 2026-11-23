@@ -1,10 +1,10 @@
 package com.levi9.reddit.auth;
 
 import com.jayway.jsonpath.JsonPath;
-import com.levi9.reddit.auth.core.model.User;
-import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
-import com.levi9.reddit.auth.infrastructure.security.AuthorizationRevoker;
-import com.levi9.reddit.auth.infrastructure.security.UserAccountService;
+import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.repository.UserRepository;
+import com.levi9.reddit.auth.security.AuthorizationRevoker;
+import com.levi9.reddit.auth.security.UserAccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-import static com.levi9.reddit.auth.infrastructure.security.AuthorizationServerConfig.GATEWAY_CLIENT_ID;
+import static com.levi9.reddit.auth.security.AuthorizationServerConfig.GATEWAY_CLIENT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;

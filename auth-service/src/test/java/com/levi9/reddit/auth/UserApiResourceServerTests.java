@@ -1,8 +1,8 @@
 package com.levi9.reddit.auth;
 
 import com.jayway.jsonpath.JsonPath;
-import com.levi9.reddit.auth.core.model.User;
-import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
+import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.repository.UserRepository;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
