@@ -1,7 +1,7 @@
 package com.levi9.reddit.auth;
 
-import com.levi9.reddit.auth.core.model.User;
-import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
+import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

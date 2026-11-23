@@ -1,12 +1,12 @@
 package com.levi9.reddit.auth;
 
-import com.levi9.reddit.auth.contracts.RegisterRequest;
-import com.levi9.reddit.auth.core.exception.ConflictException;
-import com.levi9.reddit.auth.core.exception.ErrorType;
-import com.levi9.reddit.auth.core.model.User;
-import com.levi9.reddit.auth.core.model.UserRole;
-import com.levi9.reddit.auth.core.service.AuthService;
-import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
+import com.levi9.reddit.auth.dto.RegisterRequest;
+import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.entity.UserRole;
+import com.levi9.reddit.auth.exception.ConflictException;
+import com.levi9.reddit.auth.exception.ErrorType;
+import com.levi9.reddit.auth.repository.UserRepository;
+import com.levi9.reddit.auth.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

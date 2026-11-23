@@ -5,8 +5,9 @@ Run the local stack with `docker compose up --build`. The frontend is at
 at `localhost:5432`. See [the database diagram](docs/Base.mermaid) for the data model.
 
 Each data service owns a PostgreSQL schema. Flyway applies its migrations on
-startup, and Hibernate validates the JPA mappings. Models are in `core.model`
-and Spring Data repositories are in `infrastructure.repository`.
+startup, and Hibernate validates the JPA mappings. Each service uses the usual Spring
+layout: `controller`, `service`, `repository`, `entity`, `dto`, `exception`, `config`
+and `security`. The gateway only has `controller` and `security`.
 
 | Service | Schema | Models |
 | --- | --- | --- |

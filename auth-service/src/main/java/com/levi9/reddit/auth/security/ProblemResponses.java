@@ -1,0 +1,41 @@
+package com.levi9.reddit.auth.security;
+
+import com.levi9.reddit.auth.exception.ErrorType;
+import com.levi9.reddit.auth.exception.GlobalExceptionHandler;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import tools.jackson.databind.json.JsonMapper;
+
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * Writes the same RFC 9457 problem detail {@link GlobalExceptionHandler} produces, for answers given by security
+ * filters and handlers, which run before any controller and so never reach that handler.
+ */
+final class ProblemResponses {
+    private ProblemResponses() {
+    }
+
+    static void write(HttpServletResponse response, JsonMapper json, HttpStatus status, ErrorType errorType,
+                      String detail) throws IOException {
+        write(response, json, status, errorType, detail, Map.of());
+    }
+
+    /** With extra properties after {@code errorType}, e.g. {@code banReason}, as GlobalExceptionHandler adds them. */
+    static void write(HttpServletResponse response, JsonMapper json, HttpStatus status, ErrorType errorType,
+                      String detail, Map<String, Object> extra) throws IOException {
+        Map<String, Object> problem = new LinkedHashMap<>();
+        problem.put("type", "about:blank");
+        problem.put("title", status.getReasonPhrase());
+        problem.put("status", status.value());
+        problem.put("detail", detail);
+        problem.put("errorType", errorType.name());
+        problem.putAll(extra);
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+        json.writeValue(response.getOutputStream(), problem);
+    }
+}

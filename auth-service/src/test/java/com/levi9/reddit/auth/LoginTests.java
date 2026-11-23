@@ -1,8 +1,8 @@
 package com.levi9.reddit.auth;
 
 import com.jayway.jsonpath.JsonPath;
-import com.levi9.reddit.auth.core.model.User;
-import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
+import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.levi9.reddit.auth.infrastructure.security.AuthorizationServerConfig.GATEWAY_CLIENT_ID;
+import static com.levi9.reddit.auth.security.AuthorizationServerConfig.GATEWAY_CLIENT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

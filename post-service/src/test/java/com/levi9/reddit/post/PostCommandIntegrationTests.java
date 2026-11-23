@@ -12,10 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
-import com.levi9.reddit.post.core.model.Post;
-import com.levi9.reddit.post.core.model.PostImage;
-import com.levi9.reddit.post.infrastructure.S3Properties;
-import com.levi9.reddit.post.infrastructure.repository.PostRepository;
+import com.levi9.reddit.post.entity.Post;
+import com.levi9.reddit.post.entity.PostImage;
+import com.levi9.reddit.post.repository.PostRepository;
+import com.levi9.reddit.post.storage.S3Properties;
 import software.amazon.awssdk.services.s3.S3Client;
 import jakarta.persistence.EntityManager;
 import java.nio.charset.StandardCharsets;
