@@ -36,8 +36,8 @@ service needs them: add them to `permits` in `DomainException` and the compiler 
 
 ## Adding it to your service
 
-Copy `auth-service`'s `core/exception` package and `api/GlobalExceptionHandler` into your service, change the
-package names, and replace the `ErrorType` values with your own codes. Each service owns its codes.
+Copy `auth-service`'s `exception` package (the exceptions and `GlobalExceptionHandler`) into your service, change
+the package names, and replace the `ErrorType` values with your own codes. Each service owns its codes.
 
 Rules:
 - Expected failures a correct client can cause → throw a `DomainException` subtype. Bugs → let them be a 500.
