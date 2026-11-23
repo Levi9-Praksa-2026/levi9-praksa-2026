@@ -44,7 +44,10 @@ The browser only ever sees URLs on one origin (dev `http://localhost:3000`); the
 3. The page gets a CSRF token from `GET /api/auth/csrf`, then posts the form to `POST /api/auth/login`
    (`email`, `password`, the token in the named header). The answer is JSON:
    - `200 {"redirectUrl": "..."}`: go there (a full page navigation).
-   - `401`: wrong email or password. The same answer for unknown, deleted and banned accounts, on purpose.
+   - `401`: wrong email or password. The same answer for unknown and deleted accounts, and for a banned account
+     with a wrong password, on purpose.
+   - `403`, `errorType: USER_BANNED`, with `banReason`: a banned account with the **right** password. Only someone
+     who knows the password learns of the ban.
    - `429`: too many attempts from this IP; `Retry-After` says when to try again.
 4. Back at `/oauth2/authorize`, auth-service now knows the user and redirects to the gateway's
    `/login/oauth2/code/levddit` with a code.
@@ -153,7 +156,18 @@ ResponseEntity<PostResponse> create(@Valid @RequestBody CreatePostRequest reques
 }
 ```
 
-Role gates that only depend on the role ("ADMIN only") can be URL rules or `@PreAuthorize("hasRole('ADMIN')")`
+**Admin routes live under `/api/admin/<resource>/...`** (team convention), e.g. `/api/admin/users/{username}/ban`,
+`/api/admin/communities/{name}`. The `<resource>` segment decides which service the gateway routes to, and each
+service protects the whole prefix with one rule, so a new admin endpoint is admin-only by its path alone:
+
+```java
+.authorizeHttpRequests(auth -> auth
+        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+        ...
+        .anyRequest().authenticated())
+```
+
+Other role gates that only depend on the role can be URL rules or `@PreAuthorize("hasRole('ADMIN')")`
 (needs `@EnableMethodSecurity`). Rules about **which** row ("author or ADMIN", "member of this community") belong
 in the service: pass the caller's id and roles in, and let the service decide.
 

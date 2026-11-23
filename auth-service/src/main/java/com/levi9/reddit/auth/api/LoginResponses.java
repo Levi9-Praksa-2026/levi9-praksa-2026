@@ -2,6 +2,7 @@ package com.levi9.reddit.auth.api;
 
 import com.levi9.reddit.auth.contracts.LoginResponse;
 import com.levi9.reddit.auth.core.exception.ErrorType;
+import com.levi9.reddit.auth.infrastructure.security.BannedAccountException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 
 /**
  * JSON answers to the React login page's {@code POST /api/auth/login}, instead of form login's redirects: the page
@@ -25,8 +27,9 @@ import java.net.URI;
  *   <li>Success: {@code 200 {"redirectUrl": ...}}. The URL is the authorize request that sent the browser to the
  *   login page (saved in the session), or, when the user opened the login page directly, the gateway's
  *   "start login" URL, which leads to the same place.</li>
- *   <li>Failure: one {@code 401} for a wrong password, an unknown email, a deleted and a banned account alike, so a
- *   login never reveals whether an email is registered.</li>
+ *   <li>Failure: one {@code 401} for a wrong password, an unknown email and a deleted account alike, so a login never
+ *   reveals whether an email is registered. A banned account with the right password gets {@code 403} and the
+ *   admin's reason: only someone who knows the password learns of the ban.</li>
  * </ul>
  */
 class LoginResponses implements AuthenticationSuccessHandler, AuthenticationFailureHandler {
@@ -53,6 +56,15 @@ class LoginResponses implements AuthenticationSuccessHandler, AuthenticationFail
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
+        if (exception instanceof BannedAccountException banned) {
+            // Only thrown after the password was proven right, so telling the user reveals nothing to a guesser.
+            Map<String, Object> extra = banned.getBanReason() == null
+                    ? Map.of()
+                    : Map.of("banReason", banned.getBanReason());
+            ProblemResponses.write(response, json, HttpStatus.FORBIDDEN, ErrorType.USER_BANNED,
+                    "This account is banned", extra);
+            return;
+        }
         ProblemResponses.write(response, json, HttpStatus.UNAUTHORIZED, ErrorType.INVALID_CREDENTIALS,
                 "Invalid email or password");
     }

@@ -44,7 +44,7 @@ spring:
             - id: auth-service
               uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/auth/**,/api/users/**
+                - Path=/api/auth/**,/api/users/**,/api/admin/users/**
               filters:
                 - RemoveRequestHeader=Authorization
                 - TokenRelay=

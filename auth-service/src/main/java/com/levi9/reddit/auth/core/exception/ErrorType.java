@@ -15,5 +15,9 @@ public enum ErrorType {
     RATE_LIMITED,
     USER_BANNED,
     USER_NOT_FOUND,
-    ACCOUNT_DELETION_FORBIDDEN
+    ACCOUNT_DELETION_FORBIDDEN,
+    /** Admins cannot be banned, including by themselves. */
+    ADMIN_BAN_FORBIDDEN,
+    USER_ALREADY_BANNED,
+    USER_NOT_BANNED
 }
