@@ -101,15 +101,15 @@ class AuthContractsTest {
 
     @Test
     void requiresFirstAndLastNameWithinTheColumnLength() {
-        var blank = new RegisterRequest("marko", "marko@example.test", VALID_PASSWORD, " ", "");
-        var tooLong = new RegisterRequest("marko", "marko@example.test", VALID_PASSWORD, "a".repeat(51), "b".repeat(51));
+        var blank = new RegisterDTO("marko", "marko@example.test", VALID_PASSWORD, " ", "");
+        var tooLong = new RegisterDTO("marko", "marko@example.test", VALID_PASSWORD, "a".repeat(51), "b".repeat(51));
 
         assertThat(violatedFields(blank)).containsOnly("firstName", "lastName");
         assertThat(violatedFields(tooLong)).containsOnly("firstName", "lastName");
     }
 
-    private static RegisterRequest register(String username, String email, String password) {
-        return new RegisterRequest(username, email, password, "Marko", "Markovic");
+    private static RegisterDTO register(String username, String email, String password) {
+        return new RegisterDTO(username, email, password, "Marko", "Markovic");
     }
 
     private static <T> Set<ConstraintViolation<T>> violations(T request) {

@@ -1,6 +1,6 @@
 package com.levi9.reddit.auth.service;
 
-import com.levi9.reddit.auth.dto.RegisterRequest;
+import com.levi9.reddit.auth.dto.RegisterDTO;
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.exception.ConflictException;
 import com.levi9.reddit.auth.exception.ErrorType;
@@ -35,7 +35,7 @@ public class AuthService {
      * {@code USERNAME_TAKEN}. The cheap checks run before BCrypt, so a rejected request costs no hashing.
      */
     @Transactional
-    public User register(RegisterRequest request) {
+    public User register(RegisterDTO request) {
         if (users.existsByUsernameIgnoringCase(request.username())) {
             throw usernameTaken();
         }

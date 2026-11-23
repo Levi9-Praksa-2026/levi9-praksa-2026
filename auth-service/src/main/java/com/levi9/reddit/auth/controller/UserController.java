@@ -1,9 +1,9 @@
 package com.levi9.reddit.auth.controller;
 
-import com.levi9.reddit.auth.dto.ChangePasswordRequest;
-import com.levi9.reddit.auth.dto.DeleteUserRequest;
-import com.levi9.reddit.auth.dto.UpdateUserRequest;
-import com.levi9.reddit.auth.dto.UserProfileResponse;
+import com.levi9.reddit.auth.dto.ChangePasswordDTO;
+import com.levi9.reddit.auth.dto.DeleteUserDTO;
+import com.levi9.reddit.auth.dto.UpdateUserDTO;
+import com.levi9.reddit.auth.dto.UserProfileDTO;
 import com.levi9.reddit.auth.exception.ErrorType;
 import com.levi9.reddit.auth.exception.UnauthorizedException;
 import com.levi9.reddit.auth.service.UserService;
@@ -30,26 +30,26 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public UserProfileResponse getMe(@AuthenticationPrincipal Jwt jwt) {
+    public UserProfileDTO getMe(@AuthenticationPrincipal Jwt jwt) {
         return userService.getProfile(authenticatedUserId(jwt));
     }
 
     @PatchMapping("/me")
-    public UserProfileResponse updateMe(@AuthenticationPrincipal Jwt jwt,
-                                        @Valid @RequestBody UpdateUserRequest request) {
+    public UserProfileDTO updateMe(@AuthenticationPrincipal Jwt jwt,
+                                   @Valid @RequestBody UpdateUserDTO request) {
         return userService.updateProfile(authenticatedUserId(jwt), request);
     }
 
     @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteMe(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody DeleteUserRequest request) {
+    public void deleteMe(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody DeleteUserDTO request) {
         userService.delete(authenticatedUserId(jwt), request.password());
     }
 
     @PutMapping("/me/password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void changeMyPassword(@AuthenticationPrincipal Jwt jwt,
-                                 @Valid @RequestBody ChangePasswordRequest request) {
+                                 @Valid @RequestBody ChangePasswordDTO request) {
         userService.changePassword(authenticatedUserId(jwt), request.currentPassword(), request.newPassword(),
                 jwt.getTokenValue());
     }

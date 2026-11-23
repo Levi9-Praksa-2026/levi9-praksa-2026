@@ -1,6 +1,6 @@
 package com.levi9.reddit.auth.security;
 
-import com.levi9.reddit.auth.dto.LoginResponse;
+import com.levi9.reddit.auth.dto.LoginDTO;
 import com.levi9.reddit.auth.exception.ErrorType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,7 +49,7 @@ class LoginResponses implements AuthenticationSuccessHandler, AuthenticationFail
         String redirectUrl = saved != null ? pathAndQuery(saved.getRedirectUrl()) : GATEWAY_LOGIN_START;
         response.setStatus(HttpStatus.OK.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        json.writeValue(response.getOutputStream(), new LoginResponse(redirectUrl));
+        json.writeValue(response.getOutputStream(), new LoginDTO(redirectUrl));
     }
 
     @Override

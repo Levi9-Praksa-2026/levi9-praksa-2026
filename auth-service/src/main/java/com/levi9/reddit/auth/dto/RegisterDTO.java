@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size;
  * no composition rules, and at most 72 bytes because passwords are hashed with BCrypt.
  * Lengths match the {@code auth.users} columns.
  */
-public record RegisterRequest(
+public record RegisterDTO(
         @NotBlank
         @Pattern(regexp = "^[A-Za-z0-9_]{3,30}$", message = "must be 3 to 30 letters, digits or underscores")
         String username,
