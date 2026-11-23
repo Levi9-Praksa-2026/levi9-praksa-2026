@@ -30,6 +30,9 @@ spring:
       hibernate.query.fail_on_pagination_over_collection_fetch: true
 
 app:
+  auth:
+    # Where the React login page posts email and password (Spring Security's form login).
+    login-url: /api/auth/login
   jwt:
     # The public origin the browser sees (frontend, gateway and auth-service share it). Tokens carry it as iss.
     issuer: ${APP_PUBLIC_URL:http://localhost:3000}
