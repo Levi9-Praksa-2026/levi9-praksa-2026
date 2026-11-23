@@ -6,10 +6,11 @@ server:
   servlet:
     session:
       # The login session (it lets /oauth2/authorize see who logged in). Not readable by scripts, not sent on
-      # cross-site requests. Production also needs secure: true (HTTPS only): see docs/production-changes.md.
+      # cross-site requests, only sent over HTTPS (the dev profile allows plain http://localhost).
       cookie:
         http-only: true
         same-site: lax
+        secure: true
 
 spring:
   application:
@@ -35,7 +36,7 @@ app:
     login-url: /api/auth/login
   jwt:
     # The public origin the browser sees (frontend, gateway and auth-service share it). Tokens carry it as iss.
-    issuer: ${APP_PUBLIC_URL:http://localhost:3000}
+    issuer: ${APP_PUBLIC_URL}   # required; the dev profile falls back to http://localhost:3000
     access-token-ttl: 15m
     refresh-token-ttl: 7d
     generate-key: false   # production default; key comes from APP_JWT_PRIVATE_KEY + APP_JWT_KEY_ID
