@@ -1,5 +1,5 @@
 # Local run: docker compose up --build
-# React -> gateway -> services -> Postgres. Only the frontend, gateway and Postgres are published to the host.
+# React -> gateway -> services -> Postgres. The frontend, gateway, Postgres and Moto are published to the host.
 # Database settings shared by every service (merged with <<: *db-env).
 x-db-env: &db-env
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-reddit}
@@ -44,6 +44,8 @@ services:
 
   moto:
     image: motoserver/moto:5.2.5
+    ports:
+      - "5000:5000"
 
   post-service:
     build: ./post-service
