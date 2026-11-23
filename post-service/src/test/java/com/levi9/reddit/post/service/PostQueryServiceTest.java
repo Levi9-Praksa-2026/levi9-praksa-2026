@@ -8,9 +8,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.levi9.reddit.post.dto.CommentResponse;
-import com.levi9.reddit.post.dto.PageResponse;
-import com.levi9.reddit.post.dto.PostResponse;
+import com.levi9.reddit.post.dto.CommentDTO;
+import com.levi9.reddit.post.dto.PageDTO;
+import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.dto.TopPeriod;
 import com.levi9.reddit.post.entity.Comment;
 import com.levi9.reddit.post.entity.Post;
@@ -62,9 +62,9 @@ class PostQueryServiceTest {
         Post post = new Post("Hello", 1L, "luka", 7L);
         when(posts.findByRemovedAtIsNull(any())).thenReturn(page(post));
 
-        PageResponse<PostResponse> result = service.findPosts(null, null, 0, 20);
+        PageDTO<PostDTO> result = service.findPosts(null, null, 0, 20);
 
-        assertThat(result.content()).extracting(PostResponse::title).containsExactly("Hello");
+        assertThat(result.content()).extracting(PostDTO::title).containsExactly("Hello");
         assertThat(result.totalElements()).isEqualTo(1);
 
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
@@ -111,10 +111,10 @@ class PostQueryServiceTest {
         second.updateScore(10);
         when(posts.findTop10ByRemovedAtIsNullOrderByScoreDescIdDesc()).thenReturn(List.of(best, second));
 
-        List<PostResponse> result = service.findTop(TopPeriod.ALL);
+        List<PostDTO> result = service.findTop(TopPeriod.ALL);
 
-        assertThat(result).extracting(PostResponse::title).containsExactly("Best", "Second");
-        assertThat(result).extracting(PostResponse::score).containsExactly(50, 10);
+        assertThat(result).extracting(PostDTO::title).containsExactly("Best", "Second");
+        assertThat(result).extracting(PostDTO::score).containsExactly(50, 10);
     }
 
     @Test
@@ -124,9 +124,9 @@ class PostQueryServiceTest {
         when(posts.findTop10ByCreatedAtGreaterThanEqualAndRemovedAtIsNullOrderByScoreDescIdDesc(weekAgo))
                 .thenReturn(List.of(recent));
 
-        List<PostResponse> result = service.findTop(TopPeriod.WEEK);
+        List<PostDTO> result = service.findTop(TopPeriod.WEEK);
 
-        assertThat(result).extracting(PostResponse::title).containsExactly("Recent");
+        assertThat(result).extracting(PostDTO::title).containsExactly("Recent");
         verify(posts, never()).findTop10ByRemovedAtIsNullOrderByScoreDescIdDesc();
     }
 
@@ -135,7 +135,7 @@ class PostQueryServiceTest {
         Post post = new Post("Hello", 1L, "luka", 7L);
         when(posts.findByIdAndRemovedAtIsNull(5L)).thenReturn(Optional.of(post));
 
-        PostResponse result = service.getPost(5L);
+        PostDTO result = service.getPost(5L);
 
         assertThat(result.title()).isEqualTo("Hello");
         assertThat(result.authorUsername()).isEqualTo("luka");
@@ -155,9 +155,9 @@ class PostQueryServiceTest {
         when(posts.existsByIdAndRemovedAtIsNull(5L)).thenReturn(true);
         when(comments.findByPostIdAndRemovedAtIsNull(eq(5L), any())).thenReturn(page(comment));
 
-        PageResponse<CommentResponse> result = service.findComments(5L, 0, 20);
+        PageDTO<CommentDTO> result = service.findComments(5L, 0, 20);
 
-        assertThat(result.content()).extracting(CommentResponse::content).containsExactly("Nice post");
+        assertThat(result.content()).extracting(CommentDTO::content).containsExactly("Nice post");
     }
 
     @Test

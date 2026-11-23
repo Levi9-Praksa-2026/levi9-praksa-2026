@@ -4,6 +4,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /** The community name is immutable, so the only editable field is the description. */
-public record UpdateCommunityRequest(
+public record UpdateCommunityDTO(
         @NotNull @Size(max = 2000) String description) {
 }

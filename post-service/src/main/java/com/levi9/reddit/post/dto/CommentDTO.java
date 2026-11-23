@@ -2,7 +2,7 @@ package com.levi9.reddit.post.dto;
 
 import java.time.Instant;
 
-public record CommentResponse(
+public record CommentDTO(
         Long id,
         Long postId,
         Long authorId,

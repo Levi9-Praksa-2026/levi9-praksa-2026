@@ -13,9 +13,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.levi9.reddit.post.client.CommunityDirectory;
-import com.levi9.reddit.post.dto.CreatePostRequest;
-import com.levi9.reddit.post.dto.EditPostRequest;
-import com.levi9.reddit.post.dto.PostResponse;
+import com.levi9.reddit.post.dto.CreatePostDTO;
+import com.levi9.reddit.post.dto.EditPostDTO;
+import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.entity.Actor;
 import com.levi9.reddit.post.entity.Post;
 import com.levi9.reddit.post.exception.CommunityUnavailableException;
@@ -59,7 +59,7 @@ class PostCommandServiceTest {
 
     @Nested
     class Create {
-        private final CreatePostRequest request = new CreatePostRequest("Hello", "Body", COMMUNITY);
+        private final CreatePostDTO request = new CreatePostDTO("Hello", "Body", COMMUNITY);
 
         @BeforeEach
         void memberOfActiveCommunity() {
@@ -70,7 +70,7 @@ class PostCommandServiceTest {
 
         @Test
         void savesPostWithCallerAsAuthor() {
-            PostResponse response = service.create(request, List.of(), AUTHOR);
+            PostDTO response = service.create(request, List.of(), AUTHOR);
 
             ArgumentCaptor<Post> saved = ArgumentCaptor.forClass(Post.class);
             verify(posts).save(saved.capture());
@@ -91,7 +91,7 @@ class PostCommandServiceTest {
 
         @Test
         void withoutContent_isAllowed() {
-            PostResponse response = service.create(new CreatePostRequest("Only a title", null, COMMUNITY), List.of(), AUTHOR);
+            PostDTO response = service.create(new CreatePostDTO("Only a title", null, COMMUNITY), List.of(), AUTHOR);
 
             assertThat(response.content()).isNull();
         }
@@ -119,7 +119,7 @@ class PostCommandServiceTest {
         private static final byte[] JPEG = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 4, 5};
         private static final byte[] TEXT = "not an image".getBytes(StandardCharsets.US_ASCII);
 
-        private final CreatePostRequest request = new CreatePostRequest("Hello", null, COMMUNITY);
+        private final CreatePostDTO request = new CreatePostDTO("Hello", null, COMMUNITY);
 
         @BeforeEach
         void memberOfActiveCommunityInsideATransaction() {
@@ -236,7 +236,7 @@ class PostCommandServiceTest {
 
     @Nested
     class Edit {
-        private final EditPostRequest request = new EditPostRequest("New title", "New body");
+        private final EditPostDTO request = new EditPostDTO("New title", "New body");
         private final Post post = new Post("Old title", "Old body", AUTHOR.id(), AUTHOR.username(), COMMUNITY);
 
         @BeforeEach
@@ -246,7 +246,7 @@ class PostCommandServiceTest {
 
         @Test
         void author_changesTitleContentAndUpdatedAt() {
-            PostResponse response = service.edit(POST_ID, request, AUTHOR);
+            PostDTO response = service.edit(POST_ID, request, AUTHOR);
 
             assertThat(post.getTitle()).isEqualTo("New title");
             assertThat(post.getContent()).isEqualTo("New body");

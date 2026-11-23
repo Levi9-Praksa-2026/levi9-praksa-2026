@@ -2,7 +2,7 @@ package com.levi9.reddit.community.dto;
 
 import java.time.Instant;
 
-public record CommunityDetailResponse(
+public record CommunityDetailDTO(
         Long id,
         String name,
         String description,

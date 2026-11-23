@@ -1,6 +1,6 @@
 package com.levi9.reddit.auth.controller;
 
-import com.levi9.reddit.auth.dto.BanUserRequest;
+import com.levi9.reddit.auth.dto.BanUserDTO;
 import com.levi9.reddit.auth.service.UserBanService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -34,7 +34,7 @@ public class AdminUserController {
     @PostMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void ban(@PathVariable String username,
-                    @Valid @RequestBody BanUserRequest request,
+                    @Valid @RequestBody BanUserDTO request,
                     @AuthenticationPrincipal Jwt jwt) {
         bans.ban(username, Long.valueOf(jwt.getSubject()), request.reason());
     }

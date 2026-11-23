@@ -1,6 +1,6 @@
 package com.levi9.reddit.auth;
 
-import com.levi9.reddit.auth.dto.RegisterRequest;
+import com.levi9.reddit.auth.dto.RegisterDTO;
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.entity.UserRole;
 import com.levi9.reddit.auth.exception.ConflictException;
@@ -138,11 +138,11 @@ class AuthServiceRegisterTests {
     private enum Outcome { CREATED, USERNAME_TAKEN, REGISTRATION_FAILED }
 
     /** Both requests start together; BCrypt between the checks and the insert makes them overlap. */
-    private List<Outcome> registerAtTheSameMoment(RegisterRequest first, RegisterRequest second) throws Exception {
+    private List<Outcome> registerAtTheSameMoment(RegisterDTO first, RegisterDTO second) throws Exception {
         CountDownLatch start = new CountDownLatch(1);
         try (ExecutorService pool = Executors.newFixedThreadPool(2)) {
             List<Future<Outcome>> futures = new ArrayList<>();
-            for (RegisterRequest request : List.of(first, second)) {
+            for (RegisterDTO request : List.of(first, second)) {
                 futures.add(pool.submit((Callable<Outcome>) () -> {
                     start.await();
                     try {
@@ -166,7 +166,7 @@ class AuthServiceRegisterTests {
         }
     }
 
-    private static RegisterRequest request(String username, String email) {
-        return new RegisterRequest(username, email, PASSWORD, "Marko", "Markovic");
+    private static RegisterDTO request(String username, String email) {
+        return new RegisterDTO(username, email, PASSWORD, "Marko", "Markovic");
     }
 }

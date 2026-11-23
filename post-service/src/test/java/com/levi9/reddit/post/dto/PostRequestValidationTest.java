@@ -30,43 +30,43 @@ class PostRequestValidationTest {
 
     @Test
     void create_valid_withAndWithoutContent() {
-        assertThat(invalidFields(new CreatePostRequest("Title", "Body", 1L))).isEmpty();
-        assertThat(invalidFields(new CreatePostRequest("Title", null, 1L))).isEmpty();
+        assertThat(invalidFields(new CreatePostDTO("Title", "Body", 1L))).isEmpty();
+        assertThat(invalidFields(new CreatePostDTO("Title", null, 1L))).isEmpty();
     }
 
     @Test
     void create_titleIsRequiredAndLimited() {
-        assertThat(invalidFields(new CreatePostRequest(null, null, 1L))).containsExactly("title");
-        assertThat(invalidFields(new CreatePostRequest("   ", null, 1L))).containsExactly("title");
-        assertThat(invalidFields(new CreatePostRequest("x".repeat(PostLimits.TITLE_MAX), null, 1L))).isEmpty();
-        assertThat(invalidFields(new CreatePostRequest("x".repeat(PostLimits.TITLE_MAX + 1), null, 1L)))
+        assertThat(invalidFields(new CreatePostDTO(null, null, 1L))).containsExactly("title");
+        assertThat(invalidFields(new CreatePostDTO("   ", null, 1L))).containsExactly("title");
+        assertThat(invalidFields(new CreatePostDTO("x".repeat(PostLimits.TITLE_MAX), null, 1L))).isEmpty();
+        assertThat(invalidFields(new CreatePostDTO("x".repeat(PostLimits.TITLE_MAX + 1), null, 1L)))
                 .containsExactly("title");
     }
 
     @Test
     void create_contentIsLimited() {
-        assertThat(invalidFields(new CreatePostRequest("Title", "x".repeat(PostLimits.CONTENT_MAX + 1), 1L)))
+        assertThat(invalidFields(new CreatePostDTO("Title", "x".repeat(PostLimits.CONTENT_MAX + 1), 1L)))
                 .containsExactly("content");
     }
 
     @Test
     void create_communityIdIsRequiredAndPositive() {
-        assertThat(invalidFields(new CreatePostRequest("Title", null, null))).containsExactly("communityId");
-        assertThat(invalidFields(new CreatePostRequest("Title", null, 0L))).containsExactly("communityId");
+        assertThat(invalidFields(new CreatePostDTO("Title", null, null))).containsExactly("communityId");
+        assertThat(invalidFields(new CreatePostDTO("Title", null, 0L))).containsExactly("communityId");
     }
 
     @Test
     void edit_valid_withAndWithoutContent() {
-        assertThat(invalidFields(new EditPostRequest("New title", "New body"))).isEmpty();
-        assertThat(invalidFields(new EditPostRequest("New title", null))).isEmpty();
+        assertThat(invalidFields(new EditPostDTO("New title", "New body"))).isEmpty();
+        assertThat(invalidFields(new EditPostDTO("New title", null))).isEmpty();
     }
 
     @Test
     void edit_titleIsRequiredAndLimited_contentIsLimited() {
-        assertThat(invalidFields(new EditPostRequest("", null))).containsExactly("title");
-        assertThat(invalidFields(new EditPostRequest("x".repeat(PostLimits.TITLE_MAX + 1), null)))
+        assertThat(invalidFields(new EditPostDTO("", null))).containsExactly("title");
+        assertThat(invalidFields(new EditPostDTO("x".repeat(PostLimits.TITLE_MAX + 1), null)))
                 .containsExactly("title");
-        assertThat(invalidFields(new EditPostRequest("Title", "x".repeat(PostLimits.CONTENT_MAX + 1))))
+        assertThat(invalidFields(new EditPostDTO("Title", "x".repeat(PostLimits.CONTENT_MAX + 1))))
                 .containsExactly("content");
     }
 

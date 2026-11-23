@@ -1,6 +1,6 @@
 package com.levi9.reddit.post.config;
 
-import com.levi9.reddit.post.dto.CreatePostRequest;
+import com.levi9.reddit.post.dto.CreatePostDTO;
 import java.util.List;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
@@ -20,7 +20,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @Component
 class OctetStreamJsonPartConverter extends JacksonJsonHttpMessageConverter {
-    private static final String CONTRACTS_PACKAGE = CreatePostRequest.class.getPackageName();
+    private static final String CONTRACTS_PACKAGE = CreatePostDTO.class.getPackageName();
 
     OctetStreamJsonPartConverter(JsonMapper jsonMapper) {
         super(jsonMapper);

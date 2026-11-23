@@ -1,6 +1,6 @@
 package com.levi9.reddit.auth.controller;
 
-import com.levi9.reddit.auth.dto.RegisterRequest;
+import com.levi9.reddit.auth.dto.RegisterDTO;
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.exception.ConflictException;
 import com.levi9.reddit.auth.exception.ErrorType;
@@ -57,7 +57,7 @@ class AuthControllerTest {
     void registerAnswers201WithTheProfileLocationAndTheUserButNoTokens() throws Exception {
         User marko = new User("marko", "marko@example.test", "hash", "Marko", "Markovic");
         ReflectionTestUtils.setField(marko, "id", 42L);
-        when(auth.register(any(RegisterRequest.class))).thenReturn(marko);
+        when(auth.register(any(RegisterDTO.class))).thenReturn(marko);
 
         postJson("/api/auth/register", REGISTER_BODY)
                 .andExpect(status().isCreated())
@@ -101,7 +101,7 @@ class AuthControllerTest {
     void aThreeCharacterUsernameCanBeRegistered() throws Exception {
         User mem = new User("mem", "marko@example.test", "hash", "Marko", "Markovic");
         ReflectionTestUtils.setField(mem, "id", 43L);
-        when(auth.register(any(RegisterRequest.class))).thenReturn(mem);
+        when(auth.register(any(RegisterDTO.class))).thenReturn(mem);
 
         postJson("/api/auth/register", REGISTER_BODY.replace("\"marko\"", "\"mem\""))
                 .andExpect(status().isCreated())

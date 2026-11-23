@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size;
  *
  * @param content optional body text; a post may be just a title (and images)
  */
-public record CreatePostRequest(
+public record CreatePostDTO(
         @NotBlank @Size(max = PostLimits.TITLE_MAX) String title,
         @Size(max = PostLimits.CONTENT_MAX) String content,
         @NotNull @Positive Long communityId) {

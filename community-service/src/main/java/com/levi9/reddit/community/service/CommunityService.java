@@ -1,9 +1,9 @@
 package com.levi9.reddit.community.service;
 
-import com.levi9.reddit.community.dto.CommunityDetailResponse;
-import com.levi9.reddit.community.dto.CommunityResponse;
+import com.levi9.reddit.community.dto.CommunityDTO;
+import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
-import com.levi9.reddit.community.dto.PageResponse;
+import com.levi9.reddit.community.dto.PageDTO;
 import com.levi9.reddit.community.entity.Community;
 import com.levi9.reddit.community.exception.CommunityNotFoundException;
 import com.levi9.reddit.community.exception.ConflictException;
@@ -37,7 +37,7 @@ public class CommunityService {
      * @param name only communities whose name contains this text, or {@code null}/blank for all
      */
     @Transactional(readOnly = true)
-    public PageResponse<CommunityResponse> findCommunities(CommunitySort sort, String name, int page, int size) {
+    public PageDTO<CommunityDTO> findCommunities(CommunitySort sort, String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, sortOf(sort));
         String filter = name == null || name.isBlank() ? null : name.strip();
 
@@ -45,7 +45,7 @@ public class CommunityService {
                 ? communities.findByActiveTrue(pageable)
                 : communities.findByActiveTrueAndNameContainingIgnoreCase(filter, pageable);
 
-        return toPage(result, community -> new CommunityResponse(community.getName(), community.getMemberCount()));
+        return toPage(result, community -> new CommunityDTO(community.getName(), community.getMemberCount()));
     }
 
     private static Sort sortOf(CommunitySort sort) {
@@ -56,10 +56,10 @@ public class CommunityService {
     }
 
     @Transactional(readOnly = true)
-    public CommunityDetailResponse getCommunity(String name) {
+    public CommunityDetailDTO getCommunity(String name) {
         Community community = communities.findActiveByName(name)
                 .orElseThrow(() -> new CommunityNotFoundException(name));
-        return new CommunityDetailResponse(
+        return new CommunityDetailDTO(
                 community.getId(),
                 community.getName(),
                 community.getDescription(),
@@ -68,7 +68,7 @@ public class CommunityService {
     }
 
     @Transactional
-    public CommunityDetailResponse create(String name, String description, long creatorId) {
+    public CommunityDetailDTO create(String name, String description, long creatorId) {
         if (communities.findByName(name).isPresent()) {
             throw new ConflictException(ErrorType.COMMUNITY_NAME_TAKEN, "Community name is already taken: " + name);
         }
@@ -103,8 +103,8 @@ public class CommunityService {
                 .orElseThrow(() -> new CommunityNotFoundException(name));
     }
 
-    private static CommunityDetailResponse detail(Community community) {
-        return new CommunityDetailResponse(
+    private static CommunityDetailDTO detail(Community community) {
+        return new CommunityDetailDTO(
                 community.getId(),
                 community.getName(),
                 community.getDescription(),
@@ -112,8 +112,8 @@ public class CommunityService {
                 community.getCreatedAt());
     }
 
-    private static <E, R> PageResponse<R> toPage(Page<E> page, Function<E, R> mapper) {
-        return new PageResponse<>(
+    private static <E, R> PageDTO<R> toPage(Page<E> page, Function<E, R> mapper) {
+        return new PageDTO<>(
                 page.getContent().stream().map(mapper).toList(),
                 page.getNumber(),
                 page.getSize(),

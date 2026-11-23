@@ -1,10 +1,10 @@
 package com.levi9.reddit.post.controller;
 
-import com.levi9.reddit.post.dto.CommentResponse;
-import com.levi9.reddit.post.dto.CreatePostRequest;
-import com.levi9.reddit.post.dto.EditPostRequest;
-import com.levi9.reddit.post.dto.PageResponse;
-import com.levi9.reddit.post.dto.PostResponse;
+import com.levi9.reddit.post.dto.CommentDTO;
+import com.levi9.reddit.post.dto.CreatePostDTO;
+import com.levi9.reddit.post.dto.EditPostDTO;
+import com.levi9.reddit.post.dto.PageDTO;
+import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.dto.TopPeriod;
 import com.levi9.reddit.post.service.PostCommandService;
 import com.levi9.reddit.post.service.PostQueryService;
@@ -55,7 +55,7 @@ public class PostController {
 
     @GetMapping
     @Operation(summary = "Latest posts, optionally filtered by community and/or searched by title")
-    public PageResponse<PostResponse> findPosts(
+    public PageDTO<PostDTO> findPosts(
             @RequestParam(required = false) Long communityId,
             @RequestParam(required = false) @Size(max = 300) String q,
             @RequestParam(defaultValue = "0") @Min(0) int page,
@@ -65,19 +65,19 @@ public class PostController {
 
     @GetMapping("/top")
     @Operation(summary = "Top 10 posts by score: of all time, or only posts created in the last 7 days")
-    public List<PostResponse> findTop(@RequestParam(defaultValue = "ALL") TopPeriod period) {
+    public List<PostDTO> findTop(@RequestParam(defaultValue = "ALL") TopPeriod period) {
         return postQueryService.findTop(period);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "A single post; 404 if it doesn't exist or was removed")
-    public PostResponse getPost(@PathVariable Long id) {
+    public PostDTO getPost(@PathVariable Long id) {
         return postQueryService.getPost(id);
     }
 
     @GetMapping("/{id}/comments")
     @Operation(summary = "Comments of a post, newest first")
-    public PageResponse<CommentResponse> findComments(
+    public PageDTO<CommentDTO> findComments(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
@@ -104,19 +104,19 @@ public class PostController {
     @Operation(summary = "Create a post (member of the community). Multipart: a JSON part named \"post\" and up to "
             + "3 \"images\" (JPEG or PNG, 5 MB each); 201 with Location. 403 if not a member, "
             + "422 if the community is missing or shut down or an image is rejected, 413 if a file is too large")
-    public ResponseEntity<PostResponse> create(
-            @Valid @RequestPart("post") CreatePostRequest request,
+    public ResponseEntity<PostDTO> create(
+            @Valid @RequestPart("post") CreatePostDTO request,
             @RequestPart(name = "images", required = false) List<MultipartFile> images,
             @AuthenticationPrincipal Jwt jwt) {
-        PostResponse created = postCommandService.create(request, bytesOf(images), Actors.from(jwt));
+        PostDTO created = postCommandService.create(request, bytesOf(images), Actors.from(jwt));
         return ResponseEntity.created(URI.create("/api/posts/" + created.id())).body(created);
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Edit title and content (author only). 403 if not the author, 404 if missing or removed")
-    public PostResponse edit(
+    public PostDTO edit(
             @PathVariable long id,
-            @Valid @RequestBody EditPostRequest request,
+            @Valid @RequestBody EditPostDTO request,
             @AuthenticationPrincipal Jwt jwt) {
         return postCommandService.edit(id, request, Actors.from(jwt));
     }

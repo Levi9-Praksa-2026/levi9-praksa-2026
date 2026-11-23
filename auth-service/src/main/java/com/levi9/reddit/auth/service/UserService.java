@@ -1,7 +1,7 @@
 package com.levi9.reddit.auth.service;
 
-import com.levi9.reddit.auth.dto.UpdateUserRequest;
-import com.levi9.reddit.auth.dto.UserProfileResponse;
+import com.levi9.reddit.auth.dto.UpdateUserDTO;
+import com.levi9.reddit.auth.dto.UserProfileDTO;
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.entity.UserRole;
 import com.levi9.reddit.auth.exception.ConflictException;
@@ -33,12 +33,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserProfileResponse getProfile(Long userId) {
+    public UserProfileDTO getProfile(Long userId) {
         return toProfileResponse(requireProfileUser(users.findById(userId)));
     }
 
     @Transactional
-    public UserProfileResponse updateProfile(Long userId, UpdateUserRequest request) {
+    public UserProfileDTO updateProfile(Long userId, UpdateUserDTO request) {
         User user = requireProfileUser(users.findByIdForUpdate(userId));
         String email = request.getEmail();
         if (email != null && !email.equals(user.getEmail())) {
@@ -69,8 +69,8 @@ public class UserService {
         authorizations.revokeAllOf(userId);
     }
 
-    private static UserProfileResponse toProfileResponse(User user) {
-        return new UserProfileResponse(user.getId(), user.getUsername(), user.getEmail(),
+    private static UserProfileDTO toProfileResponse(User user) {
+        return new UserProfileDTO(user.getId(), user.getUsername(), user.getEmail(),
                 user.getFirstName(), user.getLastName());
     }
 

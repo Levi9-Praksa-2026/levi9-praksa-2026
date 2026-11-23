@@ -1,11 +1,11 @@
 package com.levi9.reddit.community.controller;
 
-import com.levi9.reddit.community.dto.CommunityDetailResponse;
-import com.levi9.reddit.community.dto.CommunityResponse;
+import com.levi9.reddit.community.dto.CommunityDTO;
+import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
-import com.levi9.reddit.community.dto.CreateCommunityRequest;
-import com.levi9.reddit.community.dto.PageResponse;
-import com.levi9.reddit.community.dto.UpdateCommunityRequest;
+import com.levi9.reddit.community.dto.CreateCommunityDTO;
+import com.levi9.reddit.community.dto.PageDTO;
+import com.levi9.reddit.community.dto.UpdateCommunityDTO;
 import com.levi9.reddit.community.entity.Community;
 import com.levi9.reddit.community.service.CommunityMembershipService;
 import com.levi9.reddit.community.service.CommunityService;
@@ -48,7 +48,7 @@ public class CommunityController {
     // A URL rule cannot protect a query parameter — when added, check the role in code on this handler.
     @GetMapping
     @Operation(summary = "Active communities, paginated; each item has only its name and member count")
-    public PageResponse<CommunityResponse> findCommunities(
+    public PageDTO<CommunityDTO> findCommunities(
             @RequestParam(defaultValue = "new")
             @Pattern(regexp = "(?i)new|top", message = "sort must be new or top") String sort,
             @RequestParam(required = false) @Size(max = 50) String name,
@@ -60,7 +60,7 @@ public class CommunityController {
 
     @GetMapping("/{name}")
     @Operation(summary = "A single community with all its details; 404 if it doesn't exist or is inactive")
-    public CommunityDetailResponse getCommunity(@PathVariable @Size(max = 50) String name) {
+    public CommunityDetailDTO getCommunity(@PathVariable @Size(max = 50) String name) {
         return communityService.getCommunity(name);
     }
 
@@ -84,8 +84,8 @@ public class CommunityController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a community (ADMIN)")
-    public CommunityDetailResponse create(
-            @Valid @RequestBody CreateCommunityRequest request,
+    public CommunityDetailDTO create(
+            @Valid @RequestBody CreateCommunityDTO request,
             Authentication authentication) {
         // With the mock filter the principal is the user id; with real JWTs getName() is the sub claim.
         long creatorId = Long.parseLong(authentication.getName());
@@ -96,7 +96,7 @@ public class CommunityController {
     @Operation(summary = "Edit the description of a community (ADMIN); the name never changes")
     public void updateDescription(
             @PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name,
-            @Valid @RequestBody UpdateCommunityRequest request) {
+            @Valid @RequestBody UpdateCommunityDTO request) {
         communityService.updateDescription(name, request.description());
     }
 

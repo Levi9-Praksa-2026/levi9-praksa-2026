@@ -1,8 +1,8 @@
 package com.levi9.reddit.post.service;
 
-import com.levi9.reddit.post.dto.CommentResponse;
-import com.levi9.reddit.post.dto.PageResponse;
-import com.levi9.reddit.post.dto.PostResponse;
+import com.levi9.reddit.post.dto.CommentDTO;
+import com.levi9.reddit.post.dto.PageDTO;
+import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.dto.TopPeriod;
 import com.levi9.reddit.post.entity.Comment;
 import com.levi9.reddit.post.entity.Post;
@@ -56,7 +56,7 @@ public class PostQueryService {
      * @param communityId only posts of this community, or {@code null} for all communities
      * @param query       text the title must contain (case-insensitive), or {@code null}/blank for no search
      */
-    public PageResponse<PostResponse> findPosts(Long communityId, String query, int page, int size) {
+    public PageDTO<PostDTO> findPosts(Long communityId, String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, NEWEST_FIRST);
         String title = query == null || query.isBlank() ? null : query.strip();
 
@@ -77,7 +77,7 @@ public class PostQueryService {
      * The 10 posts with the highest score. Removed posts don't count.
      * {@link TopPeriod#WEEK} looks only at posts created in the last 7 days.
      */
-    public List<PostResponse> findTop(TopPeriod period) {
+    public List<PostDTO> findTop(TopPeriod period) {
         List<Post> top = switch (period) {
             case ALL -> posts.findTop10ByRemovedAtIsNullOrderByScoreDescIdDesc();
             case WEEK -> posts.findTop10ByCreatedAtGreaterThanEqualAndRemovedAtIsNullOrderByScoreDescIdDesc(
@@ -86,7 +86,7 @@ public class PostQueryService {
         return top.stream().map(PostMapper::toResponse).toList();
     }
 
-    public PostResponse getPost(Long id) {
+    public PostDTO getPost(Long id) {
         return posts.findByIdAndRemovedAtIsNull(id)
                 .map(PostMapper::toResponse)
                 .orElseThrow(() -> new PostNotFoundException(id));
@@ -112,7 +112,7 @@ public class PostQueryService {
     }
 
     /** Comments of a visible post, newest first. 404 if the post itself is missing or removed. */
-    public PageResponse<CommentResponse> findComments(Long postId, int page, int size) {
+    public PageDTO<CommentDTO> findComments(Long postId, int page, int size) {
         if (!posts.existsByIdAndRemovedAtIsNull(postId)) {
             throw new PostNotFoundException(postId);
         }
@@ -120,8 +120,8 @@ public class PostQueryService {
         return toPage(result, PostQueryService::toResponse);
     }
 
-    private static <E, R> PageResponse<R> toPage(Page<E> page, Function<E, R> mapper) {
-        return new PageResponse<>(
+    private static <E, R> PageDTO<R> toPage(Page<E> page, Function<E, R> mapper) {
+        return new PageDTO<>(
                 page.getContent().stream().map(mapper).toList(),
                 page.getNumber(),
                 page.getSize(),
@@ -129,8 +129,8 @@ public class PostQueryService {
                 page.getTotalPages());
     }
 
-    private static CommentResponse toResponse(Comment comment) {
-        return new CommentResponse(
+    private static CommentDTO toResponse(Comment comment) {
+        return new CommentDTO(
                 comment.getId(),
                 comment.getPostId(),
                 comment.getAuthorId(),

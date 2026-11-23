@@ -7,7 +7,7 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
-public class UpdateUserRequest {
+public class UpdateUserDTO {
     @Size(min = 1, max = 50)
     private String firstName;
 

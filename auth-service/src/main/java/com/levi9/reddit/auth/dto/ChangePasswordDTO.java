@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 import java.nio.charset.StandardCharsets;
 
-public record ChangePasswordRequest(
+public record ChangePasswordDTO(
         @NotBlank String currentPassword,
         @NotBlank @Size(min = 12, message = "New password must be at least 12 characters") String newPassword) {
     private static final int BCRYPT_MAX_BYTES = 72;
@@ -33,6 +33,6 @@ public record ChangePasswordRequest(
 
     @Override
     public String toString() {
-        return "ChangePasswordRequest[passwords redacted]";
+        return "ChangePasswordDTO[passwords redacted]";
     }
 }

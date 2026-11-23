@@ -148,8 +148,8 @@ class SecurityConfig {
 
 ```java
 @PostMapping
-ResponseEntity<PostResponse> create(@Valid @RequestBody CreatePostRequest request,
-                                    @AuthenticationPrincipal Jwt jwt) {
+ResponseEntity<PostDTO> create(@Valid @RequestBody CreatePostDTO request,
+                               @AuthenticationPrincipal Jwt jwt) {
     long authorId = Long.parseLong(jwt.getSubject());
     String authorUsername = jwt.getClaimAsString("username");
     ...

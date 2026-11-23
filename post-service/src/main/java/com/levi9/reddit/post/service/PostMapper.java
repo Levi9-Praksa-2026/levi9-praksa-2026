@@ -1,7 +1,7 @@
 package com.levi9.reddit.post.service;
 
-import com.levi9.reddit.post.dto.PostImageResponse;
-import com.levi9.reddit.post.dto.PostResponse;
+import com.levi9.reddit.post.dto.PostDTO;
+import com.levi9.reddit.post.dto.PostImageDTO;
 import com.levi9.reddit.post.entity.Post;
 
 /**
@@ -13,8 +13,8 @@ final class PostMapper {
 
     private PostMapper() {}
 
-    static PostResponse toResponse(Post post) {
-        return new PostResponse(
+    static PostDTO toResponse(Post post) {
+        return new PostDTO(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
@@ -26,7 +26,7 @@ final class PostMapper {
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
                 post.getImages().stream()
-                        .map(image -> new PostImageResponse(image.getId(), imageUrl(post.getId(), image.getId())))
+                        .map(image -> new PostImageDTO(image.getId(), imageUrl(post.getId(), image.getId())))
                         .toList());
     }
 

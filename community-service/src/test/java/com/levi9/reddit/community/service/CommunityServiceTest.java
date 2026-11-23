@@ -8,10 +8,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.levi9.reddit.community.dto.CommunityDetailResponse;
-import com.levi9.reddit.community.dto.CommunityResponse;
+import com.levi9.reddit.community.dto.CommunityDTO;
+import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
-import com.levi9.reddit.community.dto.PageResponse;
+import com.levi9.reddit.community.dto.PageDTO;
 import com.levi9.reddit.community.entity.Community;
 import com.levi9.reddit.community.exception.CommunityNotFoundException;
 import com.levi9.reddit.community.exception.ConflictException;
@@ -45,9 +45,9 @@ class CommunityServiceTest {
         community.updateMemberCount(7);
         when(communities.findByActiveTrue(any())).thenReturn(page(community));
 
-        PageResponse<CommunityResponse> result = service.findCommunities(CommunitySort.NEW, null, 0, 20);
+        PageDTO<CommunityDTO> result = service.findCommunities(CommunitySort.NEW, null, 0, 20);
 
-        assertThat(result.content()).containsExactly(new CommunityResponse("backend", 7));
+        assertThat(result.content()).containsExactly(new CommunityDTO("backend", 7));
         assertThat(result.totalElements()).isEqualTo(1);
 
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
@@ -77,10 +77,10 @@ class CommunityServiceTest {
         when(communities.findByActiveTrueAndNameContainingIgnoreCase(eq("back"), any()))
                 .thenReturn(page(community));
 
-        PageResponse<CommunityResponse> result =
+        PageDTO<CommunityDTO> result =
                 service.findCommunities(CommunitySort.NEW, "  back  ", 0, 20);
 
-        assertThat(result.content()).containsExactly(new CommunityResponse("backend", 7));
+        assertThat(result.content()).containsExactly(new CommunityDTO("backend", 7));
         verify(communities).findByActiveTrueAndNameContainingIgnoreCase(eq("back"), any());
         verify(communities, never()).findByActiveTrue(any());
     }
@@ -102,7 +102,7 @@ class CommunityServiceTest {
         community.updateMemberCount(7);
         when(communities.findActiveByName("backend")).thenReturn(Optional.of(community));
 
-        CommunityDetailResponse result = service.getCommunity("backend");
+        CommunityDetailDTO result = service.getCommunity("backend");
 
         assertThat(result.id()).isEqualTo(community.getId());
         assertThat(result.name()).isEqualTo("backend");
@@ -125,7 +125,7 @@ class CommunityServiceTest {
         when(communities.findByName("backend")).thenReturn(Optional.empty());
         when(communities.save(any(Community.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        CommunityDetailResponse result = service.create("backend", "Backend discussion", 1L);
+        CommunityDetailDTO result = service.create("backend", "Backend discussion", 1L);
 
         assertThat(result.name()).isEqualTo("backend");
         assertThat(result.description()).isEqualTo("Backend discussion");

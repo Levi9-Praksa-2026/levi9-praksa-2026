@@ -3,7 +3,7 @@ package com.levi9.reddit.community.dto;
 import java.util.List;
 
 
-public record PageResponse<T>(
+public record PageDTO<T>(
         List<T> content,
         int page,
         int size,

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /** The plain community name (no {@code r/} prefix — that is added by the frontend); description may be null or blank. */
-public record CreateCommunityRequest(
+public record CreateCommunityDTO(
         @NotBlank
         @Size(max = 50)
         @Pattern(regexp = Community.NAME_PATTERN, message = "must be a plain community name")

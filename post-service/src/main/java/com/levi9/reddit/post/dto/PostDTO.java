@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 /** @param images up to three, in upload order; empty (never null) for a post without images */
-public record PostResponse(
+public record PostDTO(
         Long id,
         String title,
         String content,
@@ -15,9 +15,9 @@ public record PostResponse(
         int commentCount,
         Instant createdAt,
         Instant updatedAt,
-        List<PostImageResponse> images) {
+        List<PostImageDTO> images) {
 
-    public PostResponse {
+    public PostDTO {
         images = images == null ? List.of() : List.copyOf(images);
     }
 }
