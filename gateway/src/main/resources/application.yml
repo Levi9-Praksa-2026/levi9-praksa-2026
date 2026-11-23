@@ -29,6 +29,9 @@ spring:
           # trusted: any other caller is the client itself, its own X-Forwarded-For is dropped, and the gateway
           # sends the address it actually saw. Revisit with a load balancer in front (docs/production-changes.md).
           trusted-proxies: '127\.0\.0\.1|0:0:0:0:0:0:0:1'
+          # Behind the gateway, a token only ever comes from the gateway's session: any Authorization header the
+          # caller sends is removed first (filters run in the order listed), so a leaked token is useless from
+          # outside. Services that never need the browser's cookies don't get them either.
           routes:
             # The authorization server's browser-facing endpoints. Not /oauth2/token or /oauth2/jwks: only the
             # gateway and the services call those, directly inside the network.
@@ -36,23 +39,30 @@ spring:
               uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/oauth2/authorize,/connect/logout,/.well-known/openid-configuration
+              filters:
+                - RemoveRequestHeader=Authorization
             - id: auth-service
               uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/api/auth/**,/api/users/**
               filters:
+                - RemoveRequestHeader=Authorization
                 - TokenRelay=
             - id: community-service
               uri: ${COMMUNITY_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/communities/**
               filters:
+                - RemoveRequestHeader=Authorization
+                - RemoveRequestHeader=Cookie
                 - TokenRelay=
             - id: post-service
               uri: ${POST_SERVICE_URL:http://localhost:8083}
               predicates:
                 - Path=/api/posts/**,/api/comments/**
               filters:
+                - RemoveRequestHeader=Authorization
+                - RemoveRequestHeader=Cookie
                 - TokenRelay=
 
 app:

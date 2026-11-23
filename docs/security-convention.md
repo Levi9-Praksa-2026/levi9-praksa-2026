@@ -58,7 +58,8 @@ tokens; the page then logs in as above.
 
 1. The browser calls `/api/...` on the gateway, with its session cookie.
 2. The gateway finds the session and attaches `Authorization: Bearer <access token>`, refreshing it first if it
-   has expired. No session (or the refresh failed): `401`, and the frontend sends the user to log in.
+   has expired. Any `Authorization` header the browser sends is removed first: a token only ever comes from the
+   session, so a leaked token is useless from outside. No session (or the refresh failed): `401`, and the frontend sends the user to log in.
 3. The service checks the token with its cached public key (signature, expiry, issuer), then reads the user from it.
 
 Services check the token themselves, so they never trust that a request came through the gateway. Only the

@@ -97,6 +97,7 @@ class GatewayBffTests {
     @BeforeEach
     void forgetRequests() {
         BACKEND.authorizationByPath.clear();
+        BACKEND.cookieByPath.clear();
     }
 
     // --- Logging in ---
@@ -152,6 +153,45 @@ class GatewayBffTests {
 
         assertThat(BACKEND.authorizationByPath).containsKey("/api/posts");
         assertThat(BACKEND.authorizationOf("/api/posts")).isEmpty();
+    }
+
+    // --- Only the gateway's session supplies a token ---
+
+    @Test
+    void aCallersOwnTokenNeverReachesAService() throws Exception {
+        mvc.perform(get("/api/posts").header(HttpHeaders.AUTHORIZATION, "Bearer leaked")).andExpect(status().isOk());
+
+        assertThat(BACKEND.authorizationByPath).containsKey("/api/posts");
+        assertThat(BACKEND.authorizationOf("/api/posts")).isEmpty();
+    }
+
+    @Test
+    void aLoggedInCallersOwnHeaderIsReplacedByTheSessionsToken() throws Exception {
+        mvc.perform(get("/api/communities").with(loggedInAsMarko()).header(HttpHeaders.AUTHORIZATION, "Bearer leaked"))
+                .andExpect(status().isOk());
+
+        assertThat(BACKEND.authorizationOf("/api/communities")).contains("Bearer access-token");
+    }
+
+    @Test
+    void theAuthorizePageNeverReceivesABearerToken() throws Exception {
+        mvc.perform(get("/oauth2/authorize").header(HttpHeaders.AUTHORIZATION, "Bearer leaked")).andExpect(status().isOk());
+
+        assertThat(BACKEND.authorizationByPath).containsKey("/oauth2/authorize");
+        assertThat(BACKEND.authorizationOf("/oauth2/authorize")).isEmpty();
+    }
+
+    @Test
+    void theBrowsersCookiesReachAuthServiceButNoOtherService() throws Exception {
+        Cookie login = new Cookie("JSESSIONID", "auth-login");
+
+        mvc.perform(get("/api/posts").cookie(login)).andExpect(status().isOk());
+        mvc.perform(get("/api/communities").cookie(login)).andExpect(status().isOk());
+        mvc.perform(post("/api/auth/login").cookie(login)).andExpect(status().isOk());
+
+        assertThat(BACKEND.cookieByPath.get("/api/posts")).isEmpty();
+        assertThat(BACKEND.cookieByPath.get("/api/communities")).isEmpty();
+        assertThat(BACKEND.cookieByPath.get("/api/auth/login")).contains("JSESSIONID=auth-login");
     }
 
     @Test
@@ -327,11 +367,12 @@ class GatewayBffTests {
      * {@code auth-unreachable} (a restart or network failure), answers 500 for {@code auth-error}, and refuses
      * anything else with {@code invalid_grant}.
      */
-    private record Backend(HttpServer server, Map<String, String> authorizationByPath) {
+    private record Backend(HttpServer server, Map<String, String> authorizationByPath,
+                           Map<String, String> cookieByPath) {
         static Backend start() {
             try {
                 HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
-                Backend backend = new Backend(server, new ConcurrentHashMap<>());
+                Backend backend = new Backend(server, new ConcurrentHashMap<>(), new ConcurrentHashMap<>());
                 server.createContext("/", backend::handle);
                 server.start();
                 return backend;
@@ -371,6 +412,8 @@ class GatewayBffTests {
             }
             String authorization = exchange.getRequestHeaders().getFirst(HttpHeaders.AUTHORIZATION);
             authorizationByPath.put(path, authorization == null ? "" : authorization);
+            String cookie = exchange.getRequestHeaders().getFirst(HttpHeaders.COOKIE);
+            cookieByPath.put(path, cookie == null ? "" : cookie);
             respond(exchange, 200, "{}");
         }
 
