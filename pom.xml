@@ -19,5 +19,6 @@
 		<module>auth-service</module>
 		<module>community-service</module>
 		<module>post-service</module>
+		<module>coverage-report</module>
 	</modules>
 </project>
