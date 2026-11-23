@@ -6,19 +6,16 @@ import com.levi9.reddit.community.entity.CommunityMemberId;
 import com.levi9.reddit.community.exception.CommunityNotFoundException;
 import com.levi9.reddit.community.repository.CommunityMemberRepository;
 import com.levi9.reddit.community.repository.CommunityRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Membership changes and the stored member count are always written in the same transaction. */
 @Service
+@RequiredArgsConstructor
 public class CommunityMembershipService {
     private final CommunityRepository communities;
     private final CommunityMemberRepository members;
-
-    public CommunityMembershipService(CommunityRepository communities, CommunityMemberRepository members) {
-        this.communities = communities;
-        this.members = members;
-    }
 
     /** Joining twice is harmless: the second call changes nothing. */
     @Transactional
