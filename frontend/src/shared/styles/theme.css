@@ -1,14 +1,239 @@
-/* Levddit brand tokens: white ground, ink #141833, Levi9 blue #2b3fa0, Albert Sans, round corners.
-   Unlayered, so it beats the shared layers. Both entries load it through index.css. */
+/*
+  Levddit design tokens: the one place for colours, fonts, the type scale, radii and the page rhythm.
+
+  The raw values are CSS variables on :root, because some change per breakpoint, <html data-radius>
+  switches the radii, and a ground band (.ground-surface, .ground-inverse) flips the colour roles.
+  The @theme blocks map them to Tailwind names, so components write bg-surface, text-muted,
+  font-display, text-h2, rounded-btn or px-gut, and a ground band restyles them.
+
+  Tailwind's own palette, fonts, font sizes and radii are switched off: the only colours, sizes and
+  faces a component can name are these. Spacing (4px steps) and breakpoints (sm 640, lg 1024,
+  xl 1280) are Tailwind's; they match the rhythm below.
+
+  Adding a token? Add its name to src/shared/lib/cn.ts too, so tailwind-merge knows its group.
+*/
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --radius-*: initial;
+}
+
+/* Names only: each utility reads the design system's role variable, so a theme change restyles it and a ground band
+   (.ground-surface, .ground-inverse) flips it: text-ink is light inside .ground-inverse. There are no
+   inv-* utilities; an inverse band is the .ground-inverse class. */
+@theme inline reference {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-action: var(--action);
+  --color-action-ink: var(--action-ink);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  /* the fixed palette, for pieces that keep their look on any ground band (posts, replies, chips) */
+  --color-p-bg: var(--p-bg);
+  --color-p-ink: var(--p-ink);
+  --color-p-muted: var(--p-muted);
+  --color-p-accent: var(--p-accent);
+  --color-p-surface: var(--p-surface);
+  --color-current: currentColor;
+  --color-transparent: transparent;
+
+  --font-display: var(--font-display);
+  --font-text: var(--font-text);
+  --font-mono: var(--font-mono);
+
+  --text-label: var(--t-label);
+  --text-small: var(--t-small);
+  --text-body: var(--t-body);
+  --text-lead: var(--t-lead);
+  --text-card: var(--t-card);
+  --text-h3: var(--t-h3);
+  --text-h2: var(--t-h2);
+  --text-h1: var(--t-h1);
+  --text-stat: var(--t-stat);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-btn: var(--r-btn);
+  --radius-full: 999px;
+
+  --ease-ui: var(--ease);
+
+  /* the page rhythm as spacing names: px-gut, gap-gutter, pt-padt, h-nav, h-btn, max-w-container */
+  --spacing-gut: var(--gut);
+  --spacing-gutter: var(--gutter);
+  --spacing-nav: var(--nav);
+  --spacing-padt: var(--padt);
+  --spacing-padb: var(--padb);
+  --spacing-card-gap: var(--card-gap);
+  --spacing-card-pad: var(--card-pad);
+  --spacing-head-gap: var(--head-gap);
+  --spacing-btn: var(--btn-h);
+  --spacing-btn-sm: var(--btn-h-sm);
+  --spacing-icon: var(--icon);
+  --container-container: var(--container);
+  --container-measure: 62ch;
+}
+
+/* Animations */
+@theme {
+  /* the offices album: the running clock under the current tab */
+  --animate-album-run: album-run 3s linear forwards;
+  @keyframes album-run { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+}
+
+/* Nav states (Nav.tsx). sheet: the phone menu is open. sheet-expanded: an accordion item inside it is open.
+   item-open: a desktop item is hovered or focused, so its menu shows. menu-instant: a menu was already open,
+   so the next one swaps without the fade. */
+@custom-variant sheet {
+  @media (width < 64rem) { :where(.is-open) & { @slot; } }
+}
+@custom-variant sheet-expanded {
+  @media (width < 64rem) { :where(.is-open) :where(.is-expanded) & { @slot; } }
+}
+@custom-variant expanded (:where(.is-expanded) &);
+@custom-variant item-open {
+  @media (width >= 64rem) { :where(.nav-item:hover, .nav-item:focus-within) & { @slot; } }
+}
+@custom-variant menu-instant {
+  @media (width >= 64rem) { :where(.m-menu-open) & { @slot; } }
+}
+/* The page column: the same width and side gutters (--gut) for the header, every section and the footer. */
+@utility wrap {
+  width: min(100% - 2 * var(--gut), var(--container));
+  margin-inline: auto;
+}
+
+@layer ui {
+/* ---------------------------------------------------------------- tokens */
 :root {
-  --p-bg: #ffffff; --p-surface: #f1f3fa; --p-ink: #141833; --p-muted: #62677b;
-  --p-accent: #2b3fa0; --p-accent-ink: #ffffff; --p-action: #2b3fa0; --p-action-ink: #ffffff;
-  --p-inv-bg: #141833; --p-inv-surface: #212640; --p-inv-ink: #ffffff; --p-inv-muted: #9c9fad;
-  --p-inv-accent: #ffffff; --p-inv-accent-ink: #141833; --p-inv-action: #ffffff; --p-inv-action-ink: #141833;
+  /* palette: white ground, ink #141833, Levi9 blue #2b3fa0 */
+  --p-bg: #ffffff;
+  --p-surface: #f1f3fa;
+  --p-ink: #141833;
+  --p-muted: #62677b;
+  --p-accent: #2b3fa0;
+  --p-accent-ink: #ffffff;
+  --p-action: #2b3fa0;
+  --p-action-ink: #ffffff;
+  --p-inv-bg: #22348f;
+  --p-inv-surface: #2b3fa0;
+  --p-inv-ink: #ffffff;
+  --p-inv-muted: #c9d0f2;
+  --p-inv-accent: #ffffff;
+  --p-inv-accent-ink: #22348f;
+  --p-inv-action: #ffffff;
+  --p-inv-action-ink: #22348f;
+  --ground-bg: #d9ccb7;    /* behind a menu card's photo while it loads */
+
+  /* fonts */
   --font-display: "Albert Sans", system-ui, sans-serif;
   --font-text: "Albert Sans", system-ui, sans-serif;
   --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --display-weight: 500;
   --display-tracking: -0.025em;
   --display-tracking-xl: -0.035em;
+
+  /* the page rhythm (screen.ts): one section per screen. The header is fixed and
+     --nav tall; every section is padded --padt above and --padb (plus the phone action bar, --bar)
+     below, and is one or two screens tall (--h: 1 or 2; --hm on a phone). The hero's words
+     start --hgap under the header and its content ends --hpadb above the fold. */
+  --nav: 72px;
+  --padt: 120px;
+  --padb: 72px;
+  --hgap: 48px;
+  --hpadb: 64px;
+  --bar: 0px;
+
+  /* the page column (wrap): 1280 wide at most, --gut on both sides; --gutter between grid columns */
+  --container: 1280px;
+  --gut: 80px;
+
+  --gutter: 24px;
+
+
+  --head-gap: 48px;     /* the one heading-to-content gap, 32 on a phone */
+  --card-pad: 16px;     /* card padding */
+  --card-gap: 16px;     /* gap between cards */
+
+  /* type scale (the only sizes on the page) */
+  --t-label: 13px;
+  --t-small: 14px;
+  --t-body: 16px;
+  --t-lead: 18px;
+  --t-card: 18px;
+  --t-h3: 24px;
+  /* straight lines from the phone size at 390 to the desktop size at 1440 */
+  --t-h2: clamp(30px, 1.72vw + 23.3px, 48px);
+  --t-h1: clamp(38px, 3.24vw + 25.4px, 72px);
+  /* a big number stays a step under the h2: 38 at 1440, 28 at 390, so it never reads as a
+     section heading; a stats row and a price set their own, smaller still */
+  --t-stat: clamp(28px, .952vw + 24.29px, 38px);
+
+  /* radius: one scale (soft by default; data-radius on <html> switches it) */
+  --r-sm: 8px;  --r-md: 12px; --r-lg: 20px; --r-btn: 8px;
+
+  /* controls (fixed here; a page never adds its own) */
+  --btn-h: 44px;
+  --btn-h-sm: 36px;
+
+  --icon: 16px;         /* small icons: socials, menu chevrons, mono brand marks */
+
+  /* motion: the one UI ease-out */
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --dur: 180ms;
+}
+html[data-radius="soft"]  { --r-sm: 8px; --r-md: 12px; --r-lg: 20px; --r-btn: 8px; }
+html[data-radius="round"] { --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-btn: 999px; }
+
+/* a phone: the header 56, the sections padded 96 / 48, the hero's words 40 under the header and its
+   content ending 24 above the fold, 24 at both sides, 12 between columns */
+@media (max-width: 639px) {
+  :root { --nav: 56px; --padt: 96px; --padb: 48px; --hgap: 40px; --hpadb: 24px; --gut: 24px; --gutter: 12px; --card-gap: 12px; --head-gap: 32px; }
+}
+  /* a short phone (under 700px tall): the hero keeps its button on the first screen */
+  @media (max-width: 639px) and (max-height: 700px) { :root { --hgap: 24px; } }
+@media (min-width: 640px) {
+  :root { --gut: 48px;--card-pad: 24px; }
+}
+@media (min-width: 1024px) {
+  :root { --gut: 80px;--card-gap: 24px;
+          --t-lead: 20px; --t-card: 20px; --t-h3: 28px;}
+}
+
+/* ---------------------------------------------------------------- grounds (at most three) */
+:root {
+  --bg: var(--p-bg); --surface: var(--p-surface); --ink: var(--p-ink); --muted: var(--p-muted);
+  --accent: var(--p-accent); --accent-ink: var(--p-accent-ink); --card: var(--p-surface);
+  --action: var(--p-action); --action-ink: var(--p-action-ink);
+}
+.ground-surface {
+  --bg: var(--p-surface); --surface: var(--p-bg); --ink: var(--p-ink); --muted: var(--p-muted);
+  --accent: var(--p-accent); --accent-ink: var(--p-accent-ink); --card: var(--p-bg);
+  --action: var(--p-action); --action-ink: var(--p-action-ink);
+}
+.ground-inverse {
+  --bg: var(--p-inv-bg); --surface: var(--p-inv-surface); --ink: var(--p-inv-ink); --muted: var(--p-inv-muted);
+  --accent: var(--p-inv-accent); --accent-ink: var(--p-inv-accent-ink); --card: var(--p-inv-surface);
+  --action: var(--p-inv-action); --action-ink: var(--p-inv-action-ink);
+}
+:root,
+.ground-surface,
+.ground-inverse {
+  --line: color-mix(in oklab, var(--ink) 11%, transparent);
+  --line-strong: color-mix(in oklab, var(--ink) 20%, transparent);
+  /* effects and UI fragments (assets/ui) take the colours of the ground they sit on */
+
+}
+.ground-surface,
+.ground-inverse { background: var(--bg); color: var(--ink); }
+  /* the Levi9-blue band */
+  .ground-brand { --bg: var(--p-accent); --surface: color-mix(in oklab, var(--p-accent) 88%, var(--p-accent-ink)); --ink: var(--p-accent-ink); --muted: color-mix(in oklab, var(--p-accent-ink) 82%, var(--p-accent)); --card: var(--surface); --action: var(--p-accent-ink); --action-ink: var(--p-accent); background: var(--bg); color: var(--ink); }
+  .ground-brand { --line: color-mix(in oklab, var(--ink) 16%, transparent); --line-strong: color-mix(in oklab, var(--ink) 30%, transparent); }
 }

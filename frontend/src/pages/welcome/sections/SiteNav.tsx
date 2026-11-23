@@ -1,5 +1,5 @@
-import { Nav, type NavItem } from '@/shared/ui/layout/Nav'
-import { PhotoImg } from '@/shared/ui/Media'
+import { Nav, type NavItem } from '@/pages/welcome/ui/layout/Nav'
+import { PhotoImg } from '@/pages/welcome/ui/Media'
 import type { ActionItem } from '@/shared/ui/types'
 import { offices, site } from '@/pages/welcome/content'
 
@@ -28,11 +28,11 @@ export function SiteNav({ items, register, login }: SiteNavProps) {
           label: o.label,
           href: '#offices',
           line: 'See the office',
-          visual: <PhotoImg photo={o.photo} className="frame__img" />,
+          visual: <PhotoImg photo={o.photo} className="absolute inset-0 z-0 size-full max-w-none object-cover transition-transform duration-400 ease-ui group-hover/card:scale-[1.03] group-hover/card:duration-600 motion-reduce:group-hover/card:scale-100" />,
         })),
       },
     },
     ...items,
   ]
-  return <Nav type="cards" brand={{ name: site.name, href: '#top', mark: <LevddMark /> }} items={withOffices} primary={register} secondary={login} />
+  return <Nav brand={{ name: site.name, href: '#top', mark: <LevddMark /> }} items={withOffices} primary={register} secondary={login} />
 }

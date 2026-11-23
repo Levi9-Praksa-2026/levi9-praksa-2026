@@ -3,19 +3,33 @@ package com.levi9.reddit.community.api;
 import com.levi9.reddit.community.contracts.CommunityDetailResponse;
 import com.levi9.reddit.community.contracts.CommunityResponse;
 import com.levi9.reddit.community.contracts.CommunitySort;
+import com.levi9.reddit.community.contracts.CreateCommunityRequest;
 import com.levi9.reddit.community.contracts.PageResponse;
+import com.levi9.reddit.community.infrastructure.CommunityMembershipService;
+import com.levi9.reddit.community.contracts.UpdateCommunityRequest;
+import com.levi9.reddit.community.core.model.Community;
 import com.levi9.reddit.community.infrastructure.CommunityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.Locale;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,11 +37,15 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Communities")
 public class CommunityController {
     private final CommunityService communityService;
+    private final CommunityMembershipService membershipService;
 
-    public CommunityController(CommunityService communityService) {
+    public CommunityController(CommunityService communityService, CommunityMembershipService membershipService) {
         this.communityService = communityService;
+        this.membershipService = membershipService;
     }
 
+    // TODO: GET /api/communities?status=inactive (ADMIN) from the endpoints doc is not implemented yet.
+    // A URL rule cannot protect a query parameter — when added, check the role in code on this handler.
     @GetMapping
     @Operation(summary = "Active communities, paginated; each item has only its name and member count")
     public PageResponse<CommunityResponse> findCommunities(
@@ -44,5 +62,55 @@ public class CommunityController {
     @Operation(summary = "A single community with all its details; 404 if it doesn't exist or is inactive")
     public CommunityDetailResponse getCommunity(@PathVariable @Size(max = 50) String name) {
         return communityService.getCommunity(name);
+    }
+
+    @PutMapping("/{name}/members/me")
+    @Operation(summary = "Join a community; calling it twice is harmless")
+    public ResponseEntity<Void> join(@PathVariable @Size(max = 50) String name,
+                                     Authentication authentication) {
+        // With the mock filter the principal is the user id; with real JWTs getName() is the sub claim.
+        membershipService.join(name, Long.parseLong(authentication.getName()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{name}/members/me")
+    @Operation(summary = "Leave a community; leaving when not a member is harmless")
+    public ResponseEntity<Void> leave(@PathVariable @Size(max = 50) String name,
+                                      Authentication authentication) {
+        membershipService.leave(name, Long.parseLong(authentication.getName()));
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Create a community (ADMIN)")
+    public CommunityDetailResponse create(
+            @Valid @RequestBody CreateCommunityRequest request,
+            Authentication authentication) {
+        // With the mock filter the principal is the user id; with real JWTs getName() is the sub claim.
+        long creatorId = Long.parseLong(authentication.getName());
+        return communityService.create(request.name(), request.description(), creatorId);
+    }
+
+    @PatchMapping("/{name}")
+    @Operation(summary = "Edit the description of a community (ADMIN); the name never changes")
+    public void updateDescription(
+            @PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name,
+            @Valid @RequestBody UpdateCommunityRequest request) {
+        communityService.updateDescription(name, request.description());
+    }
+
+    @DeleteMapping("/{name}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Shut down a community (ADMIN): is_active = false, no row is deleted")
+    public void deactivate(@PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name) {
+        communityService.deactivate(name);
+    }
+
+    @PostMapping("/{name}/reactivate")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Undo a shutdown (ADMIN)")
+    public void reactivate(@PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name) {
+        communityService.reactivate(name);
     }
 }

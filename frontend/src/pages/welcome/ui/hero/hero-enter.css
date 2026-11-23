@@ -1,0 +1,28 @@
+/*
+  The hero's entrance, once on load: the h1 rises word by word out of masks, then the lead and buttons fade
+  in, and the globe settles from 98% scale. About 1.1 s.
+
+  This stays plain CSS on purpose. It is keyed on page state rather than on one element: PageShell puts
+  html.m-enter on before the first paint (with html.m-enter-done as a 700ms safety mark), useHeroEnter
+  moves the hero through .is-entering, .is-entered and .is-still, and the rules reach "the h1 and everything
+  after it". As utilities that would be the same long variant on every child of the hero.
+
+  No script, reduced motion and data-motion="off" show the hero as written.
+*/
+@media screen and (prefers-reduced-motion: no-preference) {
+  /* waiting: the words are hidden until the entrance starts */
+  html.m-enter:not(.m-enter-done, [data-motion="off"]) .hero[data-enter]:not([data-enter="off"], .is-entering, .is-entered)
+    :is(h1, h1 ~ *, :has(> h1) ~ *, :has(~ h1)):not(.hero__media, :has(.hero__media)) { opacity: 0; }
+  /* the safety mark passed before the script arrived: the words fade in instead of appearing at once */
+  html.m-enter.m-enter-done:not([data-motion="off"]) .hero[data-enter]:not([data-enter="off"], .is-entering, .is-entered)
+    :is(h1, h1 ~ *, :has(> h1) ~ *, :has(~ h1)) { transition: opacity 400ms cubic-bezier(.2, .8, .2, 1); }
+  /* the globe settles from .98 */
+  html.m-enter:not([data-motion="off"]) .hero[data-enter]:not([data-enter="off"], .is-still) .hero__media {
+    transition: scale 900ms cubic-bezier(.22, 1, .36, 1);
+  }
+  html.m-enter:not(.m-enter-done, [data-motion="off"]) .hero[data-enter]:not([data-enter="off"], .is-entering, .is-entered) .hero__media { scale: .98; }
+  html.m-enter:not([data-motion="off"]) .hero[data-enter]:not([data-enter="off"], .is-entered) { overflow: clip; }
+}
+/* while it runs: each word of the h1 in its own mask (HeroTitle removes them when the h1 gets its own nodes back) */
+.hero[data-enter] .m-w { display: inline-block; overflow: clip; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
+.hero[data-enter] .m-w__in { display: inline-block; }

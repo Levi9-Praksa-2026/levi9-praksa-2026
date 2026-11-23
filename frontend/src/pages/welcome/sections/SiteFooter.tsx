@@ -1,4 +1,4 @@
-import { Closing, type FooterColumn } from '@/shared/ui/layout/Closing'
+import { Closing, type FooterColumn } from '@/pages/welcome/ui/layout/Closing'
 import type { ActionItem } from '@/shared/ui/types'
 import { LevddMark } from '@/pages/welcome/sections/SiteNav'
 
@@ -17,8 +17,6 @@ export interface SiteFooterProps {
 export function SiteFooter({ name, lede, title, line, register, columns, legal }: SiteFooterProps) {
   return (
     <Closing
-      close={{ type: 'type' }}
-      footer="dark"
       title={title}
       line={line}
       primary={register}
