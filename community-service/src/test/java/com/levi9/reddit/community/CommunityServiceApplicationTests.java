@@ -1,10 +1,10 @@
 package com.levi9.reddit.community;
 
-import com.levi9.reddit.community.core.model.Community;
-import com.levi9.reddit.community.core.model.CommunityMember;
-import com.levi9.reddit.community.core.model.CommunityMemberId;
-import com.levi9.reddit.community.infrastructure.repository.CommunityMemberRepository;
-import com.levi9.reddit.community.infrastructure.repository.CommunityRepository;
+import com.levi9.reddit.community.entity.Community;
+import com.levi9.reddit.community.entity.CommunityMember;
+import com.levi9.reddit.community.entity.CommunityMemberId;
+import com.levi9.reddit.community.repository.CommunityMemberRepository;
+import com.levi9.reddit.community.repository.CommunityRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
