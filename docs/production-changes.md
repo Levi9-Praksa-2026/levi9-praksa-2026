@@ -78,14 +78,27 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - **Local:** Postgres is published on `5432` so you can connect from the host.
 - **Production:** do not publish the database port. Only the services should reach it.
 
+## community-service and post-service
+
+### Access tokens
+- Both services check auth-service's access tokens themselves (`security-convention.md`): the signature with the
+  public key from auth-service's `/oauth2/jwks`, and the `iss` claim against the public URL.
+- **Local:** the dev profile falls back to `http://localhost:8081/oauth2/jwks` and `http://localhost:3000`;
+  `docker-compose.yml` sets `AUTH_JWKS_URI=http://auth-service:8081/oauth2/jwks`.
+- **Production:**
+  - `AUTH_JWKS_URI`: auth-service's internal address plus `/oauth2/jwks`. Nothing secret. The services refuse to
+    start without it.
+  - `APP_PUBLIC_URL`: the same `https://` origin as auth-service's, or every token is rejected (`iss` mismatch).
+    The services refuse to start without it.
+
 ## community-service
 
 ### Mock authentication
 - **Local:** the dev profile sets `app.mock-auth.enabled: true`, which puts a hard-coded `ROLE_ADMIN` caller with
-  user id `1` into the security context. community-service does not check access tokens yet, so this keeps the
-  ADMIN endpoints usable. Startup logs a WARN while the mock filter is registered.
-- **Production:** without the dev profile the flag is `false`. Never set `APP_MOCKAUTH_ENABLED`, and wire the real
-  JWT resource server as described in `security-convention.md`. Turning it on would let anyone perform ADMIN
+  user id `1` into the security context, but only for requests without an access token: a real token always wins.
+  It keeps the ADMIN endpoints usable while nobody can log in through the browser yet. Startup logs a WARN while
+  the mock filter is registered.
+- **Production:** without the dev profile the flag is `false`. Never set `APP_MOCKAUTH_ENABLED`. Turning it on would let anyone perform ADMIN
   operations.
 
 ## post-service
@@ -102,10 +115,9 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - **Local:** `docker-compose.yml` sets `APP_MOCKAUTH_ENABLED=true`, which gives every request without a token a
   made-up JWT caller: by default user id `1`, username `mockuser`, role `USER`. The optional headers
   `X-Mock-User-Id`, `X-Mock-Username` and `X-Mock-Roles` (comma-separated, e.g. `USER,ADMIN`) switch the caller per
-  request, e.g. to check that editing someone else's post is rejected. auth-service cannot issue access tokens yet,
-  so this keeps the write endpoints usable. Startup logs a WARN while the mock filter is registered.
-- **Production:** the flag defaults to `false` in code, so leave `APP_MOCKAUTH_ENABLED` unset or `false` and wire the
-  real JWT resource server as described in `security-convention.md`. Turning it on would let anyone act as any user,
+  request, e.g. to check that editing someone else's post is rejected. A real access token always wins over the
+  mock. It keeps the write endpoints usable while nobody can log in through the browser yet. Startup logs a WARN while the mock filter is registered.
+- **Production:** the flag defaults to `false` in code, so leave `APP_MOCKAUTH_ENABLED` unset or `false`. Turning it on would let anyone act as any user,
   including ADMIN, by sending a header.
 
 ### Community stub

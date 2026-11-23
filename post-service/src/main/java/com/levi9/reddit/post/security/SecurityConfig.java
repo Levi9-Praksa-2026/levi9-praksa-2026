@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -15,9 +16,9 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 /**
  * Reading posts and comments is public. Everything else needs a caller.
  *
- * <p>Until auth-service issues access tokens, {@code app.mock-auth.enabled=true} (local only) registers
- * {@link MockAuthenticationFilter}. When JWT validation is added, remove the filter and the flag and use
- * {@code .oauth2ResourceServer(o -> o.jwt(...))}.
+ * <p>Callers are identified by auth-service's access tokens. {@code app.mock-auth.enabled=true} (local only) also
+ * registers {@link MockAuthenticationFilter}, which runs after the token filter and only makes up a caller when the
+ * request has no token.
  */
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
@@ -35,8 +36,12 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/error").permitAll()
                         .anyRequest().authenticated())
-                // Problem details for errors raised before any controller runs. Without the entry point Spring would
-                // also answer 403 instead of 401 to a missing caller, since no login mechanism is configured yet.
+                // Access tokens from auth-service; roles become ROLE_ authorities (application.yml).
+                // A missing, expired or invalid token gets the same 401 body as no caller at all.
+                .oauth2ResourceServer(oauth -> oauth
+                        .jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint(ProblemResponses.unauthorized()))
+                // Problem details for errors raised before any controller runs, instead of Spring's empty-bodied 401/403.
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint(ProblemResponses.unauthorized())
                         .accessDeniedHandler(ProblemResponses.forbidden()));

@@ -37,6 +37,7 @@ services:
     environment:
       <<: *db-env
       SPRING_PROFILES_ACTIVE: dev   # turns on mock auth: application-dev.yml
+      AUTH_JWKS_URI: http://auth-service:8081/oauth2/jwks   # where the public key comes from
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,6 +50,7 @@ services:
     environment:
       <<: *db-env
       SPRING_PROFILES_ACTIVE: dev
+      AUTH_JWKS_URI: http://auth-service:8081/oauth2/jwks   # where the public key comes from
       APP_S3_ENDPOINT: http://moto:5000   # Moto, a fake S3; local only
       APP_MOCKAUTH_ENABLED: "true"   # local only, see docs/production-changes.md
       APP_COMMUNITYSTUB_ENABLED: "true"                    # local only, see docs/production-changes.md

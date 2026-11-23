@@ -5,7 +5,13 @@ spring:
     url: jdbc:postgresql://localhost:5432/reddit
     username: reddit
     password: reddit_local
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8081/oauth2/jwks}
+          issuer-uri: ${APP_PUBLIC_URL:http://localhost:3000}
 
 app:
   mock-auth:
-    enabled: true   # a fake ADMIN caller until this service checks real tokens; never in production
+    enabled: true   # a fake ADMIN caller for requests without a token; never in production
