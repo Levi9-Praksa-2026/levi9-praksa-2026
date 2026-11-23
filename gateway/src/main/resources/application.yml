@@ -73,3 +73,10 @@ app:
     # Where the gateway reaches auth-service itself, for the code exchange, refresh and the signing key.
     auth-service-url: ${AUTH_SERVICE_URL:http://localhost:8081}
     client-secret: ${APP_OAUTH_GATEWAY_CLIENT_SECRET:}   # required; the same value auth-service has
+
+# Swagger UI is a dev tool: off here, on in application-dev.yml.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
