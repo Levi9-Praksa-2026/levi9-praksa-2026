@@ -39,7 +39,7 @@ public class UserService {
 
     @Transactional
     public UserProfileDTO updateProfile(Long userId, UpdateUserDTO request) {
-        User user = requireProfileUser(users.findByIdForUpdate(userId));
+        User user = requireProfileUser(users.findUserById(userId));
         String email = request.getEmail();
         if (email != null && !email.equals(user.getEmail())) {
             verifyPassword(user, request.getCurrentPassword());
@@ -60,7 +60,7 @@ public class UserService {
 
     @Transactional
     public void delete(Long userId, String password) {
-        User user = requireExistingUser(users.findByIdForUpdate(userId));
+        User user = requireExistingUser(users.findUserById(userId));
         if (user.getRole() != UserRole.USER) {
             throw new ForbiddenException(ErrorType.ACCOUNT_DELETION_FORBIDDEN, "This account cannot be deleted");
         }
