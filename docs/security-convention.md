@@ -89,7 +89,23 @@ gateway's next refresh, within 15 minutes.
 The dependency `spring-boot-starter-security-oauth2-resource-server` is already in every service's pom.
 auth-service's own API (`/api/users/**`) is set up the same way: see its `UserApiSecurityConfig`.
 
-### 1. `application.yml`
+### 1. `application.yml`, `application-dev.yml` and test properties
+
+The base `application.yml` is the production config, so it has no fallbacks (`production-changes.md`, "Profiles"):
+
+```yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_JWKS_URI}
+          issuer-uri: ${APP_PUBLIC_URL}
+          authorities-claim-name: roles
+          authority-prefix: ROLE_
+```
+
+The local values go in `application-dev.yml`:
 
 ```yaml
 spring:
@@ -99,12 +115,18 @@ spring:
         jwt:
           jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8081/oauth2/jwks}
           issuer-uri: ${APP_PUBLIC_URL:http://localhost:3000}
-          authorities-claim-name: roles
-          authority-prefix: ROLE_
+```
+
+Tests run without a profile, so `src/test/resources/application.properties` sets both:
+
+```properties
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8081/oauth2/jwks
+spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:3000
 ```
 
 - `jwk-set-uri`: where to fetch the public key, auth-service's internal address. This is the only key setting.
-- `issuer-uri`: used only for the `iss` check here, because `jwk-set-uri` supplies the keys. It must be the
+- `issuer-uri`: used only for the `iss` check here, because `jwk-set-uri` supplies the keys. Spring never fetches
+  it (measured on Boot 4.1.2), so an address unreachable from inside Docker is fine. It must be the
   public origin, exactly as auth-service issues it. Cover it with a test (a token with a different `iss` gets 401).
 - `authorities-claim-name` + `authority-prefix`: turn our `roles` claim into Spring authorities from config alone,
   so `hasRole('ADMIN')` works without a custom converter.

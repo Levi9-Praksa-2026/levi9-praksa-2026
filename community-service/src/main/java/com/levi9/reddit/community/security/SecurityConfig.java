@@ -16,10 +16,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.json.ProblemDetailJacksonMixin;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
@@ -37,6 +39,8 @@ public class SecurityConfig {
         ObjectMapper mapper = objectMappers.getIfAvailable(() -> JsonMapper.builder()
                 .addMixIn(ProblemDetail.class, ProblemDetailJacksonMixin.class)
                 .build());
+        AuthenticationEntryPoint unauthorized = (request, response, failure) -> writeProblem(
+                mapper, response, HttpStatus.UNAUTHORIZED, "Authentication is required", request.getRequestURI());
 
         http
                 .csrf(AbstractHttpConfigurer::disable) // no cookies: the token travels in a header
@@ -51,16 +55,20 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/error").permitAll()
                         .anyRequest().authenticated())
+                // Access tokens from auth-service; roles become ROLE_ authorities (application.yml).
+                // A missing, expired or invalid token gets the same 401 body as no caller at all.
+                .oauth2ResourceServer(oauth -> oauth
+                        .jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint(unauthorized))
                 .exceptionHandling(errors -> errors
-                        .authenticationEntryPoint((request, response, failure) -> writeProblem(
-                                mapper, response, HttpStatus.UNAUTHORIZED, "Authentication is required",
-                                request.getRequestURI()))
+                        .authenticationEntryPoint(unauthorized)
                         .accessDeniedHandler((request, response, failure) -> writeProblem(
                                 mapper, response, HttpStatus.FORBIDDEN, "Access is denied",
                                 request.getRequestURI())));
 
         if (mockAuthEnabled) {
-            log.warn("MOCK AUTH ENABLED: every unauthenticated request is treated as ROLE_ADMIN. "
+            // Runs after the token filter: a request with a real token keeps its own caller.
+            log.warn("MOCK AUTH ENABLED: every request without a token is treated as ROLE_ADMIN. "
                     + "Never enable app.mock-auth in production.");
             http.addFilterBefore(new MockAuthenticationFilter(), AnonymousAuthenticationFilter.class);
         }

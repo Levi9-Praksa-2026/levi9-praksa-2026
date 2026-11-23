@@ -7,6 +7,14 @@ spring:
   datasource:
     hikari:
       schema: community   # connections start in this schema, so native SQL finds the tables too
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_JWKS_URI}   # required: auth-service's internal address; the dev profile falls back to localhost
+          issuer-uri: ${APP_PUBLIC_URL}   # required: only checks the iss claim, never fetched (DECISIONS 2026-11-23 probe)
+          authorities-claim-name: roles   # ["ADMIN"] -> ROLE_ADMIN, so hasRole("ADMIN") works
+          authority-prefix: ROLE_
   flyway:
     schemas: community
     default-schema: community
