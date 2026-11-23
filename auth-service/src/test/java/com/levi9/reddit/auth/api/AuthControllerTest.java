@@ -98,7 +98,9 @@ class AuthControllerTest {
 
     @Test
     void aThreeCharacterUsernameCanBeRegistered() throws Exception {
-        when(auth.register(any(RegisterRequest.class))).thenReturn(TOKENS);
+        User mem = new User("mem", "marko@example.test", "hash", "Marko", "Markovic");
+        ReflectionTestUtils.setField(mem, "id", 43L);
+        when(auth.register(any(RegisterRequest.class))).thenReturn(mem);
 
         postJson("/api/auth/register", REGISTER_BODY.replace("\"marko\"", "\"mem\""))
                 .andExpect(status().isCreated())
