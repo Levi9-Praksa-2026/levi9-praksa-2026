@@ -400,8 +400,10 @@ class GatewayBffTests {
 
         private void handle(HttpExchange exchange) throws IOException {
             String path = exchange.getRequestURI().getPath();
+            // Read the whole body before answering, like a real server. Answering while the gateway's JDK HTTP
+            // client is still sending the body races inside that client and fails the request now and then.
+            String form = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             if (path.equals("/oauth2/token")) {
-                String form = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 if (form.contains("refresh_token=auth-unreachable")) {
                     exchange.close(); // no answer at all
                     return;
