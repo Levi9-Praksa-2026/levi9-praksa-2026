@@ -4,11 +4,13 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.levi9.reddit.community.contracts.CommunityDetailResponse;
 import com.levi9.reddit.community.contracts.CommunitySort;
 import com.levi9.reddit.community.contracts.PageResponse;
+import com.levi9.reddit.community.infrastructure.CommunityMembershipService;
 import com.levi9.reddit.community.infrastructure.CommunityService;
 import java.time.Instant;
 import java.util.List;
@@ -43,6 +46,9 @@ class CommunityAdminSecurityTest {
 
     @MockitoBean
     private CommunityService communityService;
+
+    @MockitoBean
+    private CommunityMembershipService membershipService;
 
     @Test
     void create_withoutCaller_returnsUnauthorizedProblemDetail() throws Exception {
@@ -113,6 +119,20 @@ class CommunityAdminSecurityTest {
 
         mockMvc.perform(post("/api/communities/backend/reactivate").with(user("regular").roles("USER")))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void joinAndLeave_withoutCaller_returnUnauthorizedProblemDetail() throws Exception {
+        mockMvc.perform(put("/api/communities/backend/members/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Unauthorized"))
+                .andExpect(jsonPath("$.status").value(401));
+
+        mockMvc.perform(delete("/api/communities/backend/members/me"))
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(membershipService);
     }
 
     @Test

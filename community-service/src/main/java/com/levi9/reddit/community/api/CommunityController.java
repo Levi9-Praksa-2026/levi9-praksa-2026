@@ -18,8 +18,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.Locale;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -69,16 +67,17 @@ public class CommunityController {
     @PutMapping("/{name}/members/me")
     @Operation(summary = "Join a community; calling it twice is harmless")
     public ResponseEntity<Void> join(@PathVariable @Size(max = 50) String name,
-                                     @AuthenticationPrincipal Jwt jwt) {
-        membershipService.join(name, Long.parseLong(jwt.getSubject()));
+                                     Authentication authentication) {
+        // With the mock filter the principal is the user id; with real JWTs getName() is the sub claim.
+        membershipService.join(name, Long.parseLong(authentication.getName()));
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{name}/members/me")
     @Operation(summary = "Leave a community; leaving when not a member is harmless")
     public ResponseEntity<Void> leave(@PathVariable @Size(max = 50) String name,
-                                      @AuthenticationPrincipal Jwt jwt) {
-        membershipService.leave(name, Long.parseLong(jwt.getSubject()));
+                                      Authentication authentication) {
+        membershipService.leave(name, Long.parseLong(authentication.getName()));
         return ResponseEntity.noContent().build();
     }
     

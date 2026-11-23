@@ -11,11 +11,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,9 +23,9 @@ import com.levi9.reddit.community.contracts.CommunityResponse;
 import com.levi9.reddit.community.contracts.CommunitySort;
 import com.levi9.reddit.community.contracts.PageResponse;
 import com.levi9.reddit.community.core.exception.CommunityNotFoundException;
-import com.levi9.reddit.community.infrastructure.CommunityMembershipService;
 import com.levi9.reddit.community.core.exception.ConflictException;
 import com.levi9.reddit.community.core.exception.ErrorType;
+import com.levi9.reddit.community.infrastructure.CommunityMembershipService;
 import com.levi9.reddit.community.infrastructure.CommunityService;
 import java.time.Instant;
 import java.util.List;
@@ -36,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -191,11 +188,11 @@ class CommunityControllerTest {
     }
 
     @Test
-    void join_withoutTokenIsRejected() throws Exception {
+    void join_withMockCaller_usesMockCallerIdAndReturnsNoContent() throws Exception {
         mockMvc.perform(put("/api/communities/{name}/members/me", "backend"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isNoContent());
 
-        verifyNoInteractions(membershipService);
+        verify(membershipService).join("backend", MockCaller.ID);
     }
 
     @Test
@@ -209,6 +206,8 @@ class CommunityControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.errorType").value("COMMUNITY_NOT_FOUND"));
     }
+
+    @Test
     void create_returnsCreatedCommunity() throws Exception {
         given(communityService.create("backend", "Backend discussion", 1L))
                 .willReturn(new CommunityDetailResponse(1L, "backend", "Backend discussion", 0, CREATED));
