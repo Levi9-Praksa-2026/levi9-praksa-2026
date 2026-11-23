@@ -10,6 +10,7 @@ import com.levi9.reddit.community.exception.ConflictException;
 import com.levi9.reddit.community.exception.ErrorType;
 import com.levi9.reddit.community.repository.CommunityRepository;
 import java.util.function.Function;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,16 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class CommunityService {
     // A second key breaks ties, so two rows with the same value never swap places between pages.
     private static final Sort NEWEST_FIRST = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
     private static final Sort MOST_MEMBERS_FIRST = Sort.by(Sort.Order.desc("memberCount"), Sort.Order.desc("id"));
 
     private final CommunityRepository communities;
-
-    public CommunityService(CommunityRepository communities) {
-        this.communities = communities;
-    }
 
     /**
      * Active communities only.

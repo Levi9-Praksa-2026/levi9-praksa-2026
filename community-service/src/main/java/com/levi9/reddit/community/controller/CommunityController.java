@@ -17,6 +17,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.Locale;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -35,14 +36,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/communities")
 @Tag(name = "Communities")
+@RequiredArgsConstructor
 public class CommunityController {
     private final CommunityService communityService;
     private final CommunityMembershipService membershipService;
-
-    public CommunityController(CommunityService communityService, CommunityMembershipService membershipService) {
-        this.communityService = communityService;
-        this.membershipService = membershipService;
-    }
 
     // TODO: GET /api/communities?status=inactive (ADMIN) from the endpoints doc is not implemented yet.
     // A URL rule cannot protect a query parameter — when added, check the role in code on this handler.
