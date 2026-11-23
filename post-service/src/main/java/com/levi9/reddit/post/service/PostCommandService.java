@@ -1,9 +1,9 @@
 package com.levi9.reddit.post.service;
 
 import com.levi9.reddit.post.client.CommunityDirectory;
-import com.levi9.reddit.post.dto.CreatePostRequest;
-import com.levi9.reddit.post.dto.EditPostRequest;
-import com.levi9.reddit.post.dto.PostResponse;
+import com.levi9.reddit.post.dto.CreatePostDTO;
+import com.levi9.reddit.post.dto.EditPostDTO;
+import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.entity.Actor;
 import com.levi9.reddit.post.entity.ImageUpload;
 import com.levi9.reddit.post.entity.Post;
@@ -56,7 +56,7 @@ public class PostCommandService {
      * @throws CommunityUnavailableException the community doesn't exist or was shut down (422)
      * @throws NotCommunityMemberException   the caller hasn't joined the community (403)
      */
-    public PostResponse create(CreatePostRequest request, List<byte[]> images, Actor actor) {
+    public PostDTO create(CreatePostDTO request, List<byte[]> images, Actor actor) {
         List<ImageUpload> uploads = ImageUpload.validate(images);
         long communityId = request.communityId();
         if (!communities.isActive(communityId)) {
@@ -83,7 +83,7 @@ public class PostCommandService {
      *
      * @throws PostNotFoundException the post doesn't exist or was removed (404)
      */
-    public PostResponse edit(long postId, EditPostRequest request, Actor actor) {
+    public PostDTO edit(long postId, EditPostDTO request, Actor actor) {
         Post post = loadForUpdate(postId);
         post.editBy(actor, request.title(), request.content(), clock.instant());
         return PostMapper.toResponse(post);

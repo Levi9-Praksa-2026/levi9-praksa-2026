@@ -18,9 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.levi9.reddit.post.dto.CreatePostRequest;
-import com.levi9.reddit.post.dto.EditPostRequest;
-import com.levi9.reddit.post.dto.PostResponse;
+import com.levi9.reddit.post.dto.CreatePostDTO;
+import com.levi9.reddit.post.dto.EditPostDTO;
+import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.entity.Actor;
 import com.levi9.reddit.post.exception.CommunityUnavailableException;
 import com.levi9.reddit.post.exception.NotCommunityMemberException;
@@ -73,8 +73,8 @@ class PostCommandControllerTest {
                 .claim("roles", roles));
     }
 
-    private static PostResponse response(long id, String title, Instant updatedAt) {
-        return new PostResponse(id, title, "Body", MARKO.id(), MARKO.username(), 7L, 0, 0, CREATED, updatedAt, List.of());
+    private static PostDTO response(long id, String title, Instant updatedAt) {
+        return new PostDTO(id, title, "Body", MARKO.id(), MARKO.username(), 7L, 0, 0, CREATED, updatedAt, List.of());
     }
 
     @Nested
@@ -105,7 +105,7 @@ class PostCommandControllerTest {
                     .andExpect(jsonPath("$.id").value(3))
                     .andExpect(jsonPath("$.authorUsername").value("marko"));
 
-            verify(postCommandService).create(new CreatePostRequest("Hello", "Body", 7L), List.of(), MARKO);
+            verify(postCommandService).create(new CreatePostDTO("Hello", "Body", 7L), List.of(), MARKO);
         }
 
         // What Swagger UI sends: the JSON text field without a Content-Type (or as application/octet-stream).
@@ -123,7 +123,7 @@ class PostCommandControllerTest {
                             .with(as(MARKO)))
                     .andExpect(status().isCreated());
 
-            verify(postCommandService, times(2)).create(new CreatePostRequest("Hello", "Body", 7L), List.of(), MARKO);
+            verify(postCommandService, times(2)).create(new CreatePostDTO("Hello", "Body", 7L), List.of(), MARKO);
         }
 
         @Test
@@ -146,7 +146,7 @@ class PostCommandControllerTest {
             mockMvc.perform(multipart("/api/posts").file(sneaky).with(as(MARKO)))
                     .andExpect(status().isCreated());
 
-            verify(postCommandService).create(new CreatePostRequest("Hello", "Body", 7L), List.of(), MARKO);
+            verify(postCommandService).create(new CreatePostDTO("Hello", "Body", 7L), List.of(), MARKO);
         }
 
         @Test
@@ -211,7 +211,7 @@ class PostCommandControllerTest {
                     .andExpect(status().isCreated());
 
             ArgumentCaptor<List<byte[]>> images = ArgumentCaptor.captor();
-            verify(postCommandService).create(eq(new CreatePostRequest("Hello", "Body", 7L)), images.capture(), eq(MARKO));
+            verify(postCommandService).create(eq(new CreatePostDTO("Hello", "Body", 7L)), images.capture(), eq(MARKO));
             assertThat(images.getValue()).containsExactly(first, second);
         }
 
@@ -249,7 +249,7 @@ class PostCommandControllerTest {
                     .andExpect(jsonPath("$.title").value("New title"))
                     .andExpect(jsonPath("$.updatedAt").exists());
 
-            verify(postCommandService).edit(3L, new EditPostRequest("New title", "New body"), MARKO);
+            verify(postCommandService).edit(3L, new EditPostDTO("New title", "New body"), MARKO);
         }
 
         @Test

@@ -10,10 +10,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.levi9.reddit.post.dto.CommentResponse;
-import com.levi9.reddit.post.dto.PageResponse;
-import com.levi9.reddit.post.dto.PostImageResponse;
-import com.levi9.reddit.post.dto.PostResponse;
+import com.levi9.reddit.post.dto.CommentDTO;
+import com.levi9.reddit.post.dto.PageDTO;
+import com.levi9.reddit.post.dto.PostDTO;
+import com.levi9.reddit.post.dto.PostImageDTO;
 import com.levi9.reddit.post.dto.TopPeriod;
 import com.levi9.reddit.post.exception.ImageNotFoundException;
 import com.levi9.reddit.post.exception.PostNotFoundException;
@@ -47,8 +47,8 @@ class PostControllerTest {
 
     @Test
     void findPosts_isPublicAndUsesDefaultPaging() throws Exception {
-        PostResponse post = new PostResponse(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0, CREATED, null, List.of());
-        when(postQueryService.findPosts(null, null, 0, 20)).thenReturn(new PageResponse<>(List.of(post), 0, 20, 1, 1));
+        PostDTO post = new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0, CREATED, null, List.of());
+        when(postQueryService.findPosts(null, null, 0, 20)).thenReturn(new PageDTO<>(List.of(post), 0, 20, 1, 1));
 
         mockMvc.perform(get("/api/posts"))
                 .andExpect(status().isOk())
@@ -59,8 +59,8 @@ class PostControllerTest {
 
     @Test
     void getPost_listsImagesWithUrls() throws Exception {
-        when(postQueryService.getPost(1L)).thenReturn(new PostResponse(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0,
-                CREATED, null, List.of(new PostImageResponse(10L, "/api/posts/1/images/10"))));
+        when(postQueryService.getPost(1L)).thenReturn(new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0,
+                CREATED, null, List.of(new PostImageDTO(10L, "/api/posts/1/images/10"))));
 
         mockMvc.perform(get("/api/posts/1"))
                 .andExpect(status().isOk())
@@ -72,7 +72,7 @@ class PostControllerTest {
     @Test
     void getPost_withoutImages_hasEmptyArray() throws Exception {
         when(postQueryService.getPost(1L))
-                .thenReturn(new PostResponse(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0, CREATED, null, null));
+                .thenReturn(new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0, CREATED, null, null));
 
         mockMvc.perform(get("/api/posts/1"))
                 .andExpect(status().isOk())
@@ -104,7 +104,7 @@ class PostControllerTest {
 
     @Test
     void findPosts_passesFiltersAndPaging() throws Exception {
-        when(postQueryService.findPosts(7L, "spring", 2, 10)).thenReturn(new PageResponse<>(List.of(), 2, 10, 0, 0));
+        when(postQueryService.findPosts(7L, "spring", 2, 10)).thenReturn(new PageDTO<>(List.of(), 2, 10, 0, 0));
 
         mockMvc.perform(get("/api/posts").param("communityId", "7").param("q", "spring")
                         .param("page", "2").param("size", "10"))
@@ -131,7 +131,7 @@ class PostControllerTest {
 
     @Test
     void findTop_withoutPeriod_isPublicAndDefaultsToAllTime() throws Exception {
-        PostResponse post = new PostResponse(1L, "Hello", "Body", 2L, "luka", 7L, 42, 0, CREATED, null, List.of());
+        PostDTO post = new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 42, 0, CREATED, null, List.of());
         when(postQueryService.findTop(TopPeriod.ALL)).thenReturn(List.of(post));
 
         mockMvc.perform(get("/api/posts/top"))
@@ -142,7 +142,7 @@ class PostControllerTest {
 
     @Test
     void findTop_withWeekPeriod_passesWeek() throws Exception {
-        PostResponse post = new PostResponse(1L, "Fresh", "Body", 2L, "luka", 7L, 5, 0, CREATED, null, List.of());
+        PostDTO post = new PostDTO(1L, "Fresh", "Body", 2L, "luka", 7L, 5, 0, CREATED, null, List.of());
         when(postQueryService.findTop(TopPeriod.WEEK)).thenReturn(List.of(post));
 
         mockMvc.perform(get("/api/posts/top").param("period", "WEEK"))
@@ -161,7 +161,7 @@ class PostControllerTest {
     @Test
     void getPost_returnsPost() throws Exception {
         when(postQueryService.getPost(1L))
-                .thenReturn(new PostResponse(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0, CREATED, null, List.of()));
+                .thenReturn(new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0, CREATED, null, List.of()));
 
         mockMvc.perform(get("/api/posts/1"))
                 .andExpect(status().isOk())
@@ -182,8 +182,8 @@ class PostControllerTest {
 
     @Test
     void findComments_returnsComments() throws Exception {
-        CommentResponse comment = new CommentResponse(10L, 1L, 2L, "ana", "Nice", 0, CREATED);
-        when(postQueryService.findComments(1L, 0, 20)).thenReturn(new PageResponse<>(List.of(comment), 0, 20, 1, 1));
+        CommentDTO comment = new CommentDTO(10L, 1L, 2L, "ana", "Nice", 0, CREATED);
+        when(postQueryService.findComments(1L, 0, 20)).thenReturn(new PageDTO<>(List.of(comment), 0, 20, 1, 1));
 
         mockMvc.perform(get("/api/posts/1/comments"))
                 .andExpect(status().isOk())

@@ -8,8 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.levi9.reddit.post.dto.PostImageResponse;
-import com.levi9.reddit.post.dto.PostResponse;
+import com.levi9.reddit.post.dto.PostDTO;
+import com.levi9.reddit.post.dto.PostImageDTO;
 import com.levi9.reddit.post.entity.Post;
 import com.levi9.reddit.post.entity.PostImage;
 import com.levi9.reddit.post.exception.ImageNotFoundException;
@@ -39,16 +39,16 @@ class PostImageQueryTest {
 
     @Test
     void postResponse_listsImagesInOrderWithTheirUrls() {
-        PostResponse response = PostMapper.toResponse(post);
+        PostDTO response = PostMapper.toResponse(post);
 
         assertThat(response.images()).containsExactly(
-                new PostImageResponse(10L, "/api/posts/3/images/10"),
-                new PostImageResponse(11L, "/api/posts/3/images/11"));
+                new PostImageDTO(10L, "/api/posts/3/images/10"),
+                new PostImageDTO(11L, "/api/posts/3/images/11"));
     }
 
     @Test
     void postResponse_withoutImages_hasEmptyList() {
-        PostResponse response = PostMapper.toResponse(withId(new Post("Plain", 1L, "luka", 7L), 4L));
+        PostDTO response = PostMapper.toResponse(withId(new Post("Plain", 1L, "luka", 7L), 4L));
 
         assertThat(response.images()).isEmpty();
     }
