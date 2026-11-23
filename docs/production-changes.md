@@ -17,9 +17,18 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private.pem
   ```
 - Only auth-service gets the private key. The other services need nothing secret: they fetch the public key
-  from auth-service's `/.well-known/jwks.json`.
+  from auth-service's `/oauth2/jwks`.
 - Never commit `private.pem`. Store it in the environment settings of the deploy target or a secret store.
 - If neither a key nor the flag is set, auth-service refuses to start. That is on purpose.
+
+### OAuth: public URL, gateway client secret, session cookie
+- **Local:** the public URL defaults to `http://localhost:3000` (the issuer in every token, and the base of the
+  gateway's redirect URI). `docker-compose.yml` sets `APP_OAUTH_GATEWAY_CLIENT_SECRET=local-gateway-secret`.
+- **Production:**
+  - `APP_PUBLIC_URL`: the site's own `https://` origin, exactly as the browser sees it, no trailing slash.
+  - `APP_OAUTH_GATEWAY_CLIENT_SECRET`: a long random value (`openssl rand -base64 32`), given to auth-service and
+    the gateway alike. auth-service refuses to start without it.
+  - `SERVER_SERVLET_SESSION_COOKIE_SECURE=true`, so the login session cookie is only sent over HTTPS.
 
 ### Rate limits and the client IP
 - Login (10 per minute) and register (10 per hour) are limited per client IP, in memory. One auth-service
@@ -30,6 +39,16 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 
 ## gateway
 
+### Sessions and the OAuth client
+- The gateway keeps each browser's session, and with it the user's tokens, in Postgres (schema `gateway`), so it
+  needs the same `SPRING_DATASOURCE_*` settings as the services.
+- **Production:**
+  - `APP_PUBLIC_URL`: the same `https://` origin as auth-service's. The login and logout redirects are built on it.
+  - `APP_OAUTH_GATEWAY_CLIENT_SECRET`: the same value auth-service has.
+  - `SERVER_SERVLET_SESSION_COOKIE_SECURE=true`, so the session cookie is only sent over HTTPS.
+- Sessions expire after 30 minutes without a request (Spring's default). Expired rows are deleted by Spring Session
+  itself.
+
 ### Trusted proxies
 - **Local and single EC2:** `trusted-proxies` trusts only loopback, because nothing sits in front of the gateway.
   The gateway drops a client's own `X-Forwarded-For` and sends the address it saw.
@@ -37,11 +56,6 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
   proxy's address for every request, so every user would share one rate limit. Set
   `SPRING_CLOUD_GATEWAY_SERVER_WEBMVC_TRUSTEDPROXIES` to match the proxy's addresses, and check with a
   request through the whole chain which address reaches auth-service before relying on it.
-
-### CORS origin
-- **Local:** `app.cors.allowed-origins` is `http://localhost:3000`, the frontend container.
-- **Production:** set `APP_CORS_ALLOWED_ORIGINS` to the real frontend URL (the S3 static site or its domain).
-  Never use `*`.
 
 ## Database
 

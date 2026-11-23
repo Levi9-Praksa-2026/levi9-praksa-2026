@@ -6,17 +6,18 @@ package com.levi9.reddit.auth.core.exception;
  */
 public enum ErrorType {
     INVALID_CREDENTIALS,
-    INVALID_REFRESH_TOKEN,
     USERNAME_TAKEN,
     /** Only for changing the email on an authenticated profile, after the current password is checked. Register never sends it. */
     EMAIL_TAKEN,
     /** Register failed for a reason that must not be named, e.g. a taken email. Never "email taken". */
     REGISTRATION_FAILED,
-    /** The refresh token was rotated seconds ago by another request: use the tokens that one received. */
-    REFRESH_IN_PROGRESS,
     /** Too many login or register attempts from one client IP. The {@code Retry-After} header says when to retry. */
     RATE_LIMITED,
     USER_BANNED,
     USER_NOT_FOUND,
-    ACCOUNT_DELETION_FORBIDDEN
+    ACCOUNT_DELETION_FORBIDDEN,
+    /** Admins cannot be banned, including by themselves. */
+    ADMIN_BAN_FORBIDDEN,
+    USER_ALREADY_BANNED,
+    USER_NOT_BANNED
 }

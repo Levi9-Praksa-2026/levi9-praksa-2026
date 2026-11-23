@@ -56,10 +56,17 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    /** Logins made before this get no more tokens (see {@code TokenClaims}). Null: never changed. */
+    @Column(name = "password_changed_at")
+    private Instant passwordChangedAt;
+
     protected User() {}
 
     public User(String username, String email, String passwordHash, String firstName, String lastName) {
         this.username = Objects.requireNonNull(username, "username");
+        if (username.codePointCount(0, username.length()) < 3) {
+            throw new IllegalArgumentException("username must be at least 3 characters");
+        }
         this.email = Objects.requireNonNull(email, "email");
         this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
         this.firstName = Objects.requireNonNull(firstName, "firstName");
@@ -130,8 +137,13 @@ public class User {
         }
     }
 
-    public void changePasswordHash(String passwordHash) {
+    public void changePasswordHash(String passwordHash, Instant changedAt) {
         this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
+        this.passwordChangedAt = Objects.requireNonNull(changedAt, "changedAt");
+    }
+
+    public Instant getPasswordChangedAt() {
+        return passwordChangedAt;
     }
 
     public void delete() {
