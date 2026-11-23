@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
 
+@Getter
 public class UpdateUserDTO {
     @Size(min = 1, max = 50)
     private String firstName;
@@ -34,22 +36,6 @@ public class UpdateUserDTO {
     @JsonSetter(nulls = Nulls.FAIL)
     public void setEmail(String email) {
         this.email = email.strip();
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getCurrentPassword() {
-        return currentPassword;
     }
 
     @AssertTrue(message = "Provide at least one of firstName, lastName, or email")
