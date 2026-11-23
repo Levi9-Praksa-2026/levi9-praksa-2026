@@ -175,6 +175,36 @@ class GatewayBffTests {
         assertThat(BACKEND.authorizationByPath).doesNotContainKey("/api/posts");
     }
 
+    @Test
+    void whenAuthServiceCannotBeReachedTheSessionIsKeptAnd503Returned() throws Exception {
+        Session session = storedSessionWithTokens("auth-unreachable");
+
+        mvc.perform(get("/api/posts").cookie(sessionCookie(session)))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(header().string(HttpHeaders.RETRY_AFTER, "5"));
+
+        assertThat(sessions.findById(session.getId())).as("still logged in").isNotNull();
+        assertThat(BACKEND.authorizationByPath).doesNotContainKey("/api/posts");
+    }
+
+    @Test
+    void whenAuthServiceAnswersWithAServerErrorTheSessionIsKeptAnd503Returned() throws Exception {
+        Session session = storedSessionWithTokens("auth-error");
+
+        mvc.perform(get("/api/posts").cookie(sessionCookie(session))).andExpect(status().isServiceUnavailable());
+
+        assertThat(sessions.findById(session.getId())).isNotNull();
+    }
+
+    @Test
+    void aLoggedInSessionWithoutTokensEndsWith401() throws Exception {
+        Session session = storedSession(null);
+
+        mvc.perform(get("/api/posts").cookie(sessionCookie(session))).andExpect(status().isUnauthorized());
+
+        assertThat(sessions.findById(session.getId())).isNull();
+    }
+
     // --- CSRF ---
 
     @Test
@@ -241,16 +271,21 @@ class GatewayBffTests {
      */
     private Session storedSessionWithTokens(String refreshToken) {
         Instant past = Instant.now().minusSeconds(960);
-        var client = new OAuth2AuthorizedClient(levddit(), "42",
+        return storedSession(new OAuth2AuthorizedClient(levddit(), "42",
                 new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "old-access-token", past, past.plusSeconds(900)),
-                new OAuth2RefreshToken(refreshToken, past));
-        var scratch = new MockHttpServletRequest();
-        authorizedClients.saveAuthorizedClient(client, markoToken(), scratch, new MockHttpServletResponse());
+                new OAuth2RefreshToken(refreshToken, past)));
+    }
 
+    /** marko's login in a stored session, with the given tokens, or none at all. */
+    private Session storedSession(OAuth2AuthorizedClient tokens) {
         Session session = sessions.createSession();
-        HttpSession tokens = scratch.getSession();
-        for (String name : Collections.list(tokens.getAttributeNames())) {
-            session.setAttribute(name, tokens.getAttribute(name));
+        if (tokens != null) {
+            var scratch = new MockHttpServletRequest();
+            authorizedClients.saveAuthorizedClient(tokens, markoToken(), scratch, new MockHttpServletResponse());
+            HttpSession written = scratch.getSession();
+            for (String name : Collections.list(written.getAttributeNames())) {
+                session.setAttribute(name, written.getAttribute(name));
+            }
         }
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                 new SecurityContextImpl(markoToken()));
@@ -288,7 +323,9 @@ class GatewayBffTests {
 
     /**
      * Stands in for auth-service and the services: records each path's Authorization header and answers 200,
-     * except the token endpoint, which refreshes {@code good-refresh} and refuses anything else.
+     * except the token endpoint. It refreshes {@code good-refresh}, drops the connection for
+     * {@code auth-unreachable} (a restart or network failure), answers 500 for {@code auth-error}, and refuses
+     * anything else with {@code invalid_grant}.
      */
     private record Backend(HttpServer server, Map<String, String> authorizationByPath) {
         static Backend start() {
@@ -315,6 +352,14 @@ class GatewayBffTests {
             String path = exchange.getRequestURI().getPath();
             if (path.equals("/oauth2/token")) {
                 String form = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                if (form.contains("refresh_token=auth-unreachable")) {
+                    exchange.close(); // no answer at all
+                    return;
+                }
+                if (form.contains("refresh_token=auth-error")) {
+                    respond(exchange, 500, "{}");
+                    return;
+                }
                 if (form.contains("refresh_token=good-refresh")) {
                     respond(exchange, 200, """
                             {"access_token":"fresh-access-token","token_type":"Bearer","expires_in":900,
