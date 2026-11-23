@@ -15,6 +15,10 @@ describe('cn', () => {
     expect(cn('text-body', 'text-h3')).toBe('text-h3')
     expect(cn('bg-surface', 'bg-card')).toBe('bg-card')
     expect(cn('max-w-container', 'max-w-measure')).toBe('max-w-measure')
+    expect(cn('bg-canvas', 'bg-bg')).toBe('bg-bg')
+    expect(cn('h-app-bar', 'h-12')).toBe('h-12')
+    expect(cn('w-sidebar', 'w-rail')).toBe('w-rail')
+    expect(cn('max-w-feed', 'max-w-measure')).toBe('max-w-measure')
   })
 
   it('keeps a font family next to a font weight', () => {

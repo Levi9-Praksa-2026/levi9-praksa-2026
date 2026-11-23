@@ -40,6 +40,8 @@
   --color-p-muted: var(--p-muted);
   --color-p-accent: var(--p-accent);
   --color-p-surface: var(--p-surface);
+  /* the forum app's page, behind its white cards and bars */
+  --color-canvas: var(--p-canvas);
   --color-current: currentColor;
   --color-transparent: transparent;
 
@@ -77,8 +79,13 @@
   --spacing-btn: var(--btn-h);
   --spacing-btn-sm: var(--btn-h-sm);
   --spacing-icon: var(--icon);
+  /* the forum app's frame: the top bar's height, the open sidebar and its collapsed rail */
+  --spacing-app-bar: var(--app-bar);
+  --spacing-sidebar: var(--sidebar);
+  --spacing-rail: var(--rail);
   --container-container: var(--container);
   --container-measure: 62ch;
+  --container-feed: var(--feed);
 }
 
 /* Animations */
@@ -116,6 +123,7 @@
   /* palette: white ground, ink #141833, Levi9 blue #2b3fa0 */
   --p-bg: #ffffff;
   --p-surface: #f1f3fa;
+  --p-canvas: #f8f9fd;     /* the forum page: white with a whisper of the brand blue */
   --p-ink: #141833;
   --p-muted: #62677b;
   --p-accent: #2b3fa0;
@@ -182,6 +190,12 @@
   /* controls (fixed here; a page never adds its own) */
   --btn-h: 44px;
   --btn-h-sm: 36px;
+
+  /* the forum app's frame (docs/DESIGN.md) */
+  --app-bar: 56px;
+  --sidebar: 272px;
+  --rail: 64px;
+  --feed: 720px;
 
   --icon: 16px;         /* small icons: socials, menu chevrons, mono brand marks */
 
