@@ -50,7 +50,8 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void changeMyPassword(@AuthenticationPrincipal Jwt jwt,
                                  @Valid @RequestBody ChangePasswordRequest request) {
-        userService.changePassword(authenticatedUserId(jwt), request.currentPassword(), request.newPassword());
+        userService.changePassword(authenticatedUserId(jwt), request.currentPassword(), request.newPassword(),
+                jwt.getTokenValue());
     }
 
     private static long authenticatedUserId(Jwt jwt) {
