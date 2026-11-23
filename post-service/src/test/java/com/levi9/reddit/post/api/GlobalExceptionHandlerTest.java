@@ -19,9 +19,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.ProblemDetail;
 
-class ApiExceptionHandlerTest {
+class GlobalExceptionHandlerTest {
 
-    private final ApiExceptionHandler handler = new ApiExceptionHandler();
+    private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
     static Stream<Arguments> domainExceptions() {
         return Stream.of(

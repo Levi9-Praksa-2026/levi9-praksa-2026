@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * An expected failure a correct client can cause. The subtype decides the HTTP status (see
- * {@code ApiExceptionHandler}); unchecked, so {@code @Transactional} rolls back on it.
+ * {@code GlobalExceptionHandler}); unchecked, so {@code @Transactional} rolls back on it.
  */
 public abstract sealed class DomainException extends RuntimeException
         permits NotFoundException, ForbiddenException, ValidationException {

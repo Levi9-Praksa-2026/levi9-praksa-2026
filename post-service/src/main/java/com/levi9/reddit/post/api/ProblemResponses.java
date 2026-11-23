@@ -14,7 +14,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Writes problem details from code that runs before any controller (security filters), where
- * {@link ApiExceptionHandler} can't help. Same shape as the handler, without {@code errorType}: these errors come
+ * {@link GlobalExceptionHandler} can't help. Same shape as the handler, without {@code errorType}: these errors come
  * from the framework (see docs/error-convention.md and security-convention.md, "Errors from the security layer").
  */
 final class ProblemResponses {

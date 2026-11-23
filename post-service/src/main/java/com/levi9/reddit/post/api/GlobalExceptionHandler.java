@@ -30,8 +30,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  * parameter type, unsupported media type) keep the base class's status.
  */
 @RestControllerAdvice
-class ApiExceptionHandler extends ResponseEntityExceptionHandler {
-    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private static final String VALIDATION_FAILED = "Request validation failed";
 
     @ExceptionHandler(DomainException.class)
