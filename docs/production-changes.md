@@ -3,13 +3,20 @@
 Local defaults that are fine for `docker compose up` on a laptop but must change before the AWS deploy.
 Add an entry whenever you introduce a local-only shortcut. Each entry says what to change and why.
 
+## Profiles
+- Each service's base `application.yml` is the production configuration: no fallback secrets, cookies only over
+  HTTPS. A missing required value stops startup instead of running with a local shortcut.
+- Local shortcuts live in `application-dev.yml`. `docker-compose.yml` sets `SPRING_PROFILES_ACTIVE=dev`; in
+  IntelliJ, put `dev` in the run configuration's Active profiles.
+- **Production:** run with no profile (or `prod`), **never `dev`**. There is no `application-prod.yml` yet because
+  nothing is production-only; add one when something is.
+
 ## auth-service
 
 ### JWT signing key
-- **Local:** `APP_JWT_GENERATE_KEY=true` makes auth-service generate a temporary key pair in memory at every
-  start. Nothing secret is needed, but every restart invalidates issued access tokens.
-- **Production:** do **not** set `APP_JWT_GENERATE_KEY`. `docker-compose.yml` sets it to `true` for local runs,
-  so a production compose file or environment must leave it out. Create one key pair and give auth-service:
+- **Local:** the dev profile sets `app.jwt.generate-key: true`, so auth-service generates a temporary key pair in
+  memory at every start. Nothing secret is needed, but every restart invalidates issued access tokens.
+- **Production:** without the dev profile the flag is `false`. Create one key pair and give auth-service:
   - `APP_JWT_PRIVATE_KEY`: the contents of `private.pem` (one line or several both work)
   - `APP_JWT_KEY_ID`: a name for the key, for example `2026-11`
 
@@ -22,13 +29,15 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - If neither a key nor the flag is set, auth-service refuses to start. That is on purpose.
 
 ### OAuth: public URL, gateway client secret, session cookie
-- **Local:** the public URL defaults to `http://localhost:3000` (the issuer in every token, and the base of the
-  gateway's redirect URI). `docker-compose.yml` sets `APP_OAUTH_GATEWAY_CLIENT_SECRET=local-gateway-secret`.
+- **Local:** the dev profile falls back to `http://localhost:3000` for the public URL (the issuer in every token,
+  and the base of the gateway's redirect URI), `local-gateway-secret` for the client secret, and allows the session
+  cookie over plain HTTP.
 - **Production:**
   - `APP_PUBLIC_URL`: the site's own `https://` origin, exactly as the browser sees it, no trailing slash.
+    auth-service refuses to start without it.
   - `APP_OAUTH_GATEWAY_CLIENT_SECRET`: a long random value (`openssl rand -base64 32`), given to auth-service and
     the gateway alike. auth-service refuses to start without it.
-  - `SERVER_SERVLET_SESSION_COOKIE_SECURE=true`, so the login session cookie is only sent over HTTPS.
+  - The login session cookie is HTTPS-only by default; nothing to set.
 
 ### Rate limits and the client IP
 - Login (10 per minute) and register (10 per hour) are limited per client IP, in memory. One auth-service
@@ -44,8 +53,9 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
   needs the same `SPRING_DATASOURCE_*` settings as the services.
 - **Production:**
   - `APP_PUBLIC_URL`: the same `https://` origin as auth-service's. The login and logout redirects are built on it.
+    The gateway refuses to start without it.
   - `APP_OAUTH_GATEWAY_CLIENT_SECRET`: the same value auth-service has.
-  - `SERVER_SERVLET_SESSION_COOKIE_SECURE=true`, so the session cookie is only sent over HTTPS.
+  - The session cookie is HTTPS-only by default; nothing to set.
 - Sessions expire after 30 minutes without a request (Spring's default). Expired rows are deleted by Spring Session
   itself.
 
@@ -71,11 +81,11 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 ## community-service
 
 ### Mock authentication
-- **Local:** `docker-compose.yml` sets `APP_MOCKAUTH_ENABLED=true`, which puts a hard-coded `ROLE_ADMIN` caller with
-  user id `1` into the security context. auth-service cannot issue access tokens yet, so this keeps the ADMIN
-  endpoints usable. Startup logs a WARN while the mock filter is registered.
-- **Production:** the flag defaults to `false` in code, so leave `APP_MOCKAUTH_ENABLED` unset or `false` and wire the
-  real JWT resource server as described in `security-convention.md`. Turning it on would let anyone perform ADMIN
+- **Local:** the dev profile sets `app.mock-auth.enabled: true`, which puts a hard-coded `ROLE_ADMIN` caller with
+  user id `1` into the security context. community-service does not check access tokens yet, so this keeps the
+  ADMIN endpoints usable. Startup logs a WARN while the mock filter is registered.
+- **Production:** without the dev profile the flag is `false`. Never set `APP_MOCKAUTH_ENABLED`, and wire the real
+  JWT resource server as described in `security-convention.md`. Turning it on would let anyone perform ADMIN
   operations.
 
 ## post-service
