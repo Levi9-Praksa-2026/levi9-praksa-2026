@@ -8,6 +8,7 @@ import com.levi9.reddit.auth.core.exception.NotFoundException;
 import com.levi9.reddit.auth.core.model.User;
 import com.levi9.reddit.auth.core.model.UserRole;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
+import com.levi9.reddit.auth.infrastructure.security.AuthorizationRevoker;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,18 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class UserBanServiceTest {
     private static final Long ADMIN_ID = 7L;
 
     private final UserRepository users = mock(UserRepository.class);
-    private final UserBanService service = new UserBanService(users);
+    private final AuthorizationRevoker authorizations = mock(AuthorizationRevoker.class);
+    private final UserBanService service = new UserBanService(users, authorizations);
     private User user;
 
     @BeforeEach
     void setUp() {
         user = new User("reader", "reader@example.test", "hash", "First", "Last");
+        ReflectionTestUtils.setField(user, "id", 42L);
         when(users.findByUsernameIgnoringCase("reader")).thenReturn(Optional.of(user));
         when(users.findByUsernameIgnoringCase("nobody")).thenReturn(Optional.empty());
     }
@@ -44,6 +49,7 @@ class UserBanServiceTest {
         assertThat(user.getBanReason()).isEqualTo("spam");
         assertThat(user.getBannedBy()).isEqualTo(ADMIN_ID);
         assertThat(user.getBannedAt()).isBetween(before, Instant.now());
+        verify(authorizations).revokeAllOf(42L);
     }
 
     @Test
@@ -56,12 +62,14 @@ class UserBanServiceTest {
         assertThat(user.getBanReason()).isNull();
         assertThat(user.getBannedBy()).isNull();
         assertThat(user.getBannedAt()).isNull();
+        verifyNoInteractions(authorizations); // an unban brings no session back
     }
 
     @Test
     void unknownUserIsNotFound() {
         assertErrorType(() -> service.ban("nobody", ADMIN_ID, "spam"), NotFoundException.class, ErrorType.USER_NOT_FOUND);
         assertErrorType(() -> service.unban("nobody"), NotFoundException.class, ErrorType.USER_NOT_FOUND);
+        verifyNoInteractions(authorizations);
     }
 
     @Test
@@ -79,6 +87,7 @@ class UserBanServiceTest {
 
         assertErrorType(() -> service.ban("reader", ADMIN_ID, "spam"), ForbiddenException.class, ErrorType.ADMIN_BAN_FORBIDDEN);
         assertThat(user.isBanned()).isFalse();
+        verifyNoInteractions(authorizations);
     }
 
     @Test
@@ -90,6 +99,7 @@ class UserBanServiceTest {
         assertThat(user.getBanReason()).isEqualTo("original");
         assertThat(user.getBannedBy()).isEqualTo(1L);
         assertThat(user.getBannedAt()).isEqualTo(originalAt);
+        verifyNoInteractions(authorizations);
     }
 
     @Test

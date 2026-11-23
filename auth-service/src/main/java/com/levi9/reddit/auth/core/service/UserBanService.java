@@ -7,16 +7,25 @@ import com.levi9.reddit.auth.core.exception.NotFoundException;
 import com.levi9.reddit.auth.core.model.User;
 import com.levi9.reddit.auth.core.model.UserRole;
 import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
+import com.levi9.reddit.auth.infrastructure.security.AuthorizationRevoker;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Admin ban and unban. A ban ends every login of the user at once: their authorizations are deleted, so the gateway's
+ * next refresh fails and its session ends; auth-service also refuses any new token for a banned user
+ * ({@code TokenClaims}). The access token already in a session stays valid until it expires, at most 15 minutes.
+ * An unban brings no session back: the user logs in again.
+ */
 @Service
 public class UserBanService {
     private final UserRepository users;
+    private final AuthorizationRevoker authorizations;
 
-    public UserBanService(UserRepository users) {
+    public UserBanService(UserRepository users, AuthorizationRevoker authorizations) {
         this.users = users;
+        this.authorizations = authorizations;
     }
 
     @Transactional
@@ -29,8 +38,7 @@ public class UserBanService {
             throw new ConflictException(ErrorType.USER_ALREADY_BANNED, "User is already banned");
         }
         user.ban(adminId, reason.strip(), Instant.now());
-        // TODO(auth): revoke the user's sessions here once OAuth is in (remove their authorizations),
-        // and make the refresh grant reject banned users. Until then a ban takes effect when tokens expire.
+        authorizations.revokeAllOf(user.getId());
     }
 
     @Transactional

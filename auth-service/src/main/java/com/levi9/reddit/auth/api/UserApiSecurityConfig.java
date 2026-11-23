@@ -3,6 +3,7 @@ package com.levi9.reddit.auth.api;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,8 +18,12 @@ import org.springframework.security.web.SecurityFilterChain;
  * Its own chain, apart from login's, because the gateway also forwards the browser's cookies, auth-service's login
  * session among them. Here the session is never read, so a cookie alone never counts as logged in, and with no
  * cookie to ride on, CSRF protection has nothing to protect.
+ * <p>
+ * {@code @EnableMethodSecurity} switches on {@code @PreAuthorize} (e.g. the admin-only ban endpoints). Without it those
+ * annotations are silently ignored, and any logged-in user would pass.
  */
 @Configuration(proxyBeanMethods = false)
+@EnableMethodSecurity
 class UserApiSecurityConfig {
 
     @Bean

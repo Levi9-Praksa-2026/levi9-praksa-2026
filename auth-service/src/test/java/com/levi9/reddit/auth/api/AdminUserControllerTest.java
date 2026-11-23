@@ -11,6 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -24,10 +25,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// Security filters stay on: the role check is part of what is tested.
-// TODO(auth): add no-token -> 401 for both endpoints once the resource server is wired.
+// Security filters stay on: the token check and the role check are part of what is tested. The real resource server
+// chain is loaded; jwt() supplies an already-checked token, so the decoder itself is a mock.
 @WebMvcTest(AdminUserController.class)
-@Import(SecurityConfig.class)
+@Import(UserApiSecurityConfig.class)
 class AdminUserControllerTest {
     private static final String BAN_URL = "/api/users/reader/ban";
     private static final String BODY = "{\"reason\":\"spam\"}";
@@ -37,6 +38,9 @@ class AdminUserControllerTest {
 
     @MockitoBean
     private UserBanService bans;
+
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
 
     @Test
     void adminBansUser() throws Exception {
@@ -60,6 +64,15 @@ class AdminUserControllerTest {
                 .andExpect(status().isForbidden());
         mvc.perform(delete(BAN_URL).with(user()))
                 .andExpect(status().isForbidden());
+
+        verifyNoInteractions(bans);
+    }
+
+    @Test
+    void withoutATokenBothEndpointsAre401() throws Exception {
+        mvc.perform(post(BAN_URL).contentType(MediaType.APPLICATION_JSON).content(BODY))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(delete(BAN_URL)).andExpect(status().isUnauthorized());
 
         verifyNoInteractions(bans);
     }
