@@ -12,25 +12,22 @@ import com.levi9.reddit.auth.exception.UnauthorizedException;
 import com.levi9.reddit.auth.exception.UserBannedException;
 import com.levi9.reddit.auth.repository.UserRepository;
 import com.levi9.reddit.auth.security.AuthorizationRevoker;
-import java.time.Instant;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.Optional;
+
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository users;
     private final AuthorizationRevoker authorizations;
     private final PasswordEncoder passwords;
-
-    public UserService(UserRepository users, AuthorizationRevoker authorizations, PasswordEncoder passwords) {
-        this.users = users;
-        this.authorizations = authorizations;
-        this.passwords = passwords;
-    }
 
     @Transactional(readOnly = true)
     public UserProfileDTO getProfile(Long userId) {

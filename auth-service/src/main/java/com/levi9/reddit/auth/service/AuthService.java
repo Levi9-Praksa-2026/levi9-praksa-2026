@@ -5,6 +5,7 @@ import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.exception.ConflictException;
 import com.levi9.reddit.auth.exception.ErrorType;
 import com.levi9.reddit.auth.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * a taken username may be named, because usernames are public. Login is Spring Security's form login now.
  */
 @Service
+@RequiredArgsConstructor
 public class AuthService {
     // Unique indexes from V1__create_auth_schema.sql. They catch the race the checks below can't.
     private static final String USERNAME_INDEX = "ux_users_username_lower";
@@ -23,11 +25,6 @@ public class AuthService {
 
     private final UserRepository users;
     private final PasswordEncoder passwords;
-
-    public AuthService(UserRepository users, PasswordEncoder passwords) {
-        this.users = users;
-        this.passwords = passwords;
-    }
 
     /**
      * Creates a USER account. It does not log the user in: the frontend logs in right after, which starts

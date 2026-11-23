@@ -3,6 +3,7 @@ package com.levi9.reddit.auth.controller;
 import com.levi9.reddit.auth.dto.BanUserDTO;
 import com.levi9.reddit.auth.service.UserBanService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,12 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/admin/users/{username}/ban")
 @PreAuthorize("hasRole('ADMIN')")
+@RequiredArgsConstructor
 public class AdminUserController {
     private final UserBanService bans;
-
-    public AdminUserController(UserBanService bans) {
-        this.bans = bans;
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)

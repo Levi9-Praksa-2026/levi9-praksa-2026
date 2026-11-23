@@ -3,6 +3,8 @@ package com.levi9.reddit.auth.security;
 import com.levi9.reddit.auth.exception.ErrorType;
 import com.levi9.reddit.auth.exception.GlobalExceptionHandler;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import tools.jackson.databind.json.JsonMapper;
@@ -15,10 +17,8 @@ import java.util.Map;
  * Writes the same RFC 9457 problem detail {@link GlobalExceptionHandler} produces, for answers given by security
  * filters and handlers, which run before any controller and so never reach that handler.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class ProblemResponses {
-    private ProblemResponses() {
-    }
-
     static void write(HttpServletResponse response, JsonMapper json, HttpStatus status, ErrorType errorType,
                       String detail) throws IOException {
         write(response, json, status, errorType, detail, Map.of());

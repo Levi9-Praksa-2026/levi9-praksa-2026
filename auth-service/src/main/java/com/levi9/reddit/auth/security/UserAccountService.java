@@ -2,6 +2,7 @@ package com.levi9.reddit.auth.security;
 
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,12 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
  * {@code 401} as a wrong password, so a login never reveals whether an email is registered.
  */
 @Service
+@RequiredArgsConstructor
 public class UserAccountService implements UserDetailsService {
     private final UserRepository users;
-
-    public UserAccountService(UserRepository users) {
-        this.users = users;
-    }
 
     @Override
     @Transactional(readOnly = true)

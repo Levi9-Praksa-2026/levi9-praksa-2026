@@ -8,12 +8,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.Objects;
 
 @Entity
 @Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -60,8 +65,6 @@ public class User {
     @Column(name = "password_changed_at")
     private Instant passwordChangedAt;
 
-    protected User() {}
-
     public User(String username, String email, String passwordHash, String firstName, String lastName) {
         this.username = Objects.requireNonNull(username, "username");
         if (username.codePointCount(0, username.length()) < 3) {
@@ -71,58 +74,6 @@ public class User {
         this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
         this.firstName = Objects.requireNonNull(firstName, "firstName");
         this.lastName = Objects.requireNonNull(lastName, "lastName");
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public UserRole getRole() {
-        return role;
-    }
-
-    public boolean isBanned() {
-        return banned;
-    }
-
-    public String getBanReason() {
-        return banReason;
-    }
-
-    public Instant getBannedAt() {
-        return bannedAt;
-    }
-
-    public Long getBannedBy() {
-        return bannedBy;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
     }
 
     public void updateProfile(String firstName, String lastName, String email) {
@@ -140,10 +91,6 @@ public class User {
     public void changePasswordHash(String passwordHash, Instant changedAt) {
         this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
         this.passwordChangedAt = Objects.requireNonNull(changedAt, "changedAt");
-    }
-
-    public Instant getPasswordChangedAt() {
-        return passwordChangedAt;
     }
 
     public void delete() {

@@ -2,6 +2,8 @@ package com.levi9.reddit.auth.security;
 
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.repository.UserRepository;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.FactorGrantedAuthority;
@@ -34,12 +36,9 @@ import java.util.List;
  * {@code sub} is already the user id: it is the principal name. Read from the database at every issue, so a role
  * change shows up at the next refresh.
  */
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class TokenClaims implements OAuth2TokenCustomizer<JwtEncodingContext> {
     private final UserRepository users;
-
-    TokenClaims(UserRepository users) {
-        this.users = users;
-    }
 
     @Override
     public void customize(JwtEncodingContext context) {

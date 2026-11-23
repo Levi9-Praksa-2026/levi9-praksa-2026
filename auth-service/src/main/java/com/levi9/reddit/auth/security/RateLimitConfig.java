@@ -1,6 +1,8 @@
 package com.levi9.reddit.auth.security;
 
 import com.levi9.reddit.auth.config.ClockConfig;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -18,14 +20,10 @@ import java.time.Clock;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(RateLimitProperties.class)
 @Import(ClockConfig.class)
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class RateLimitConfig implements WebMvcConfigurer {
     private final RateLimitProperties limits;
     private final Clock clock;
-
-    RateLimitConfig(RateLimitProperties limits, Clock clock) {
-        this.limits = limits;
-        this.clock = clock;
-    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
