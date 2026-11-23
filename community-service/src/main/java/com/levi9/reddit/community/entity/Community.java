@@ -6,12 +6,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
 
 import java.time.Instant;
 import java.util.Objects;
 
 @Entity
 @Table(name = "communities")
+@Getter
 public class Community {
     /** Plain name only; the {@code r/} prefix is a frontend display concern. */
     public static final String NAME_PATTERN = "[A-Za-z0-9_-]{1,50}";
@@ -43,34 +45,6 @@ public class Community {
     public Community(String name, Long creatorId) {
         this.name = Objects.requireNonNull(name, "name");
         this.creatorId = Objects.requireNonNull(creatorId, "creatorId");
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Long getCreatorId() {
-        return creatorId;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public int getMemberCount() {
-        return memberCount;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
     }
 
     public void updateDescription(String description) {
