@@ -8,7 +8,7 @@ function RouterLink({ href, ...rest }: AppLinkProps) {
   return <Link to={href} {...rest} />
 }
 
-/** The frame every forum screen renders in. The header and sidebar will live here. */
+/** Wraps every route: shared links (buttons, nav) go through the router. */
 export function RootLayout() {
   return (
     <LinkProvider component={RouterLink}>
