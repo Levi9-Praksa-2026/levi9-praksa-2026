@@ -43,6 +43,13 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-gateway-server-webmvc</artifactId>
 		</dependency>
+		<!-- The HTTP client the gateway forwards requests with. Without it Spring Boot falls back to the JDK client,
+		     which now and then fails a forwarded request with an empty body (NPE in Http1Exchange.requestMoreBody).
+		     Nothing imports it: Spring Boot detects it on the classpath. -->
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
