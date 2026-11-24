@@ -11,10 +11,10 @@ const twMerge = extendTailwindMerge({
     theme: {
       color: [
         'bg', 'surface', 'card', 'ink', 'muted', 'accent', 'accent-ink', 'action', 'action-ink',
-        'line', 'line-strong', 'p-bg', 'p-ink', 'p-muted', 'p-accent', 'p-surface', 'canvas',
+        'line', 'line-strong', 'p-bg', 'p-ink', 'p-muted', 'p-accent', 'p-surface', 'canvas', 'white',
       ],
       font: ['display', 'text', 'mono'],
-      text: ['label', 'small', 'body', 'lead', 'card', 'h3', 'h2', 'h1', 'stat'],
+      text: ['label', 'small', 'ui', 'body', 'lead', 'card', 'h3', 'h2', 'h1', 'stat'],
       radius: ['sm', 'md', 'lg', 'btn'],
       spacing: ['gut', 'gutter', 'nav', 'padt', 'padb', 'card-gap', 'card-pad', 'head-gap', 'btn', 'btn-sm', 'icon',
         'app-bar', 'sidebar', 'rail'],

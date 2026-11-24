@@ -115,12 +115,15 @@ export function CommunitySearch({ className }: { className?: string }) {
           !showList && 'hidden',
         )}
       >
-        <ul id={listId} role="listbox" aria-label="Communities" className="max-h-80 overflow-y-auto py-1.5">
+        <div id={listId} role="listbox" aria-label="Communities" className="max-h-80 overflow-y-auto py-1.5">
           {results.map((c, i) => (
-            <li
+            // the options are worked from the input's keys (aria-activedescendant), so a click is all they need
+            // oxlint-disable-next-line jsx-a11y/click-events-have-key-events
+            <div
               key={c.name}
               id={`${id}-option-${i}`}
               role="option"
+              tabIndex={-1}
               aria-selected={i === active}
               className="flex cursor-pointer items-center gap-3 px-4 py-2.5 aria-selected:bg-surface hover:bg-surface"
               onMouseDown={e => e.preventDefault()}
@@ -135,9 +138,9 @@ export function CommunitySearch({ className }: { className?: string }) {
                   {members(c.memberCount)}
                 </span>
               </span>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
         {message && <p className="px-4 pt-2 pb-4 text-center text-small text-muted">{message}</p>}
       </div>
       <p className="sr-only" role="status">{status}</p>

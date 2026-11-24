@@ -4,6 +4,8 @@ export type AppLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & { href: str
 
 /** A plain anchor: the default for every design system link. */
 function PlainLink(props: AppLinkProps) {
+  // the link text arrives in props.children, which the rule cannot see
+  // oxlint-disable-next-line jsx-a11y/anchor-has-content
   return <a {...props} />
 }
 
@@ -25,6 +27,7 @@ export function LinkProvider({ component, children }: LinkProviderProps) {
     In-page anchors (`#id`) always stay plain anchors. */
 export function AppLink(props: AppLinkProps) {
   const link = useContext(LinkContext)
+  // oxlint-disable-next-line jsx-a11y/anchor-has-content -- the link text arrives in props.children
   if (props.href.startsWith('#')) return <a {...props} />
   return createElement(link, props)
 }

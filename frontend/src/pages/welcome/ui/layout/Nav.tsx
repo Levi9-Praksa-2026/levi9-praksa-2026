@@ -42,10 +42,10 @@ const underline =
   "before:pointer-events-none before:absolute before:-bottom-0.5 before:h-0.5 before:rounded-[2px] before:bg-current before:content-[''] " +
   'before:origin-right before:scale-x-0 before:transition-transform before:duration-[var(--dur)] before:ease-ui ' +
   'hover:before:origin-left hover:before:scale-x-100 focus-visible:before:origin-left focus-visible:before:scale-x-100 ' +
-  "[&[aria-current]]:after:absolute [&[aria-current]]:after:-bottom-0.5 [&[aria-current]]:after:h-0.5 [&[aria-current]]:after:rounded-[2px] [&[aria-current]]:after:bg-current [&[aria-current]]:after:content-['']"
+  "current:after:absolute current:after:-bottom-0.5 current:after:h-0.5 current:after:rounded-[2px] current:after:bg-current current:after:content-['']"
 
 const linkBase =
-  'relative h-9 items-center gap-1 whitespace-nowrap text-[15px] font-medium text-ink transition-[background-color,color] duration-[var(--dur)] ease-ui'
+  'relative h-9 items-center gap-1 whitespace-nowrap text-ui font-medium text-ink transition-[background-color,color] duration-[var(--dur)] ease-ui'
 
 function Chevron() {
   return (
@@ -140,9 +140,9 @@ export function Nav({ brand, items, primary, secondary, skipTo = '#top', skipLab
                   className={cn(
                     linkBase,
                     underline,
-                    'inline-flex rounded-sm px-3 before:inset-x-3 [&[aria-current]]:after:inset-x-3 lg:max-xl:px-2 lg:max-xl:before:inset-x-2 lg:max-xl:[&[aria-current]]:after:inset-x-2',
+                    'inline-flex rounded-sm px-3 before:inset-x-3 current:after:inset-x-3 lg:max-xl:px-2 lg:max-xl:before:inset-x-2 lg:max-xl:current:after:inset-x-2',
                     'item-open:before:origin-left item-open:before:scale-x-100',
-                    'sheet:h-14 sheet:bg-transparent sheet:p-0 sheet:text-[20px] sheet:before:hidden sheet:[&[aria-current]]:after:right-auto sheet:[&[aria-current]]:after:bottom-2.5 sheet:[&[aria-current]]:after:left-0 sheet:[&[aria-current]]:after:w-6',
+                    'sheet:h-14 sheet:bg-transparent sheet:p-0 sheet:text-[20px] sheet:before:hidden sheet:current:after:right-auto sheet:current:after:bottom-2.5 sheet:current:after:left-0 sheet:current:after:w-6',
                   )}
                   href={item.href}
                   aria-current={item.current ? 'page' : onScreen === item.href ? 'location' : undefined}
@@ -179,7 +179,7 @@ export function Nav({ brand, items, primary, secondary, skipTo = '#top', skipLab
               className={cn(
                 linkBase,
                 underline,
-                'hidden min-h-12 rounded-full border-[1.5px] border-[color-mix(in_oklab,var(--p-accent)_35%,transparent)] px-[22px] font-semibold text-p-accent before:inset-x-2 [&[aria-current]]:after:inset-x-2',
+                'hidden min-h-12 rounded-full border-[1.5px] border-[color-mix(in_oklab,var(--p-accent)_35%,transparent)] px-[22px] font-semibold text-p-accent before:inset-x-2 current:after:inset-x-2',
                 'transition-[border-color,background-color] duration-160 ease-[ease] hover:border-p-accent hover:bg-[color-mix(in_oklab,var(--p-accent)_6%,transparent)]',
                 'md:inline-flex md:sheet:order-2 md:sheet:h-btn md:sheet:justify-center md:sheet:text-body',
               )}

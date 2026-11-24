@@ -74,7 +74,8 @@ Rules of thumb:
 - No colour or size outside the theme: Tailwind's `bg-white` or `text-gray-500` produce nothing here.
   A one-off value can be arbitrary (`text-[15px]`), a value that repeats belongs in `theme.css`.
 - States that span components have named variants in `theme.css`: `sheet:` (phone menu open),
-  `item-open:` (a desktop nav menu shown), `expanded:`, `menu-instant:`.
+  `item-open:` (a desktop nav menu shown), `expanded:`, `menu-instant:`, and `current:` (a link with
+  `aria-current`, any value).
 - Layout helpers live in `src/pages/welcome/ui/layout/screen.ts`: `screenSection`, `screenWrap` (one screen per
   section) and `grid12` (the 12-column grid; children use `col-span-*` from `lg`).
 

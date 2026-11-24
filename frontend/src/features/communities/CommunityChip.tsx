@@ -12,7 +12,7 @@ export function CommunityChip({ community, className }: CommunityChipProps) {
     <span
       className={cn(
         'inline-flex w-fit items-baseline rounded-full bg-[color-mix(in_oklab,var(--p-accent)_10%,var(--p-bg))] px-2.5 py-0.5',
-        'font-mono text-[13px] leading-5 font-medium tracking-normal text-p-accent',
+        'font-mono text-label leading-5 font-medium tracking-normal text-p-accent',
         className,
       )}
     >

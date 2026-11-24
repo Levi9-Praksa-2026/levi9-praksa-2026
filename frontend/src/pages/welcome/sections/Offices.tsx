@@ -96,7 +96,7 @@ export function Offices({ offices, title, lead }: OfficesProps) {
                 <PhotoImg photo={o.photo} className="block size-full object-cover" />
                 <span
                   className={
-                    'absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,rgb(10_16_48/0.55),transparent)] px-7 pt-16 pb-6 font-display text-[clamp(24px,2.6vw,38px)] leading-none font-[number:var(--display-weight)] tracking-[-0.02em] text-[#fff] ' +
+                    'absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,rgb(10_16_48/0.55),transparent)] px-7 pt-16 pb-6 font-display text-[clamp(24px,2.6vw,38px)] leading-none font-[number:var(--display-weight)] tracking-[-0.02em] text-white ' +
                     'opacity-0 [transition:opacity_400ms_ease] motion-reduce:transition-none group-data-[pos=centre]/slide:opacity-100 group-data-[pos=centre]/slide:[transition-delay:200ms]'
                   }
                 >{o.label}</span>
@@ -106,7 +106,7 @@ export function Offices({ offices, title, lead }: OfficesProps) {
           <div className="absolute top-[calc(100%+16px)] left-1/2 z-[4] flex -translate-x-1/2 gap-2.5 md:top-auto md:bottom-5">
             <button type="button" className={
                 'grid size-11 cursor-pointer appearance-none place-items-center rounded-full border-0 bg-p-surface p-0 text-p-accent transition-[scale,background-color] duration-160 ease-[ease] ' +
-                'hover:scale-[1.06] hover:bg-[#fff] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#fff] ' +
+                'hover:scale-[1.06] hover:bg-white active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white ' +
                 'md:size-12 md:bg-[rgb(255_255_255/0.92)] md:shadow-[0_6px_20px_-8px_rgb(10_16_48/0.45)]'
               } aria-label="Previous office" onClick={() => go(index - 1)}>
               <svg className="size-5 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]" viewBox="0 0 20 20" aria-hidden="true">
@@ -115,7 +115,7 @@ export function Offices({ offices, title, lead }: OfficesProps) {
             </button>
             <button type="button" className={
                 'grid size-11 cursor-pointer appearance-none place-items-center rounded-full border-0 bg-p-surface p-0 text-p-accent transition-[scale,background-color] duration-160 ease-[ease] ' +
-                'hover:scale-[1.06] hover:bg-[#fff] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#fff] ' +
+                'hover:scale-[1.06] hover:bg-white active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white ' +
                 'md:size-12 md:bg-[rgb(255_255_255/0.92)] md:shadow-[0_6px_20px_-8px_rgb(10_16_48/0.45)]'
               } aria-label="Next office" onClick={() => go(index + 1)}>
               <svg className="size-5 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]" viewBox="0 0 20 20" aria-hidden="true">

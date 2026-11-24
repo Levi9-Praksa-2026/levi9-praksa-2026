@@ -22,10 +22,10 @@ export function ReplyCard({ reply, className }: ReplyCardProps) {
         {initials(reply.author)}
       </span>
       <div className="grid min-w-0 gap-1">
-        <p className="text-[13px] leading-[18px] text-p-muted">
+        <p className="text-label leading-[18px] text-p-muted">
           <strong className="font-medium text-p-ink">u/{reply.author}</strong> · {reply.office} · {reply.age}
         </p>
-        <p className="text-[15px] leading-[22px] text-p-ink">{reply.body}</p>
+        <p className="text-ui leading-[22px] text-p-ink">{reply.body}</p>
         <p className="text-[12px] leading-4 font-medium text-p-accent">▲ {reply.votes}</p>
       </div>
     </article>

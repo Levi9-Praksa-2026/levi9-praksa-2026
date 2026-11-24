@@ -33,13 +33,13 @@ export function HowToJoin({ title, steps, post, replies }: HowToJoinProps) {
               </span>
               <div>
                 <h3 className="text-[20px] leading-[1.3] font-medium text-ink">{s.title}</h3>
-                <p className="mt-1.5 text-[15px] leading-normal text-muted">{s.body}</p>
+                <p className="mt-1.5 text-ui leading-normal text-muted">{s.body}</p>
               </div>
             </li>
           ))}
         </ol>
         <div
-          className="col-span-full grid min-w-0 gap-5 rounded-lg bg-[#fff] p-7 shadow-[0_1px_2px_rgb(20_24_51/0.05),0_18px_40px_-18px_rgb(43_63_160/0.28)] lg:col-span-6 lg:col-start-7"
+          className="col-span-full grid min-w-0 gap-5 rounded-lg bg-white p-7 shadow-[0_1px_2px_rgb(20_24_51/0.05),0_18px_40px_-18px_rgb(43_63_160/0.28)] lg:col-span-6 lg:col-start-7"
           data-ui=""
         >
           <PostCard post={post} />

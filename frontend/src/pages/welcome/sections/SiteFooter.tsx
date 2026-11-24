@@ -20,7 +20,7 @@ export function SiteFooter({ name, lede, title, line, register, columns, legal }
       title={title}
       line={line}
       primary={register}
-      brand={{ name, href: '#top', mark: <LevddMark className="size-7 rounded-sm bg-white p-0.5" /> }}
+      brand={{ name, href: '#top', mark: <LevddMark className="size-7 rounded-sm p-0.5" /> }}
       lede={lede}
       columns={columns}
       legal={legal}
