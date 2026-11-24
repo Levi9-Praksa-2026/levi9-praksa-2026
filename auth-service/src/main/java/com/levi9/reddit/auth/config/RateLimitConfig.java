@@ -1,6 +1,8 @@
-package com.levi9.reddit.auth.security;
+package com.levi9.reddit.auth.config;
 
-import com.levi9.reddit.auth.config.ClockConfig;
+import com.levi9.reddit.auth.security.RateLimitInterceptor;
+import com.levi9.reddit.auth.security.RateLimitProperties;
+import com.levi9.reddit.auth.security.RateLimiter;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

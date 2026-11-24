@@ -1,5 +1,8 @@
-package com.levi9.reddit.post.client;
+package com.levi9.reddit.post.config;
 
+import com.levi9.reddit.post.client.CommunityDirectory;
+import com.levi9.reddit.post.client.CommunityStubProperties;
+import com.levi9.reddit.post.client.StubCommunityDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

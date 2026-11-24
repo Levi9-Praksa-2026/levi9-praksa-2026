@@ -11,9 +11,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param nonMemberUserIds        users that are members of no community; every other user is a member of all
  */
 @ConfigurationProperties(prefix = "app.community-stub")
-record CommunityStubProperties(boolean enabled, Set<Long> unavailableCommunityIds, Set<Long> nonMemberUserIds) {
+public record CommunityStubProperties(boolean enabled, Set<Long> unavailableCommunityIds, Set<Long> nonMemberUserIds) {
 
-    CommunityStubProperties {
+    public CommunityStubProperties {
         unavailableCommunityIds = unavailableCommunityIds == null ? Set.of() : Set.copyOf(unavailableCommunityIds);
         nonMemberUserIds = nonMemberUserIds == null ? Set.of() : Set.copyOf(nonMemberUserIds);
     }
