@@ -176,12 +176,12 @@ class CommunityAdminSecurityTest {
 
     @Test
     void inactiveList_asAdmin_isAllowed() throws Exception {
-        given(communityService.findInactiveCommunities(null, 0, 20))
+        given(communityService.findInactiveCommunities(CommunitySort.NEW, null, 0, 20))
                 .willReturn(new PageDTO<>(List.of(), 0, 20, 0, 0));
 
         mockMvc.perform(get("/api/communities").param("inactive", "true").with(admin()))
                 .andExpect(status().isOk());
 
-        verify(communityService).findInactiveCommunities(null, 0, 20);
+        verify(communityService).findInactiveCommunities(CommunitySort.NEW, null, 0, 20);
     }
 }

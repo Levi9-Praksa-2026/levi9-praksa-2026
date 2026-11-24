@@ -1,5 +1,6 @@
 package com.levi9.reddit.community.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -153,7 +154,7 @@ class CommunityControllerTest {
 
     @Test
     void inactiveList_asAdmin_returnsTheInactiveCommunities() throws Exception {
-        given(communityService.findInactiveCommunities("back", 1, 10)).willReturn(
+        given(communityService.findInactiveCommunities(CommunitySort.NEW, "back", 1, 10)).willReturn(
                 new PageDTO<>(List.of(new CommunityDTO("archived", 3)), 1, 10, 1, 1));
 
         mockMvc.perform(get("/api/communities")
@@ -166,8 +167,22 @@ class CommunityControllerTest {
                 .andExpect(jsonPath("$.content[0].name").value("archived"))
                 .andExpect(jsonPath("$.content[0].memberCount").value(3));
 
-        verify(communityService).findInactiveCommunities("back", 1, 10);
+        verify(communityService).findInactiveCommunities(CommunitySort.NEW, "back", 1, 10);
         verifyNoInteractions(membershipService);
+    }
+
+    @Test
+    void inactiveList_passesTheSortThrough() throws Exception {
+        given(communityService.findInactiveCommunities(CommunitySort.TOP, null, 0, 20)).willReturn(
+                new PageDTO<>(List.of(), 0, 20, 0, 0));
+
+        mockMvc.perform(get("/api/communities")
+                        .param("inactive", "true")
+                        .param("sort", "top")
+                        .with(admin()))
+                .andExpect(status().isOk());
+
+        verify(communityService).findInactiveCommunities(CommunitySort.TOP, null, 0, 20);
     }
 
     @Test
@@ -182,7 +197,7 @@ class CommunityControllerTest {
                 .andExpect(status().isOk());
 
         verify(communityService).findCommunities(CommunitySort.TOP, null, 0, 20);
-        verify(communityService, never()).findInactiveCommunities(anyString(), anyInt(), anyInt());
+        verify(communityService, never()).findInactiveCommunities(any(), anyString(), anyInt(), anyInt());
     }
 
     @Test

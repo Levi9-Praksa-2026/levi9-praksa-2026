@@ -47,10 +47,10 @@ public class CommunityService {
         return toPage(result, community -> new CommunityDTO(community.getName(), community.getMemberCount()));
     }
 
-    /** ADMIN list of shut-down communities, same shape as the public active list. */
+    /** ADMIN list of shut-down communities, same shape and sorting options as the public active list. */
     @Transactional(readOnly = true)
-    public PageDTO<CommunityDTO> findInactiveCommunities(String name, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, NEWEST_FIRST);
+    public PageDTO<CommunityDTO> findInactiveCommunities(CommunitySort sort, String name, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, sortOf(sort));
         String filter = name == null || name.isBlank() ? null : name.strip();
 
         Page<Community> result = filter == null

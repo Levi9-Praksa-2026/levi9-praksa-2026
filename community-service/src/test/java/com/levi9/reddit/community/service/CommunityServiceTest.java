@@ -103,7 +103,7 @@ class CommunityServiceTest {
         archived.deactivate();
         when(communities.findByActiveFalse(any())).thenReturn(page(archived));
 
-        PageDTO<CommunityDTO> result = service.findInactiveCommunities(null, 0, 20);
+        PageDTO<CommunityDTO> result = service.findInactiveCommunities(CommunitySort.NEW, null, 0, 20);
 
         assertThat(result.content()).containsExactly(new CommunityDTO("archived", 3));
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
@@ -113,12 +113,24 @@ class CommunityServiceTest {
     }
 
     @Test
+    void findInactiveCommunities_withTopSortsByMemberCount() {
+        when(communities.findByActiveFalse(any())).thenReturn(page(new Community("archived", 42L)));
+
+        service.findInactiveCommunities(CommunitySort.TOP, null, 0, 20);
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(communities).findByActiveFalse(pageable.capture());
+        assertThat(pageable.getValue().getSort())
+                .isEqualTo(Sort.by(Sort.Order.desc("memberCount"), Sort.Order.desc("id")));
+    }
+
+    @Test
     void findInactiveCommunities_withNameUsesFilteredQuery() {
         Community archived = new Community("archived", 42L);
         when(communities.findByActiveFalseAndNameContainingIgnoreCase(eq("arch"), any()))
                 .thenReturn(page(archived));
 
-        PageDTO<CommunityDTO> result = service.findInactiveCommunities("  arch  ", 0, 20);
+        PageDTO<CommunityDTO> result = service.findInactiveCommunities(CommunitySort.NEW, "  arch  ", 0, 20);
 
         assertThat(result.content()).containsExactly(new CommunityDTO("archived", 0));
         verify(communities).findByActiveFalseAndNameContainingIgnoreCase(eq("arch"), any());

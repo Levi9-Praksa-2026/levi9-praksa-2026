@@ -58,7 +58,7 @@ public class CommunityController {
     /** The presence of {@code inactive} selects this ADMIN handler; the boolean chooses which set to list. */
     @GetMapping(params = "inactive")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "ADMIN: list communities by active/inactive state")
+    @Operation(summary = "ADMIN: list communities by active/inactive state; sort=new|top")
     public PageDTO<CommunityDTO> findCommunitiesForAdmin(
             @RequestParam(defaultValue = "false") boolean inactive,
             @RequestParam(defaultValue = "new")
@@ -66,10 +66,10 @@ public class CommunityController {
             @RequestParam(required = false) @Size(max = 50) String name,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        CommunitySort ordering = CommunitySort.valueOf(sort.toUpperCase(Locale.ROOT));
         return inactive
-                ? communityService.findInactiveCommunities(name, page, size)
-                : communityService.findCommunities(
-                        CommunitySort.valueOf(sort.toUpperCase(Locale.ROOT)), name, page, size);
+                ? communityService.findInactiveCommunities(ordering, name, page, size)
+                : communityService.findCommunities(ordering, name, page, size);
     }
 
     private static long userId(Jwt jwt) {
