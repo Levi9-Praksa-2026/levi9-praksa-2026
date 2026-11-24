@@ -159,7 +159,7 @@ class CommunityAdminSecurityTest {
 
     @Test
     void inactiveList_withoutCaller_returnsUnauthorizedProblemDetail() throws Exception {
-        mockMvc.perform(get("/api/communities").param("status", "inactive"))
+        mockMvc.perform(get("/api/communities").param("inactive", "true"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.detail").value("Authentication is required"));
         verifyNoInteractions(communityService);
@@ -167,7 +167,7 @@ class CommunityAdminSecurityTest {
 
     @Test
     void inactiveList_asUser_isForbidden() throws Exception {
-        mockMvc.perform(get("/api/communities").param("status", "inactive").with(regularUser()))
+        mockMvc.perform(get("/api/communities").param("inactive", "true").with(regularUser()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.detail").value("Access is denied"));
         verifyNoInteractions(communityService);
@@ -178,7 +178,7 @@ class CommunityAdminSecurityTest {
         given(communityService.findInactiveCommunities(null, 0, 20))
                 .willReturn(new PageDTO<>(List.of(), 0, 20, 0, 0));
 
-        mockMvc.perform(get("/api/communities").param("status", "inactive").with(admin()))
+        mockMvc.perform(get("/api/communities").param("inactive", "true").with(admin()))
                 .andExpect(status().isOk());
 
         verify(communityService).findInactiveCommunities(null, 0, 20);

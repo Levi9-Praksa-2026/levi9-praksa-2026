@@ -1,11 +1,13 @@
 package com.levi9.reddit.community.controller;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -155,7 +157,7 @@ class CommunityControllerTest {
                 new PageDTO<>(List.of(new CommunityDTO("archived", 3)), 1, 10, 1, 1));
 
         mockMvc.perform(get("/api/communities")
-                        .param("status", "inactive")
+                        .param("inactive", "true")
                         .param("name", "back")
                         .param("page", "1")
                         .param("size", "10")
@@ -169,12 +171,18 @@ class CommunityControllerTest {
     }
 
     @Test
-    void inactiveList_withUnsupportedStatus_returnsBadRequest() throws Exception {
-        mockMvc.perform(get("/api/communities").param("status", "active").with(admin()))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors[0].field").value("status"));
+    void inactiveFalse_asAdmin_returnsTheActiveList() throws Exception {
+        given(communityService.findCommunities(CommunitySort.TOP, null, 0, 20)).willReturn(
+                new PageDTO<>(List.of(), 0, 20, 0, 0));
 
-        verifyNoInteractions(communityService);
+        mockMvc.perform(get("/api/communities")
+                        .param("inactive", "false")
+                        .param("sort", "top")
+                        .with(admin()))
+                .andExpect(status().isOk());
+
+        verify(communityService).findCommunities(CommunitySort.TOP, null, 0, 20);
+        verify(communityService, never()).findInactiveCommunities(anyString(), anyInt(), anyInt());
     }
 
     @Test

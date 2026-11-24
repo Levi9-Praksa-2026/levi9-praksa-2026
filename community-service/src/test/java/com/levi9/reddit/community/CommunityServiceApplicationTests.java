@@ -115,7 +115,7 @@ class CommunityServiceApplicationTests {
         communityRepository.save(archived);
         entityManager.flush();
 
-        mockMvc.perform(get("/api/communities").param("status", "inactive").with(admin()))
+        mockMvc.perform(get("/api/communities").param("inactive", "true").with(admin()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.content[0].name").value("archived"));
