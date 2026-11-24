@@ -45,17 +45,19 @@ export function LiveWord({ words }: LiveWordProps) {
 
   const { live, restart } = loop
   useEffect(() => {
-    const h1 = ref.current?.closest('h1')
-    if (!h1 || !live) return
+    const heading = ref.current?.closest<HTMLElement>('h1, h2, h3, h4, h5, h6')
+    if (!heading || !live) return
     const onEnter = (e: PointerEvent) => {
       if (e.pointerType !== 'touch') restart()
     }
-    h1.addEventListener('pointerenter', onEnter)
-    return () => h1.removeEventListener('pointerenter', onEnter)
+    heading.addEventListener('pointerenter', onEnter)
+    return () => heading.removeEventListener('pointerenter', onEnter)
   }, [live, restart])
 
   return (
     <span ref={ref} className="ly-word relative -mb-[.1em] inline-grid overflow-clip align-bottom [overflow-clip-margin:.14em]">
+      {/* the moving words are hidden from screen readers; they hear the word it rests on */}
+      <span className="sr-only">{words[0]}</span>
       {words.map((word, k) => (
         <span key={word} aria-hidden="true" className={cn(
             'col-start-1 row-start-1 justify-self-start whitespace-nowrap pb-[.1em] transition-[translate,opacity] duration-600 ease-ui motion-reduce:transition-none',

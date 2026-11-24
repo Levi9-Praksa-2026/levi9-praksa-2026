@@ -12,12 +12,14 @@ npm run build   # type check + production build into dist/
 
 ## Layout
 
-- `src/app/`: entry point, router and the root layout every forum screen renders in.
-- `src/pages/`: one folder per route (`home`, `auth`, `not-found`).
+- `src/app/`: entry point, router and layouts. `app/shell/` is the forum frame (top bar, sidebar, community
+  search) every forum screen renders in; login and register render outside it.
+- `src/pages/`: one folder per route (`home`, `community`, `auth`, `not-found`).
 - `src/pages/welcome/` + `welcome/index.html`: the welcome page at `/welcome/`. It is a separate document,
   not a React Router route, so links to it reload the page. The 3D globe (three.js) loads lazily and only there.
   Its own building blocks live in `src/pages/welcome/ui/`: the hero and its entrance (`hero/`), the marketing
-  nav, closing band and page shell (`layout/`), and the one-screen `Section`. Forum screens do not use them.
+  nav, closing band and page shell (`layout/`), the made-up sample posts, replies and community chips
+  (`samples/`), and the one-screen `Section`. Forum screens do not use them.
 - `src/features/`: feature code shared by several pages, such as posts and communities.
 - `src/shared/`: the theme, the primitives every screen uses (`Button`, `AppLink`, `Brand`), the API layer, config
   and helpers. Nothing here imports from `pages` or `features`.
@@ -45,6 +47,10 @@ Login and register are not here: they come with the new auth flow.
 
 ## Styling
 
+Visual decisions and their reasons are recorded in `docs/DESIGN.md`; anything it doesn't cover is asked
+before it is built.
+
+
 Tailwind v4 utilities, written on the elements. The stylesheets in `src/shared/styles/`:
 
 - `theme.css`: the Levddit tokens (colours, fonts, type scale, radii, page rhythm) and their Tailwind names.
@@ -69,7 +75,8 @@ Rules of thumb:
 - No colour or size outside the theme: Tailwind's `bg-white` or `text-gray-500` produce nothing here.
   A one-off value can be arbitrary (`text-[15px]`), a value that repeats belongs in `theme.css`.
 - States that span components have named variants in `theme.css`: `sheet:` (phone menu open),
-  `item-open:` (a desktop nav menu shown), `expanded:`, `menu-instant:`.
+  `item-open:` (a desktop nav menu shown), `expanded:`, `menu-instant:`, and `current:` (a link with
+  `aria-current`, any value).
 - Layout helpers live in `src/pages/welcome/ui/layout/screen.ts`: `screenSection`, `screenWrap` (one screen per
   section) and `grid12` (the 12-column grid; children use `col-span-*` from `lg`).
 
