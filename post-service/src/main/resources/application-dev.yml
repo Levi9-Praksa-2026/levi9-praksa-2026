@@ -12,3 +12,7 @@ spring:
         jwt:
           jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8081/oauth2/jwks}
           issuer-uri: ${APP_PUBLIC_URL:http://localhost:3000}
+
+app:
+  community-service:
+    url: ${COMMUNITY_SERVICE_URL:http://localhost:8082}   # compose sets http://community-service:8082

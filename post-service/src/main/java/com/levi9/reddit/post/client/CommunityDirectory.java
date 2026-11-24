@@ -4,15 +4,22 @@ package com.levi9.reddit.post.client;
  * What post-service needs to know from community-service. Communities and memberships live there; post-service
  * only asks, it never reads that data itself.
  *
- * <p>The real implementation will call community-service's {@code GET /internal/communities/{id}} and
- * {@code GET /internal/communities/{id}/members/{userId}}. Until those endpoints exist, a configurable stub stands in
- * for local runs ({@code app.community-stub.enabled}).
+ * <p>{@link HttpCommunityDirectory} calls community-service's {@code GET /internal/communities/{id}} and
+ * {@code GET /internal/communities/{id}/members/{userId}}.
  */
 public interface CommunityDirectory {
 
-    /** The community exists and has not been shut down. */
+    /**
+     * The community exists and has not been shut down.
+     *
+     * @throws com.levi9.reddit.post.exception.CommunityServiceUnavailableException community-service did not answer
+     */
     boolean isActive(long communityId);
 
-    /** The user has joined the community. */
+    /**
+     * The user has joined the community.
+     *
+     * @throws com.levi9.reddit.post.exception.CommunityServiceUnavailableException community-service did not answer
+     */
     boolean isMember(long communityId, long userId);
 }

@@ -37,6 +37,8 @@ spring:
       hibernate.default_batch_fetch_size: 100
 
 app:
+  community-service:
+    url: ${COMMUNITY_SERVICE_URL}   # required: community-service's internal address; the dev profile falls back to localhost
   s3:
     bucket: ${S3_BUCKET:levddit-post-images}
     region: ${AWS_REGION:eu-central-1}

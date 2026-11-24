@@ -23,7 +23,9 @@ class GlobalExceptionHandlerTest {
                 Arguments.of(new CommunityUnavailableException(1L), 422, "COMMUNITY_UNAVAILABLE"),
                 Arguments.of(new TooManyImagesException(3), 422, "TOO_MANY_IMAGES"),
                 Arguments.of(new UnsupportedImageTypeException(1), 422, "UNSUPPORTED_IMAGE_TYPE"),
-                Arguments.of(new ImageTooLargeException(1, 5L * 1024 * 1024), 422, "IMAGE_TOO_LARGE"));
+                Arguments.of(new ImageTooLargeException(1, 5L * 1024 * 1024), 422, "IMAGE_TOO_LARGE"),
+                Arguments.of(new CommunityServiceUnavailableException(new RuntimeException("connection refused")),
+                        503, "COMMUNITY_SERVICE_UNAVAILABLE"));
     }
 
     @ParameterizedTest

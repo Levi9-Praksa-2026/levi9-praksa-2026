@@ -18,6 +18,7 @@ import com.levi9.reddit.post.dto.EditPostDTO;
 import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.entity.Actor;
 import com.levi9.reddit.post.entity.Post;
+import com.levi9.reddit.post.exception.CommunityServiceUnavailableException;
 import com.levi9.reddit.post.exception.CommunityUnavailableException;
 import com.levi9.reddit.post.exception.NotCommunityMemberException;
 import com.levi9.reddit.post.exception.NotPostAuthorException;
@@ -27,6 +28,7 @@ import com.levi9.reddit.post.exception.TooManyImagesException;
 import com.levi9.reddit.post.exception.UnsupportedImageTypeException;
 import com.levi9.reddit.post.repository.PostRepository;
 import com.levi9.reddit.post.storage.ImageStorage;
+import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
@@ -54,8 +56,8 @@ class PostCommandServiceTest {
     private final PostRepository posts = mock(PostRepository.class);
     private final CommunityDirectory communities = mock(CommunityDirectory.class);
     private final ImageStorage imageStorage = mock(ImageStorage.class);
-    private final PostCommandService service =
-            new PostCommandService(posts, communities, imageStorage, Clock.fixed(NOW, ZoneOffset.UTC));
+    private final PostCommandService service = new PostCommandService(
+            posts, communities, new NewPostWriter(posts, imageStorage), Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Nested
     class Create {
@@ -227,6 +229,19 @@ class PostCommandServiceTest {
                     .isInstanceOf(CommunityUnavailableException.class);
 
             verifyNoInteractions(imageStorage);
+        }
+
+        /** Fail closed: when community-service can't answer, the post is refused, not accepted unchecked. */
+        @Test
+        void communityServiceDown_uploadsAndSavesNothing() {
+            when(communities.isActive(COMMUNITY))
+                    .thenThrow(new CommunityServiceUnavailableException(new ConnectException("refused")));
+
+            assertThatThrownBy(() -> service.create(request, List.of(PNG), AUTHOR))
+                    .isInstanceOf(CommunityServiceUnavailableException.class);
+
+            verifyNoInteractions(imageStorage);
+            verify(posts, never()).save(any());
         }
 
         private void complete(int status) {
