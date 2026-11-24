@@ -91,16 +91,6 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
   - `APP_PUBLIC_URL`: the same `https://` origin as auth-service's, or every token is rejected (`iss` mismatch).
     The services refuse to start without it.
 
-## community-service
-
-### Mock authentication
-- **Local:** the dev profile sets `app.mock-auth.enabled: true`, which puts a hard-coded `ROLE_ADMIN` caller with
-  user id `1` into the security context, but only for requests without an access token: a real token always wins.
-  It keeps the ADMIN endpoints usable while nobody can log in through the browser yet. Startup logs a WARN while
-  the mock filter is registered.
-- **Production:** without the dev profile the flag is `false`. Never set `APP_MOCKAUTH_ENABLED`. Turning it on would let anyone perform ADMIN
-  operations.
-
 ## post-service
 
 ### S3
