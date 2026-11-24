@@ -46,6 +46,13 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
   auth-service trusts from any private-network address. **auth-service must only be reachable through the
   gateway** (never publish its port or open it in a security group), or a caller could pick its own IP.
 
+### Dev admin account
+- **Local:** the dev profile creates one ADMIN account at startup if no account has its email
+  (`admin@levddit.local` / `admin-password`, `app.dev-admin.*`, overridable with `APP_DEVADMIN_*`), so admin
+  endpoints can be tried with a real token on a fresh database. An existing account is never changed.
+- **Production:** nothing to set or remove: the code only exists in the dev profile. Because the password is in the
+  repo, never run the dev profile anywhere others can reach. Promote real admins in the database.
+
 ## gateway
 
 ### Sessions and the OAuth client
