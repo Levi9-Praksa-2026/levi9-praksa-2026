@@ -20,7 +20,9 @@ import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -41,8 +43,6 @@ public class CommunityController {
     private final CommunityService communityService;
     private final CommunityMembershipService membershipService;
 
-    // TODO: GET /api/communities?status=inactive (ADMIN) from the endpoints doc is not implemented yet.
-    // A URL rule cannot protect a query parameter — when added, check the role in code on this handler.
     @GetMapping
     @Operation(summary = "Active communities, paginated; each item has only its name and member count")
     public PageDTO<CommunityDTO> findCommunities(
@@ -55,6 +55,29 @@ public class CommunityController {
                 CommunitySort.valueOf(sort.toUpperCase(Locale.ROOT)), name, page, size);
     }
 
+    /** The presence of {@code inactive} selects this ADMIN handler; the boolean chooses which set to list. */
+    @GetMapping(params = "inactive")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "ADMIN: list communities by active/inactive state; sort=new|top")
+    public PageDTO<CommunityDTO> findCommunitiesForAdmin(
+            @RequestParam(defaultValue = "false") boolean inactive,
+            @RequestParam(defaultValue = "new")
+            @Pattern(regexp = "(?i)new|top", message = "sort must be new or top") String sort,
+            @RequestParam(required = false) @Size(max = 50) String name,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        CommunitySort ordering = CommunitySort.valueOf(sort.toUpperCase(Locale.ROOT));
+        return inactive
+                ? communityService.findInactiveCommunities(ordering, name, page, size)
+                : communityService.findCommunities(ordering, name, page, size);
+    }
+
+    private static long userId(Jwt jwt) {
+        String subject = jwt.getSubject();
+        assert subject != null;
+        return Long.parseLong(subject);
+    }
+
     @GetMapping("/{name}")
     @Operation(summary = "A single community with all its details; 404 if it doesn't exist or is inactive")
     public CommunityDetailDTO getCommunity(@PathVariable @Size(max = 50) String name) {
@@ -62,34 +85,35 @@ public class CommunityController {
     }
 
     @PutMapping("/{name}/members/me")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Join a community; calling it twice is harmless")
     public ResponseEntity<Void> join(@PathVariable @Size(max = 50) String name,
-                                     Authentication authentication) {
-        // With the mock filter the principal is the user id; with real JWTs getName() is the sub claim.
-        membershipService.join(name, Long.parseLong(authentication.getName()));
+                                     @AuthenticationPrincipal Jwt jwt) {
+        membershipService.join(name, userId(jwt));
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{name}/members/me")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Leave a community; leaving when not a member is harmless")
     public ResponseEntity<Void> leave(@PathVariable @Size(max = 50) String name,
-                                      Authentication authentication) {
-        membershipService.leave(name, Long.parseLong(authentication.getName()));
+                                      @AuthenticationPrincipal Jwt jwt) {
+        membershipService.leave(name, userId(jwt));
         return ResponseEntity.noContent().build();
     }
     
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a community (ADMIN)")
     public CommunityDetailDTO create(
             @Valid @RequestBody CreateCommunityDTO request,
-            Authentication authentication) {
-        // With the mock filter the principal is the user id; with real JWTs getName() is the sub claim.
-        long creatorId = Long.parseLong(authentication.getName());
-        return communityService.create(request.name(), request.description(), creatorId);
+            @AuthenticationPrincipal Jwt jwt) {
+        return communityService.create(request.name(), request.description(), userId(jwt));
     }
 
     @PatchMapping("/{name}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Edit the description of a community (ADMIN); the name never changes")
     public void updateDescription(
             @PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name,
@@ -99,6 +123,7 @@ public class CommunityController {
 
     @DeleteMapping("/{name}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Shut down a community (ADMIN): is_active = false, no row is deleted")
     public void deactivate(@PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name) {
         communityService.deactivate(name);
@@ -106,6 +131,7 @@ public class CommunityController {
 
     @PostMapping("/{name}/reactivate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Undo a shutdown (ADMIN)")
     public void reactivate(@PathVariable @Pattern(regexp = Community.NAME_PATTERN) String name) {
         communityService.reactivate(name);

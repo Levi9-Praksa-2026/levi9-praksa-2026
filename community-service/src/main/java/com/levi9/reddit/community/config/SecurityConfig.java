@@ -2,14 +2,10 @@ package com.levi9.reddit.community.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.levi9.reddit.community.security.MockAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,24 +14,23 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.json.ProblemDetailJacksonMixin;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity   // switches on @PreAuthorize on controller methods (defence in depth with the URL rules)
 public class SecurityConfig {
-    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            ObjectProvider<ObjectMapper> objectMappers,
-            @Value("${app.mock-auth.enabled:false}") boolean mockAuthEnabled) throws Exception {
+            ObjectProvider<ObjectMapper> objectMappers) throws Exception {
         // Jackson 2's builder keeps Spring's ProblemDetail mixin; the Spring builder is deprecated since 7.0.
         ObjectMapper mapper = objectMappers.getIfAvailable(() -> JsonMapper.builder()
                 .addMixIn(ProblemDetail.class, ProblemDetailJacksonMixin.class)
@@ -70,12 +65,6 @@ public class SecurityConfig {
                                 mapper, response, HttpStatus.FORBIDDEN, "Access is denied",
                                 request.getRequestURI())));
 
-        if (mockAuthEnabled) {
-            // Runs after the token filter: a request with a real token keeps its own caller.
-            log.warn("MOCK AUTH ENABLED: every request without a token is treated as ROLE_ADMIN. "
-                    + "Never enable app.mock-auth in production.");
-            http.addFilterBefore(new MockAuthenticationFilter(), AnonymousAuthenticationFilter.class);
-        }
         return http.build();
     }
 

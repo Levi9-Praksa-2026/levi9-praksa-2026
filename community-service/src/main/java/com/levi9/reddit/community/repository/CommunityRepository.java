@@ -17,6 +17,11 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     Page<Community> findByActiveTrueAndNameContainingIgnoreCase(String name, Pageable pageable);
 
+    /** ADMIN list of shut-down communities. */
+    Page<Community> findByActiveFalse(Pageable pageable);
+
+    Page<Community> findByActiveFalseAndNameContainingIgnoreCase(String name, Pageable pageable);
+
     @Query("select c from Community c where lower(c.name) = lower(:name) and c.active = true")
     Optional<Community> findActiveByName(@Param("name") String name);
 
