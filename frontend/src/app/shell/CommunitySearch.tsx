@@ -22,7 +22,7 @@ export function CommunitySearch({ className }: { className?: string }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
-  const { data, error, loading } = useCommunitySearch(query)
+  const { data, error, isLoading: loading } = useCommunitySearch(query)
   const results = data ?? []
 
   const hasQuery = query.trim() !== ''

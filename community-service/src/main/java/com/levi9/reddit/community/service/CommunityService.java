@@ -3,6 +3,7 @@ package com.levi9.reddit.community.service;
 import com.levi9.reddit.community.dto.CommunityDTO;
 import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
+import com.levi9.reddit.community.dto.InternalCommunityDTO;
 import com.levi9.reddit.community.dto.PageDTO;
 import com.levi9.reddit.community.entity.Community;
 import com.levi9.reddit.community.exception.CommunityNotFoundException;
@@ -76,6 +77,15 @@ public class CommunityService {
                 community.getDescription(),
                 community.getMemberCount(),
                 community.getCreatedAt());
+    }
+
+    /** Internal lookup by id: a missing or inactive community is a 404 to the caller. */
+    @Transactional(readOnly = true)
+    public InternalCommunityDTO getActiveById(long id) {
+        Community community = communities.findById(id)
+                .filter(Community::isActive)
+                .orElseThrow(() -> new CommunityNotFoundException(id));
+        return new InternalCommunityDTO(community.getName(), community.isActive());
     }
 
     @Transactional

@@ -97,6 +97,38 @@ class CommunityMembershipServiceTest {
     }
 
     @Test
+    void isMember_returnsTrueForMember() {
+        given(communities.findById(7L)).willReturn(Optional.of(community("backend", 3)));
+        given(members.existsById(memberId())).willReturn(true);
+
+        assertThat(service.isMember(7L, USER_ID)).isTrue();
+    }
+
+    @Test
+    void isMember_returnsFalseForNonMember() {
+        given(communities.findById(7L)).willReturn(Optional.of(community("backend", 3)));
+        given(members.existsById(memberId())).willReturn(false);
+
+        assertThat(service.isMember(7L, USER_ID)).isFalse();
+    }
+
+    @Test
+    void isMember_missingOrInactiveCommunity_throwsNotFound() {
+        given(communities.findById(7L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.isMember(7L, USER_ID))
+                .isInstanceOf(CommunityNotFoundException.class);
+
+        Community inactive = community("backend", 3);
+        inactive.deactivate();
+        given(communities.findById(8L)).willReturn(Optional.of(inactive));
+
+        assertThatThrownBy(() -> service.isMember(8L, USER_ID))
+                .isInstanceOf(CommunityNotFoundException.class);
+        verify(members, never()).existsById(any());
+    }
+
+    @Test
     void missingCommunityThrowsNotFound() {
         given(communities.findActiveByNameForUpdate("missing")).willReturn(Optional.empty());
 

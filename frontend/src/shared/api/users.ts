@@ -12,8 +12,8 @@ import { fileUrl, invalid, notBlank, requireAdmin, requireUser } from './mock/gu
 import { handle } from './mock/server'
 
 /*
-  auth-service, /api/users/**. Login, register and logout are not here: the auth flow is being
-  rebuilt and gets its own module. The mock starts logged in as demo_user (mock/db.ts).
+  auth-service, /api/users/**. Who is logged in, login, register and logout are real calls in auth.ts.
+  These are still mocked; the mock starts logged in as demo_user (mock/db.ts).
 */
 
 function toProfile(u: UserRow): UserProfileResponse {
@@ -30,11 +30,6 @@ function userByName(username: string): UserRow {
   const user = db.users.find(u => u.username.toLowerCase() === username.toLowerCase() && !u.isDeleted)
   if (!user) throw new ApiError({ status: 404, title: 'Not Found', detail: `User not found: ${username}`, errorType: 'USER_NOT_FOUND' })
   return user
-}
-
-/** `GET /api/users/me`: your own profile. */
-export function getMe(): Promise<UserProfileResponse> {
-  return handle(() => toProfile(requireUser()))
 }
 
 /** `PATCH /api/users/me`: at least one field. Changing the email needs `currentPassword`; 409 if the email is taken. */

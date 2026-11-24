@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { ApiError } from './errors'
 import { mockSignInAs, resetMockDb } from './mock/db'
 import { setMockLatency } from './mock/server'
-import { banUser, changePassword, deleteMe, getMe, getPublicProfile, updateMe } from './users'
+import { banUser, changePassword, deleteMe, getPublicProfile, updateMe } from './users'
+
+/** Any call that needs a login: a 401 here means the mock session is logged out. */
+const touchProfile = () => updateMe({ firstName: 'Ana' })
 
 async function errorOf(call: Promise<unknown>): Promise<ApiError> {
   const error = await call.then(() => undefined, (e: unknown) => e)
@@ -17,9 +20,9 @@ beforeEach(() => {
 
 describe('own profile', () => {
   it('starts logged in as demo_user and 401s when logged out', async () => {
-    expect((await getMe()).username).toBe('demo_user')
+    expect((await touchProfile()).username).toBe('demo_user')
     mockSignInAs(null)
-    expect((await errorOf(getMe())).status).toBe(401)
+    expect((await errorOf(touchProfile())).status).toBe(401)
   })
 
   it('needs at least one field, and the password to change the email', async () => {
@@ -43,7 +46,7 @@ describe('own profile', () => {
 
   it('deletes a user account and logs it out, but never an admin one', async () => {
     await deleteMe({ password: 'password' })
-    expect((await errorOf(getMe())).status).toBe(401)
+    expect((await errorOf(touchProfile())).status).toBe(401)
     expect((await errorOf(getPublicProfile('demo_user'))).status).toBe(404)
     mockSignInAs('admin')
     expect((await errorOf(deleteMe({ password: 'password' }))).errorType).toBe('ACCOUNT_DELETION_FORBIDDEN')
@@ -62,6 +65,6 @@ describe('other people', () => {
     mockSignInAs('admin')
     await banUser('colleague_one', { reason: 'Spam' })
     mockSignInAs('colleague_one')
-    expect((await errorOf(getMe())).status).toBe(401)
+    expect((await errorOf(touchProfile())).status).toBe(401)
   })
 })
