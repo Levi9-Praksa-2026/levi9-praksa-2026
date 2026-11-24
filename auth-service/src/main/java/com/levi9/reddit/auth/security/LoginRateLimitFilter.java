@@ -1,12 +1,12 @@
 package com.levi9.reddit.auth.security;
 
+import com.levi9.reddit.auth.config.SecurityConfig;
 import com.levi9.reddit.auth.exception.ErrorType;
 import com.levi9.reddit.auth.exception.GlobalExceptionHandler;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,8 +25,8 @@ import java.util.Optional;
  * <p>
  * Created in {@link SecurityConfig}, not as a bean: a {@code Filter} bean would also be registered for every request.
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-class LoginRateLimitFilter extends OncePerRequestFilter {
+@RequiredArgsConstructor
+public class LoginRateLimitFilter extends OncePerRequestFilter {
     private final RequestMatcher login;
     private final RateLimiter limiter;
     private final JsonMapper json;

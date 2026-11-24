@@ -26,9 +26,10 @@ spring:
       server:
         webmvc:
           # Without this, the gateway strips X-Forwarded-For and services only ever see the gateway's address
-          # (auth-service rate-limits per client IP). Nothing sits in front of the gateway yet, so only loopback is
-          # trusted: any other caller is the client itself, its own X-Forwarded-For is dropped, and the gateway
-          # sends the address it actually saw. Revisit with a load balancer in front (docs/production-changes.md).
+          # (auth-service rate-limits per client IP). Only loopback here; the dev profile adds Docker's ranges for
+          # nginx, and a deployment sets its load balancer's addresses (docs/production-changes.md). Any caller that
+          # isn't trusted is the client itself: its own X-Forwarded-For is dropped and the gateway sends the address
+          # it saw.
           trusted-proxies: '127\.0\.0\.1|0:0:0:0:0:0:0:1'
           # Behind the gateway, a token only ever comes from the gateway's session: any Authorization header the
           # caller sends is removed first (filters run in the order listed), so a leaked token is useless from

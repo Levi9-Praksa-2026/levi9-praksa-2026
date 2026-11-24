@@ -1,7 +1,9 @@
-package com.levi9.reddit.post.client;
+package com.levi9.reddit.post.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.levi9.reddit.post.client.CommunityDirectory;
+import com.levi9.reddit.post.client.CommunityStubProperties;
+import com.levi9.reddit.post.client.StubCommunityDirectory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +17,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "app.community-stub.enabled", havingValue = "true")
 @EnableConfigurationProperties(CommunityStubProperties.class)
+@Slf4j
 class CommunityStubConfig {
-    private static final Logger log = LoggerFactory.getLogger(CommunityStubConfig.class);
-
     @Bean
     CommunityDirectory stubCommunityDirectory(CommunityStubProperties properties) {
         log.warn("COMMUNITY STUB ENABLED: communities and memberships are faked, not read from community-service "

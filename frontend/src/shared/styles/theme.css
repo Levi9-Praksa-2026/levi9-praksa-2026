@@ -40,6 +40,10 @@
   --color-p-muted: var(--p-muted);
   --color-p-accent: var(--p-accent);
   --color-p-surface: var(--p-surface);
+  /* the forum app's page, behind its white cards and bars */
+  --color-canvas: var(--p-canvas);
+  /* pure white for pieces that stay white on any ground band (a caption on a photo, a button on the blue band) */
+  --color-white: #ffffff;
   --color-current: currentColor;
   --color-transparent: transparent;
 
@@ -49,6 +53,7 @@
 
   --text-label: var(--t-label);
   --text-small: var(--t-small);
+  --text-ui: var(--t-ui);
   --text-body: var(--t-body);
   --text-lead: var(--t-lead);
   --text-card: var(--t-card);
@@ -77,8 +82,13 @@
   --spacing-btn: var(--btn-h);
   --spacing-btn-sm: var(--btn-h-sm);
   --spacing-icon: var(--icon);
+  /* the forum app's frame: the top bar's height, the open sidebar and its collapsed rail */
+  --spacing-app-bar: var(--app-bar);
+  --spacing-sidebar: var(--sidebar);
+  --spacing-rail: var(--rail);
   --container-container: var(--container);
   --container-measure: 62ch;
+  --container-feed: var(--feed);
 }
 
 /* Animations */
@@ -89,7 +99,7 @@
 }
 
 /* Nav states (Nav.tsx). sheet: the phone menu is open. sheet-expanded: an accordion item inside it is open.
-   item-open: a desktop item is hovered or focused, so its menu shows. menu-instant: a menu was already open,
+   item-open: a desktop item is hovered or focused, so its menu shows (until Escape marks it data-dismissed). menu-instant: a menu was already open,
    so the next one swaps without the fade. */
 @custom-variant sheet {
   @media (width < 64rem) { :where(.is-open) & { @slot; } }
@@ -98,8 +108,10 @@
   @media (width < 64rem) { :where(.is-open) :where(.is-expanded) & { @slot; } }
 }
 @custom-variant expanded (:where(.is-expanded) &);
+/* current: the link for the page or section you are on (any aria-current value: page, location) */
+@custom-variant current (&[aria-current]);
 @custom-variant item-open {
-  @media (width >= 64rem) { :where(.nav-item:hover, .nav-item:focus-within) & { @slot; } }
+  @media (width >= 64rem) { :where(.nav-item:not([data-dismissed]):hover, .nav-item:not([data-dismissed]):focus-within) & { @slot; } }
 }
 @custom-variant menu-instant {
   @media (width >= 64rem) { :where(.m-menu-open) & { @slot; } }
@@ -116,6 +128,7 @@
   /* palette: white ground, ink #141833, Levi9 blue #2b3fa0 */
   --p-bg: #ffffff;
   --p-surface: #f1f3fa;
+  --p-canvas: #f8f9fd;     /* the forum page: white with a whisper of the brand blue */
   --p-ink: #141833;
   --p-muted: #62677b;
   --p-accent: #2b3fa0;
@@ -165,6 +178,7 @@
   /* type scale (the only sizes on the page) */
   --t-label: 13px;
   --t-small: 14px;
+  --t-ui: 15px;         /* nav links, compact buttons and card titles: between small and body */
   --t-body: 16px;
   --t-lead: 18px;
   --t-card: 18px;
@@ -182,6 +196,12 @@
   /* controls (fixed here; a page never adds its own) */
   --btn-h: 44px;
   --btn-h-sm: 36px;
+
+  /* the forum app's frame (docs/DESIGN.md) */
+  --app-bar: 56px;
+  --sidebar: 272px;
+  --rail: 64px;
+  --feed: 720px;
 
   --icon: 16px;         /* small icons: socials, menu chevrons, mono brand marks */
 

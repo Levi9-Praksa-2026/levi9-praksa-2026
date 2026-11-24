@@ -1,6 +1,9 @@
-package com.levi9.reddit.auth.security;
+package com.levi9.reddit.auth.config;
 
 import com.levi9.reddit.auth.repository.UserRepository;
+import com.levi9.reddit.auth.security.GatewayClientProperties;
+import com.levi9.reddit.auth.security.JwtProperties;
+import com.levi9.reddit.auth.security.TokenClaims;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

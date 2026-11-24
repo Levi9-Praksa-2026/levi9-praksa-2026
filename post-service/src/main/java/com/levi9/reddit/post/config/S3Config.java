@@ -1,5 +1,6 @@
-package com.levi9.reddit.post.storage;
+package com.levi9.reddit.post.config;
 
+import com.levi9.reddit.post.storage.S3Properties;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,7 @@ class S3Config {
 					.forcePathStyle(true)
 					.credentialsProvider(StaticCredentialsProvider.create(
 							AwsBasicCredentials.create("test", "test")));
+			// TODO: Move the credentials to an application profile (URL, bucket name...)
 		}
 		return builder.build();
 	}

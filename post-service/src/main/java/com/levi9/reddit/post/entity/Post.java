@@ -12,6 +12,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -20,6 +23,8 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "posts")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post {
     public static final int MAX_IMAGES = 3;
 
@@ -64,8 +69,6 @@ public class Post {
     @OrderBy("id ASC")
     private List<PostImage> images = new ArrayList<>();
 
-    protected Post() {}
-
     public Post(String title, Long authorId, String authorUsername, Long communityId) {
         this(title, null, authorId, authorUsername, communityId);
     }
@@ -77,54 +80,6 @@ public class Post {
         this.authorId = Objects.requireNonNull(authorId, "authorId");
         this.authorUsername = Objects.requireNonNull(authorUsername, "authorUsername");
         this.communityId = Objects.requireNonNull(communityId, "communityId");
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public Long getAuthorId() {
-        return authorId;
-    }
-
-    public String getAuthorUsername() {
-        return authorUsername;
-    }
-
-    public Long getCommunityId() {
-        return communityId;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public int getCommentCount() {
-        return commentCount;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public Instant getRemovedAt() {
-        return removedAt;
-    }
-
-    public Long getRemovedBy() {
-        return removedBy;
     }
 
     public List<PostImage> getImages() {

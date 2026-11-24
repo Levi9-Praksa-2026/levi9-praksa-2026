@@ -11,6 +11,14 @@ spring:
     url: jdbc:postgresql://localhost:5432/reddit
     username: reddit
     password: reddit_local
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          # nginx (the frontend container) and Vite sit in front of the gateway locally, so their addresses are
+          # trusted to pass the client's X-Forwarded-For on: loopback for Vite and IntelliJ, Docker's private
+          # ranges for nginx and for the host through the published port 8080.
+          trusted-proxies: '127\.0\.0\.1|0:0:0:0:0:0:0:1|10\..*|172\.(1[6-9]|2[0-9]|3[01])\..*|192\.168\..*'
 
 app:
   oauth:

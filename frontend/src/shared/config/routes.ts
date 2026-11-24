@@ -8,7 +8,12 @@ export const routes = {
   login: '/login',
   register: '/register',
   welcome: '/welcome/',
+  /** A community's page: `/l/frontend`. */
+  community: (name: string) => `/l/${encodeURIComponent(name)}`,
 } as const
+
+/** The route pattern for `routes.community`, for the router. */
+export const COMMUNITY_PATTERN = '/l/:name'
 
 /** Paths that leave the forum app and load another document. */
 export const externalDocuments: readonly string[] = [routes.welcome]
