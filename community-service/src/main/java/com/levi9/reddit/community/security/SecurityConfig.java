@@ -52,6 +52,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/communities", "/api/communities/*/reactivate").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/communities/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/communities/*").hasRole("ADMIN")
+                        // Service-to-service reads rely on network isolation: community-service is never published
+                        // and the gateway has no /internal/** route. No user token is needed or checked here.
+                        .requestMatchers("/internal/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/error").permitAll()
                         .anyRequest().authenticated())
