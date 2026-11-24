@@ -4,8 +4,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -29,14 +30,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
-/** Role and authentication checks with the temporary mock caller switched off. */
+/** Role and authentication checks; callers are real JWT principals. */
 @WebMvcTest(CommunityController.class)
 @Import({SecurityConfig.class, GlobalExceptionHandler.class})
-@TestPropertySource(properties = "app.mock-auth.enabled=false")
 class CommunityAdminSecurityTest {
 
     private static final String BODY = """
@@ -51,6 +52,16 @@ class CommunityAdminSecurityTest {
 
     @MockitoBean
     private CommunityMembershipService membershipService;
+
+    private static RequestPostProcessor admin() {
+        return jwt().jwt(j -> j.subject("1").claim("roles", List.of("ADMIN")))
+                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    }
+
+    private static RequestPostProcessor regularUser() {
+        return jwt().jwt(j -> j.subject("6").claim("roles", List.of("USER")))
+                .authorities(new SimpleGrantedAuthority("ROLE_USER"));
+    }
 
     @Test
     void create_withoutCaller_returnsUnauthorizedProblemDetail() throws Exception {
@@ -70,7 +81,7 @@ class CommunityAdminSecurityTest {
     @Test
     void create_asUser_returnsForbiddenProblemDetail() throws Exception {
         mockMvc.perform(post("/api/communities")
-                        .with(user("regular").roles("USER"))
+                        .with(regularUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(BODY))
                 .andExpect(status().isForbidden())
@@ -86,7 +97,7 @@ class CommunityAdminSecurityTest {
     @Test
     void create_asUserWithInvalidBody_isForbiddenBeforeValidation() throws Exception {
         mockMvc.perform(post("/api/communities")
-                        .with(user("regular").roles("USER"))
+                        .with(regularUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"name":"bad name!","description":null}
@@ -100,7 +111,7 @@ class CommunityAdminSecurityTest {
                 .willReturn(new CommunityDetailDTO(1L, "backend", "Backend discussion", 0, Instant.now()));
 
         mockMvc.perform(post("/api/communities")
-                        .with(user("1").roles("ADMIN"))
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(BODY))
                 .andExpect(status().isCreated());
@@ -109,17 +120,17 @@ class CommunityAdminSecurityTest {
     @Test
     void patchDeleteAndReactivate_asUser_areForbidden() throws Exception {
         mockMvc.perform(patch("/api/communities/backend")
-                        .with(user("regular").roles("USER"))
+                        .with(regularUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"description":"New description"}
                                 """))
                 .andExpect(status().isForbidden());
 
-        mockMvc.perform(delete("/api/communities/backend").with(user("regular").roles("USER")))
+        mockMvc.perform(delete("/api/communities/backend").with(regularUser()))
                 .andExpect(status().isForbidden());
 
-        mockMvc.perform(post("/api/communities/backend/reactivate").with(user("regular").roles("USER")))
+        mockMvc.perform(post("/api/communities/backend/reactivate").with(regularUser()))
                 .andExpect(status().isForbidden());
     }
 
@@ -144,5 +155,32 @@ class CommunityAdminSecurityTest {
 
         mockMvc.perform(get("/api/communities"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void inactiveList_withoutCaller_returnsUnauthorizedProblemDetail() throws Exception {
+        mockMvc.perform(get("/api/communities").param("status", "inactive"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.detail").value("Authentication is required"));
+        verifyNoInteractions(communityService);
+    }
+
+    @Test
+    void inactiveList_asUser_isForbidden() throws Exception {
+        mockMvc.perform(get("/api/communities").param("status", "inactive").with(regularUser()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.detail").value("Access is denied"));
+        verifyNoInteractions(communityService);
+    }
+
+    @Test
+    void inactiveList_asAdmin_isAllowed() throws Exception {
+        given(communityService.findInactiveCommunities(null, 0, 20))
+                .willReturn(new PageDTO<>(List.of(), 0, 20, 0, 0));
+
+        mockMvc.perform(get("/api/communities").param("status", "inactive").with(admin()))
+                .andExpect(status().isOk());
+
+        verify(communityService).findInactiveCommunities(null, 0, 20);
     }
 }

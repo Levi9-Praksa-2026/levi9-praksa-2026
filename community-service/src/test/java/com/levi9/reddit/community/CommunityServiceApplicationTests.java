@@ -6,14 +6,16 @@ import com.levi9.reddit.community.entity.CommunityMemberId;
 import com.levi9.reddit.community.repository.CommunityMemberRepository;
 import com.levi9.reddit.community.repository.CommunityRepository;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +23,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,8 +32,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = "app.mock-auth.enabled=true")
 class CommunityServiceApplicationTests {
+
+    private static RequestPostProcessor admin() {
+        return jwt().jwt(j -> j.subject("1").claim("roles", List.of("ADMIN")))
+                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    }
 
     @Autowired
     private CommunityRepository communityRepository;
@@ -97,6 +104,21 @@ class CommunityServiceApplicationTests {
                 .andExpect(jsonPath("$.page").value(0))
                 .andExpect(jsonPath("$.size").value(20))
                 .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
+    @Transactional
+    void inactiveList_returnsOnlyShutDownCommunities() throws Exception {
+        communityRepository.save(new Community("live", 1L));
+        Community archived = new Community("archived", 1L);
+        archived.deactivate();
+        communityRepository.save(archived);
+        entityManager.flush();
+
+        mockMvc.perform(get("/api/communities").param("status", "inactive").with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("archived"));
     }
 
     @Test
@@ -173,8 +195,9 @@ class CommunityServiceApplicationTests {
 
     @Test
     @Transactional
-    void createsCommunityWithMockCreator() throws Exception {
+    void createsCommunityWithJwtCreator() throws Exception {
         mockMvc.perform(post("/api/communities")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"name":"backend","description":"Backend discussion"}
@@ -197,6 +220,7 @@ class CommunityServiceApplicationTests {
         entityManager.flush();
 
         mockMvc.perform(post("/api/communities")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"name":"Backend","description":null}
@@ -213,6 +237,7 @@ class CommunityServiceApplicationTests {
         entityManager.flush();
 
         mockMvc.perform(patch("/api/communities/backend")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"description":"New description"}
@@ -230,7 +255,7 @@ class CommunityServiceApplicationTests {
         communityRepository.save(new Community("backend", 1L));
         entityManager.flush();
 
-        mockMvc.perform(delete("/api/communities/backend"))
+        mockMvc.perform(delete("/api/communities/backend").with(admin()))
                 .andExpect(status().isNoContent());
         entityManager.flush();
 
@@ -238,7 +263,7 @@ class CommunityServiceApplicationTests {
         mockMvc.perform(get("/api/communities/backend"))
                 .andExpect(status().isNotFound());
 
-        mockMvc.perform(post("/api/communities/backend/reactivate"))
+        mockMvc.perform(post("/api/communities/backend/reactivate").with(admin()))
                 .andExpect(status().isNoContent());
         entityManager.flush();
 

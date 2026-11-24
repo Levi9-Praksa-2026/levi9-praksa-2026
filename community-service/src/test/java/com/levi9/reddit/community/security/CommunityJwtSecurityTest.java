@@ -23,15 +23,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-/** Real access tokens, checked by the real decoder: signature, issuer, expiry and roles -> ROLE_. Mock caller off. */
+/** Real access tokens, checked by the real decoder: signature, issuer, expiry and roles -> ROLE_. */
 @WebMvcTest(CommunityController.class)
 @Import({SecurityConfig.class, GlobalExceptionHandler.class})
-@TestPropertySource(properties = "app.mock-auth.enabled=false")
 class CommunityJwtSecurityTest {
 
     private static final String BODY = """
