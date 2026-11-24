@@ -15,6 +15,7 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 
 | Decision | Value | Why |
 |---|---|---|
+| Hero sizing | At least one viewport tall, growing with content; natural grid rows stack below 1024px; the globe uses a square frame capped at 560px with clipped canvas and labels | Keeps the buttons in the document flow on tablets and short windows, and gives the globe stable proportions during resizing |
 | Offices slideshow pause | A third round button after the two arrows, same look; pause and play icons | Anything that moves on its own needs a way to stop it (WCAG 2.2.2); placed where the other controls already are |
 
 ## Sign-in and sign-up (2026-11-24)
