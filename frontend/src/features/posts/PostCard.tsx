@@ -13,11 +13,12 @@ export interface PostCardProps {
 export function PostCard({ post, hideCommunity = false, className }: PostCardProps) {
   return (
     <article className={cn('grid grid-cols-[32px_minmax(0,1fr)] items-start gap-3 text-left font-text text-p-ink', className)}>
-      <div className="grid justify-items-center gap-0.5 pt-0.5 font-mono text-label leading-4 font-medium text-p-accent" aria-label={`${post.votes} votes`}>
+      <div className="grid justify-items-center gap-0.5 pt-0.5 font-mono text-label leading-4 font-medium text-p-accent">
         <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
           <path d="M2.5 7.5 6 4l3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span>{post.votes}</span>
+        <span aria-hidden="true">{post.votes}</span>
+        <span className="sr-only">{post.votes} votes</span>
       </div>
       <div className="grid min-w-0 justify-items-start gap-1.5">
         {!hideCommunity && <CommunityChip community={{ slug: post.community }} />}

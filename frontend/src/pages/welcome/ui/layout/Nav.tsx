@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react'
+import { useId, useRef, type ReactNode } from 'react'
 import { Button } from '@/shared/ui/Button'
 import { cn } from '@/shared/lib/cn'
 import { AppLink } from '@/shared/ui/Link'
@@ -97,6 +97,7 @@ function MenuPanel({ menu }: { menu: NavMenu }) {
 export function Nav({ brand, items, primary, secondary, skipTo = '#top', skipLabel = 'Skip to content', spy = true }: NavProps) {
   const navRef = useRef<HTMLElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
+  const listId = useId()
   const sheet = useNavSheet(navRef, toggleRef)
   const onScreen = useScrollSpy(items.map(item => item.href), spy)
 
@@ -125,6 +126,7 @@ export function Nav({ brand, items, primary, secondary, skipTo = '#top', skipLab
             'sheet:fixed sheet:inset-x-0 sheet:top-nav sheet:bottom-0 sheet:flex sheet:flex-col sheet:gap-0 sheet:overflow-y-auto sheet:bg-bg sheet:px-gut sheet:pt-4 sheet:pb-[calc(var(--btn-h)*2+56px)]',
             'sheet:transition-[opacity,translate] sheet:duration-200 sheet:ease-ui sheet:starting:-translate-y-2 sheet:starting:opacity-0',
           )}
+          id={listId}
           aria-label="Main"
         >
           {items.map(item => {
@@ -197,6 +199,7 @@ export function Nav({ brand, items, primary, secondary, skipTo = '#top', skipLab
           className="hidden size-11 flex-none cursor-pointer place-items-center rounded-btn border border-line-strong bg-transparent text-ink max-lg:inline-grid sheet:ml-auto"
           aria-expanded={sheet.open}
           aria-label="Menu"
+          aria-controls={listId}
           onClick={() => sheet.setOpen(!sheet.open)}
         >
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">

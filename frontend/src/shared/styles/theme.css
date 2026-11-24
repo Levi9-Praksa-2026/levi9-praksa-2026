@@ -99,7 +99,7 @@
 }
 
 /* Nav states (Nav.tsx). sheet: the phone menu is open. sheet-expanded: an accordion item inside it is open.
-   item-open: a desktop item is hovered or focused, so its menu shows. menu-instant: a menu was already open,
+   item-open: a desktop item is hovered or focused, so its menu shows (until Escape marks it data-dismissed). menu-instant: a menu was already open,
    so the next one swaps without the fade. */
 @custom-variant sheet {
   @media (width < 64rem) { :where(.is-open) & { @slot; } }
@@ -111,7 +111,7 @@
 /* current: the link for the page or section you are on (any aria-current value: page, location) */
 @custom-variant current (&[aria-current]);
 @custom-variant item-open {
-  @media (width >= 64rem) { :where(.nav-item:hover, .nav-item:focus-within) & { @slot; } }
+  @media (width >= 64rem) { :where(.nav-item:not([data-dismissed]):hover, .nav-item:not([data-dismissed]):focus-within) & { @slot; } }
 }
 @custom-variant menu-instant {
   @media (width >= 64rem) { :where(.m-menu-open) & { @slot; } }

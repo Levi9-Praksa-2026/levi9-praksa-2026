@@ -11,6 +11,12 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 - The forum document (`index.html`) uses the round radius scale (`data-radius="round"`), so `rounded-btn`
   is a pill there.
 
+## Welcome page (2026-11-24)
+
+| Decision | Value | Why |
+|---|---|---|
+| Offices slideshow pause | A third round button after the two arrows, same look; pause and play icons | Anything that moves on its own needs a way to stop it (WCAG 2.2.2); placed where the other controls already are |
+
 ## Forum app frame (2026-11-19)
 
 | Decision | Value | Why |
