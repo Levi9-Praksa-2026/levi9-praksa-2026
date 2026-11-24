@@ -36,7 +36,7 @@ services:
     build: ./community-service
     environment:
       <<: *db-env
-      SPRING_PROFILES_ACTIVE: dev   # turns on mock auth: application-dev.yml
+      SPRING_PROFILES_ACTIVE: dev   # local datasource and JWT fallbacks: application-dev.yml
       AUTH_JWKS_URI: http://auth-service:8081/oauth2/jwks   # where the public key comes from
     depends_on:
       postgres:
