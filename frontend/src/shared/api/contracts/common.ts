@@ -43,6 +43,8 @@ export interface ProblemDetail {
   errorType?: string
   /** Validation failures (400). */
   errors?: FieldViolation[]
+  /** auth-service, a 403 `USER_BANNED` at login: why. Null when the ban has no reason. */
+  banReason?: string | null
 }
 
 /** A vote's value: up or down. `PUT …/vote` body. */
