@@ -16,7 +16,13 @@ export function useCommunitySearch(query: string, limit = 8) {
   const result = useAsyncData(settled ? `community-search:${settled}` : null, () =>
     listCommunities({ name: settled, sort: 'top', size: limit }).then(page => page.content),
   )
-  return { ...result, loading: result.loading || (typing && query.trim() !== ''), query: settled }
+  return {
+    ...result,
+    data: typing ? undefined : result.data,
+    error: typing ? null : result.error,
+    loading: query.trim() !== '' && (typing || result.loading),
+    query: settled,
+  }
 }
 
 /** One community by name, for its page. */
