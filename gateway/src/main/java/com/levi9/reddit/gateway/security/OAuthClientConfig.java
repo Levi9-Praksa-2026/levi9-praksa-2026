@@ -14,6 +14,9 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 import java.util.Map;
 
@@ -51,6 +54,18 @@ public class OAuthClientConfig {
                 .providerConfigurationMetadata(Map.of("end_session_endpoint", publicUrl + "/connect/logout"))
                 .build();
         return new InMemoryClientRegistrationRepository(levddit);
+    }
+
+    /**
+     * Validate the session's access token before exposing admin routes; no issuer discovery at startup.
+     * Like the services, validate signature, timestamps and issuer. The current access-token contract has no
+     * service audience claim; audience enforcement belongs with a future change to that shared contract.
+     */
+    @Bean
+    JwtDecoder adminAccessTokenDecoder(OAuthProperties oauth) {
+        var decoder = NimbusJwtDecoder.withJwkSetUri(oauth.authServiceUrl() + "/oauth2/jwks").build();
+        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(oauth.publicUrl()));
+        return decoder;
     }
 
     /**
