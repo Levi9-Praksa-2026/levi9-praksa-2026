@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-import static com.levi9.reddit.auth.security.AuthorizationServerConfig.GATEWAY_CLIENT_ID;
+import static com.levi9.reddit.auth.config.AuthorizationServerConfig.GATEWAY_CLIENT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;

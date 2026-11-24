@@ -19,3 +19,8 @@ app:
   oauth:
     gateway-client:
       secret: ${APP_OAUTH_GATEWAY_CLIENT_SECRET:local-gateway-secret}   # the gateway's dev profile has the same value
+  # One ADMIN account, created at startup if no account has this email (DevAdminAccount). Dev profile only.
+  dev-admin:
+    username: ${APP_DEVADMIN_USERNAME:admin}
+    email: ${APP_DEVADMIN_EMAIL:admin@levddit.local}
+    password: ${APP_DEVADMIN_PASSWORD:admin-password}   # registration needs at least 12 characters

@@ -28,7 +28,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.levi9.reddit.auth.security.AuthorizationServerConfig.GATEWAY_CLIENT_ID;
+import static com.levi9.reddit.auth.config.AuthorizationServerConfig.GATEWAY_CLIENT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

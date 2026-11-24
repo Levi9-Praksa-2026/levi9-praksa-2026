@@ -1,6 +1,5 @@
 package com.levi9.reddit.post.client;
 
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -10,8 +9,8 @@ import lombok.RequiredArgsConstructor;
  * {@link CommunityStubProperties}. Those lists let you try the 422 (community unavailable) and 403 (not a member)
  * paths by hand, e.g. together with the {@code X-Mock-User-Id} header of the mock auth filter.
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-final class StubCommunityDirectory implements CommunityDirectory {
+@RequiredArgsConstructor
+public final class StubCommunityDirectory implements CommunityDirectory {
     private final CommunityStubProperties properties;
 
     @Override

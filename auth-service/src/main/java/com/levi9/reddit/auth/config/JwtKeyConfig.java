@@ -1,5 +1,6 @@
-package com.levi9.reddit.auth.security;
+package com.levi9.reddit.auth.config;
 
+import com.levi9.reddit.auth.security.JwtProperties;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;

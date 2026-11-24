@@ -27,7 +27,7 @@ import com.levi9.reddit.community.exception.ConflictException;
 import com.levi9.reddit.community.exception.ErrorType;
 import com.levi9.reddit.community.exception.GlobalExceptionHandler;
 import com.levi9.reddit.community.security.MockCaller;
-import com.levi9.reddit.community.security.SecurityConfig;
+import com.levi9.reddit.community.config.SecurityConfig;
 import com.levi9.reddit.community.service.CommunityMembershipService;
 import com.levi9.reddit.community.service.CommunityService;
 import java.time.Instant;

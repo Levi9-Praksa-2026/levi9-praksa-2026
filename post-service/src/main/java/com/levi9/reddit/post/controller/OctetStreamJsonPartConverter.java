@@ -1,4 +1,4 @@
-package com.levi9.reddit.post.config;
+package com.levi9.reddit.post.controller;
 
 import com.levi9.reddit.post.dto.CreatePostDTO;
 import java.util.List;
@@ -16,11 +16,11 @@ import tools.jackson.databind.json.JsonMapper;
  * (curl {@code ;type=application/json}, Postman, the frontend) don't need this.
  *
  * <p>Kept narrow on purpose: only for reading, only octet-stream, and only into request records of the
- * {@code contracts} package. It never writes responses.
+ * {@code dto} package. It never writes responses.
  */
 @Component
 class OctetStreamJsonPartConverter extends JacksonJsonHttpMessageConverter {
-    private static final String CONTRACTS_PACKAGE = CreatePostDTO.class.getPackageName();
+    private static final String DTO_PACKAGE = CreatePostDTO.class.getPackageName();
 
     OctetStreamJsonPartConverter(JsonMapper jsonMapper) {
         super(jsonMapper);
@@ -31,7 +31,7 @@ class OctetStreamJsonPartConverter extends JacksonJsonHttpMessageConverter {
     public boolean canRead(ResolvableType type, MediaType mediaType) {
         Class<?> target = type.resolve();
         return target != null
-                && CONTRACTS_PACKAGE.equals(target.getPackageName())
+                && DTO_PACKAGE.equals(target.getPackageName())
                 && super.canRead(type, mediaType);
     }
 
