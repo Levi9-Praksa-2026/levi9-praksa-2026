@@ -1,5 +1,6 @@
 package com.levi9.reddit.post.controller;
 
+import lombok.RequiredArgsConstructor;
 import com.levi9.reddit.post.dto.CommentDTO;
 import com.levi9.reddit.post.dto.CreatePostDTO;
 import com.levi9.reddit.post.dto.EditPostDTO;
@@ -42,16 +43,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/posts")
 @Tag(name = "Posts")
+@RequiredArgsConstructor
 public class PostController {
     private static final Duration IMAGE_CACHE = Duration.ofDays(1);
 
     private final PostQueryService postQueryService;
     private final PostCommandService postCommandService;
-
-    public PostController(PostQueryService postQueryService, PostCommandService postCommandService) {
-        this.postQueryService = postQueryService;
-        this.postCommandService = postCommandService;
-    }
 
     @GetMapping
     @Operation(summary = "Latest posts, optionally filtered by community and/or searched by title")

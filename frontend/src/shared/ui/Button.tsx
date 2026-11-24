@@ -34,7 +34,7 @@ const base =
 
 const sizes: Record<ButtonSize, string> = {
   md: 'justify-center h-btn px-6 text-body font-medium transition-[background-color,color,border-color,box-shadow,translate,scale] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-px',
-  nav: 'justify-center h-11 px-[18px] text-[15px] font-semibold md:h-12 md:px-6 md:text-body transition-[background-color,color,border-color,box-shadow,translate,scale] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-px',
+  nav: 'justify-center h-11 px-[18px] text-ui font-semibold md:h-12 md:px-6 md:text-body transition-[background-color,color,border-color,box-shadow,translate,scale] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-px',
   hero: 'justify-center h-14 px-[34px] text-[17px] font-semibold md:h-[62px] md:text-[18px] transition-[translate,scale,box-shadow,background-color] duration-180 ease-[ease] motion-safe:hover:-translate-y-[3px]',
   xl:
     'w-full h-12 px-12 justify-between text-[18px] font-medium transition-[background-color,color,border-color,box-shadow,translate,scale] duration-120 ease-ui hover:duration-150 motion-safe:hover:-translate-y-0.5 ' +
@@ -48,7 +48,7 @@ const variants: Record<ButtonVariant, string> = {
 }
 
 /** The hero's quiet action: accent outline on white. */
-const heroSecondary = 'bg-[#fff] text-accent border-[color-mix(in_oklab,var(--accent)_35%,transparent)] hover:bg-[#fff] hover:border-accent'
+const heroSecondary = 'bg-white text-accent border-[color-mix(in_oklab,var(--accent)_35%,transparent)] hover:bg-white hover:border-accent'
 
 /** The design system's drawn arrow: the stem grows in and the head nudges right when its button is hovered. */
 export function Arrow({ size = 'md' }: { size?: ButtonSize }) {

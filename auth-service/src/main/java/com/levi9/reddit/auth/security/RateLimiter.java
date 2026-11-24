@@ -23,7 +23,7 @@ import java.util.Optional;
  * <p>
  * Buckets live in memory, so each auth-service instance counts on its own. Fine for the one instance we run.
  */
-class RateLimiter {
+public class RateLimiter {
     /** Memory bound. If an attacker uses more IPs than this, the oldest buckets are dropped and start full again. */
     private static final long MAX_TRACKED_CLIENTS = 100_000;
 
@@ -31,7 +31,7 @@ class RateLimiter {
     private final TimeMeter time;
     private final Cache<String, Bucket> buckets;
 
-    RateLimiter(RateLimitProperties.Limit limit, Clock clock) {
+    public RateLimiter(RateLimitProperties.Limit limit, Clock clock) {
         this.bandwidth = Bandwidth.builder()
                 .capacity(limit.requests())
                 .refillGreedy(limit.requests(), limit.per())

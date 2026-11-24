@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { Pause, Play } from 'lucide-react'
 import { Section, SectionHead } from '@/pages/welcome/ui/Section'
 import { PhotoImg } from '@/pages/welcome/ui/Media'
 import { useInView } from '@/shared/hooks/useInView'
@@ -24,17 +25,22 @@ function offsetOf(i: number, index: number, count: number): number {
 /**
  * The offices as a photo album: the current office large in the centre, its neighbours peeking at the
  * sides, the two arrows together at the foot of the centre photo. It turns on its own every few seconds
- * while on screen; hover or focus holds it, an arrow or a name restarts the clock, reduced motion keeps it by hand.
+ * while on screen; hover or focus holds it, the pause button stops it until pressed again, an arrow or a
+ * name restarts the clock, and reduced motion keeps it by hand. While it turns on its own, screen readers
+ * are not told about every turn; when it stands still they hear which office is shown.
  */
 export function Offices({ offices, title, lead }: OfficesProps) {
   const count = offices.length
   const rootRef = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(0)
-  const [held, setHeld] = useState(false)
+  // hover and focus hold it separately: moving the mouse away must not restart it while focus is still inside
+  const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const [paused, setPaused] = useState(false)
   const [turn, setTurn] = useState(0) // bumps on every manual move, restarting the clock
   const inView = useInView(rootRef)
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)')
-  const running = count > 1 && inView && !held && !reduced
+  const running = count > 1 && inView && !hovered && !focused && !paused && !reduced
 
   useEffect(() => {
     if (!running) return
@@ -62,6 +68,8 @@ export function Offices({ offices, title, lead }: OfficesProps) {
   return (
     <Section id="offices" screens={1} className="overflow-x-clip">
       <SectionHead title={title} lead={lead} className="mx-auto text-center [&_p]:mx-auto" />
+      {/* the arrow keys work anywhere inside: the buttons are the focusable parts, this only listens */}
+      {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <div
         ref={rootRef}
         className="relative"
@@ -69,16 +77,20 @@ export function Offices({ offices, title, lead }: OfficesProps) {
         aria-roledescription="carousel"
         aria-label="Levi9 offices"
         onKeyDown={onKey}
-        onPointerEnter={() => setHeld(true)}
-        onPointerLeave={() => setHeld(false)}
-        onFocus={() => setHeld(true)}
-        onBlur={() => setHeld(false)}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+        onFocus={() => setFocused(true)}
+        onBlur={e => {
+          if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false)
+        }}
       >
         <div className="relative h-[clamp(240px,42vh,340px)] md:h-[clamp(300px,54vh,500px)]">
           {offices.map((o, i) => {
             const d = offsetOf(i, index, count)
             const pos = d === 0 ? 'centre' : d === -1 ? 'left' : d === 1 ? 'right' : 'back'
             return (
+              // a click on a side photo is a mouse shortcut; the arrows and the office names do the same from the keyboard
+              // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
               <div
                 key={o.id}
                 className={
@@ -96,7 +108,7 @@ export function Offices({ offices, title, lead }: OfficesProps) {
                 <PhotoImg photo={o.photo} className="block size-full object-cover" />
                 <span
                   className={
-                    'absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,rgb(10_16_48/0.55),transparent)] px-7 pt-16 pb-6 font-display text-[clamp(24px,2.6vw,38px)] leading-none font-[number:var(--display-weight)] tracking-[-0.02em] text-[#fff] ' +
+                    'absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,rgb(10_16_48/0.55),transparent)] px-7 pt-16 pb-6 font-display text-[clamp(24px,2.6vw,38px)] leading-none font-[number:var(--display-weight)] tracking-[-0.02em] text-white ' +
                     'opacity-0 [transition:opacity_400ms_ease] motion-reduce:transition-none group-data-[pos=centre]/slide:opacity-100 group-data-[pos=centre]/slide:[transition-delay:200ms]'
                   }
                 >{o.label}</span>
@@ -106,7 +118,7 @@ export function Offices({ offices, title, lead }: OfficesProps) {
           <div className="absolute top-[calc(100%+16px)] left-1/2 z-[4] flex -translate-x-1/2 gap-2.5 md:top-auto md:bottom-5">
             <button type="button" className={
                 'grid size-11 cursor-pointer appearance-none place-items-center rounded-full border-0 bg-p-surface p-0 text-p-accent transition-[scale,background-color] duration-160 ease-[ease] ' +
-                'hover:scale-[1.06] hover:bg-[#fff] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#fff] ' +
+                'hover:scale-[1.06] hover:bg-white active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white ' +
                 'md:size-12 md:bg-[rgb(255_255_255/0.92)] md:shadow-[0_6px_20px_-8px_rgb(10_16_48/0.45)]'
               } aria-label="Previous office" onClick={() => go(index - 1)}>
               <svg className="size-5 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]" viewBox="0 0 20 20" aria-hidden="true">
@@ -115,13 +127,22 @@ export function Offices({ offices, title, lead }: OfficesProps) {
             </button>
             <button type="button" className={
                 'grid size-11 cursor-pointer appearance-none place-items-center rounded-full border-0 bg-p-surface p-0 text-p-accent transition-[scale,background-color] duration-160 ease-[ease] ' +
-                'hover:scale-[1.06] hover:bg-[#fff] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#fff] ' +
+                'hover:scale-[1.06] hover:bg-white active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white ' +
                 'md:size-12 md:bg-[rgb(255_255_255/0.92)] md:shadow-[0_6px_20px_-8px_rgb(10_16_48/0.45)]'
               } aria-label="Next office" onClick={() => go(index + 1)}>
               <svg className="size-5 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]" viewBox="0 0 20 20" aria-hidden="true">
                 <path d="M7.5 4.5 13 10l-5.5 5.5" />
               </svg>
             </button>
+            {count > 1 && !reduced && (
+              <button type="button" className={
+                  'grid size-11 cursor-pointer appearance-none place-items-center rounded-full border-0 bg-p-surface p-0 text-p-accent transition-[scale,background-color] duration-160 ease-[ease] ' +
+                  'hover:scale-[1.06] hover:bg-white active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white ' +
+                  'md:size-12 md:bg-[rgb(255_255_255/0.92)] md:shadow-[0_6px_20px_-8px_rgb(10_16_48/0.45)]'
+                } aria-label={paused ? 'Play the office slideshow' : 'Pause the office slideshow'} onClick={() => setPaused(p => !p)}>
+                {paused ? <Play className="size-5" aria-hidden="true" /> : <Pause className="size-5" aria-hidden="true" />}
+              </button>
+            )}
           </div>
         </div>
         <div className="mt-[84px] flex flex-wrap justify-center gap-x-[18px] gap-y-1 md:mt-7 md:gap-x-7" role="group" aria-label="Pick an office">
@@ -138,7 +159,7 @@ export function Offices({ offices, title, lead }: OfficesProps) {
             </button>
           ))}
         </div>
-        <p className="sr-only" aria-live="polite">
+        <p className="sr-only" aria-live={running ? 'off' : 'polite'}>
           {current?.label}, office {index + 1} of {count}
         </p>
       </div>

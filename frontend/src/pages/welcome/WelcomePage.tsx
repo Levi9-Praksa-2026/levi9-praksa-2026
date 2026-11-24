@@ -4,7 +4,7 @@
  */
 import { PageShell } from '@/pages/welcome/ui/layout/PageShell'
 import { routes } from '@/shared/config/routes'
-import { SAMPLE_COMMUNITIES, SAMPLE_POSTS, SAMPLE_THREAD, samplePost } from '@/features/posts/sample'
+import { SAMPLE_COMMUNITIES, SAMPLE_POSTS, SAMPLE_THREAD, samplePost } from '@/pages/welcome/ui/samples/sample'
 import { footerColumns, globeFocus, globePlaces, joinSteps, navItems, offices, site } from '@/pages/welcome/content'
 import { Communities } from '@/pages/welcome/sections/Communities'
 import { JoinAnywhere } from '@/pages/welcome/sections/JoinAnywhere'

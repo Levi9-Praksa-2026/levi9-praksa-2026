@@ -17,8 +17,8 @@ import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -30,21 +30,13 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 @Service
 @Transactional
+@Slf4j
+@RequiredArgsConstructor
 public class PostCommandService {
-    private static final Logger log = LoggerFactory.getLogger(PostCommandService.class);
-
     private final PostRepository posts;
     private final CommunityDirectory communities;
     private final ImageStorage imageStorage;
     private final Clock clock;
-
-    public PostCommandService(
-            PostRepository posts, CommunityDirectory communities, ImageStorage imageStorage, Clock clock) {
-        this.posts = posts;
-        this.communities = communities;
-        this.imageStorage = imageStorage;
-        this.clock = clock;
-    }
 
     /**
      * Creates a post with up to three images. Everything that can reject the request (images, community,

@@ -5,6 +5,7 @@ describe('cn', () => {
   it('keeps a theme font size next to a theme colour', () => {
     expect(cn('text-h2', 'text-ink')).toBe('text-h2 text-ink')
     expect(cn('text-label', 'text-p-muted')).toBe('text-label text-p-muted')
+    expect(cn('text-ui', 'text-white')).toBe('text-ui text-white')
   })
 
   it('lets the later class win inside one group', () => {
@@ -15,6 +16,12 @@ describe('cn', () => {
     expect(cn('text-body', 'text-h3')).toBe('text-h3')
     expect(cn('bg-surface', 'bg-card')).toBe('bg-card')
     expect(cn('max-w-container', 'max-w-measure')).toBe('max-w-measure')
+    expect(cn('bg-canvas', 'bg-bg')).toBe('bg-bg')
+    expect(cn('bg-surface', 'bg-white')).toBe('bg-white')
+    expect(cn('text-small', 'text-ui')).toBe('text-ui')
+    expect(cn('h-app-bar', 'h-12')).toBe('h-12')
+    expect(cn('w-sidebar', 'w-rail')).toBe('w-rail')
+    expect(cn('max-w-feed', 'max-w-measure')).toBe('max-w-measure')
   })
 
   it('keeps a font family next to a font weight', () => {

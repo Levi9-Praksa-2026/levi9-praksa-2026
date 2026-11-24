@@ -16,9 +16,27 @@ export interface NavSheet {
 }
 
 /**
+ * Hides an item's menu after Escape: `data-dismissed` switches the item-open variant off (theme.css)
+ * until focus leaves the item or the pointer leaves it. React does not render this attribute, so a
+ * re-render never clears it early.
+ */
+function dismiss(item: HTMLElement): void {
+  item.dataset.dismissed = ''
+  const reset = (e: Event) => {
+    if (e instanceof FocusEvent && e.relatedTarget instanceof Node && item.contains(e.relatedTarget)) return
+    delete item.dataset.dismissed
+    item.removeEventListener('focusout', reset)
+    item.removeEventListener('pointerleave', reset)
+  }
+  item.addEventListener('focusout', reset)
+  item.addEventListener('pointerleave', reset)
+}
+
+/**
  * The nav's state: the phone sheet with its accordion, closed by
  * Escape (focus back on the toggle), by a tap on any link in it and by reaching the desktop width;
- * the body locked while it is open; and the desktop menu intent (150ms).
+ * the body locked and the rest of the page inert while it is open (it is a modal); the desktop menu
+ * intent (150ms); and Escape on a desktop menu, which closes it and leaves focus on its item's link.
  */
 export function useNavSheet(navRef: RefObject<HTMLElement | null>, toggleRef: RefObject<HTMLButtonElement | null>): NavSheet {
   const [open, setOpenState] = useState(false)
@@ -56,16 +74,32 @@ export function useNavSheet(navRef: RefObject<HTMLElement | null>, toggleRef: Re
     return () => document.body.classList.remove('max-lg:overflow-hidden')
   }, [open])
 
-  // Escape closes the sheet (focus back on the toggle) or leaves the bar
+  // the open sheet is a modal: everything beside the header (main, footer) is inert until it closes
+  useEffect(() => {
+    const header = navRef.current
+    if (!open || !header?.parentElement) return
+    const others = [...header.parentElement.children].filter((el): el is HTMLElement => el !== header && el instanceof HTMLElement && !el.inert)
+    others.forEach(el => (el.inert = true))
+    return () => others.forEach(el => (el.inert = false))
+  }, [open, navRef])
+
+  // Escape closes the sheet (focus back on the toggle), or the desktop menu that is showing
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       if (open) {
         setOpen(false)
         toggleRef.current?.focus()
-      } else if (navRef.current?.contains(document.activeElement) && document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur()
+        return
       }
+      const nav = navRef.current
+      const focused = document.activeElement instanceof HTMLElement && nav?.contains(document.activeElement) ? document.activeElement : null
+      const item = focused?.closest<HTMLElement>('.nav-item') ?? nav?.querySelector<HTMLElement>('.nav-item:hover')
+      if (!item) return
+      dismiss(item)
+      setMenuOpen(false)
+      // focus stays in the bar, on the item whose menu just closed (not lost to the page)
+      if (focused) item.querySelector<HTMLElement>('a[href]')?.focus()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)

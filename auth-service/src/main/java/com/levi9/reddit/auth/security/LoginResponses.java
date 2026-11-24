@@ -4,7 +4,6 @@ import com.levi9.reddit.auth.dto.LoginDTO;
 import com.levi9.reddit.auth.exception.ErrorType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,8 +32,8 @@ import java.util.Map;
  *   admin's reason: only someone who knows the password learns of the ban.</li>
  * </ul>
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-class LoginResponses implements AuthenticationSuccessHandler, AuthenticationFailureHandler {
+@RequiredArgsConstructor
+public class LoginResponses implements AuthenticationSuccessHandler, AuthenticationFailureHandler {
     /** The gateway's {@code oauth2Login} entry point for the {@code levddit} registration. */
     static final String GATEWAY_LOGIN_START = "/oauth2/authorization/levddit";
 

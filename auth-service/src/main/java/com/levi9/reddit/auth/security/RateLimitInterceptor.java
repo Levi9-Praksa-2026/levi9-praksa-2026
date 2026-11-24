@@ -3,7 +3,6 @@ package com.levi9.reddit.auth.security;
 import com.levi9.reddit.auth.exception.TooManyRequestsException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -11,8 +10,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * Limits how often one client IP may call an MVC endpoint (register), so nobody can check many emails quickly.
  * Runs before the request body is read and validated: a blocked request costs no BCrypt, and invalid requests count.
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-class RateLimitInterceptor implements HandlerInterceptor {
+@RequiredArgsConstructor
+public class RateLimitInterceptor implements HandlerInterceptor {
     private final RateLimiter limiter;
 
     @Override

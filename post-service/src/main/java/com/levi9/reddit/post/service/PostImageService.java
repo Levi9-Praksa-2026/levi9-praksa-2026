@@ -2,18 +2,16 @@ package com.levi9.reddit.post.service;
 
 import com.levi9.reddit.post.entity.Post;
 import com.levi9.reddit.post.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
 
 @Service
+@RequiredArgsConstructor
 public class PostImageService {
     private final PostRepository posts;
-
-    public PostImageService(PostRepository posts) {
-        this.posts = posts;
-    }
 
     @Transactional
     public void addImage(Long postId, String s3Key) {

@@ -93,6 +93,11 @@ public class User {
         this.passwordChangedAt = Objects.requireNonNull(changedAt, "changedAt");
     }
 
+    /** The only way a role changes; nothing calls it outside the dev profile yet. */
+    public void grantAdmin() {
+        this.role = UserRole.ADMIN;
+    }
+
     public void delete() {
         this.deleted = true;
     }

@@ -1,7 +1,7 @@
-import type { Community, Post, Reply } from '@/features/posts/types'
+import type { SampleCommunity, SamplePost, SampleReply } from '@/pages/welcome/ui/samples/types'
 
 /** Sample data for the welcome page and for lab screens. Not real people and not real threads. */
-export const SAMPLE_COMMUNITIES: readonly Community[] = [
+export const SAMPLE_COMMUNITIES: readonly SampleCommunity[] = [
   { slug: 'frontend', blurb: 'Components, tooling and the browser.' },
   { slug: 'backend', blurb: 'Services, databases and APIs.' },
   { slug: 'devops', blurb: 'Pipelines, cloud and on-call.' },
@@ -11,7 +11,7 @@ export const SAMPLE_COMMUNITIES: readonly Community[] = [
   { slug: 'sports', blurb: 'Matches, runs and office leagues.' },
 ]
 
-export const SAMPLE_POSTS: readonly Post[] = [
+export const SAMPLE_POSTS: readonly SamplePost[] = [
   { id: 'p-frontend', community: 'frontend', title: 'Which test runner for a new React project?', author: 'colleague_one', office: 'Serbia', votes: 42, replies: 18, age: '2 h' },
   { id: 'p-frontend-2', community: 'frontend', title: 'CSS modules, Tailwind or something else?', author: 'colleague_eight', office: 'Ukraine', votes: 36, replies: 25, age: '9 h' },
   { id: 'p-frontend-3', community: 'frontend', title: 'How do you test accessibility?', author: 'colleague_nine', office: 'Netherlands', votes: 21, replies: 11, age: '1 d' },
@@ -30,14 +30,14 @@ export const SAMPLE_POSTS: readonly Post[] = [
   { id: 'p-sports-2', community: 'sports', title: 'Running club: Thursday after work', author: 'colleague_fifteen', office: 'Romania', votes: 11, replies: 5, age: '1 d' },
 ]
 
-export function samplePost(community: Community['slug']): Post {
+export function samplePost(community: SampleCommunity['slug']): SamplePost {
   const post = SAMPLE_POSTS.find(p => p.community === community)
   if (!post) throw new Error(`No sample post for l/${community}`)
   return post
 }
 
 /** A sample thread under the first l/frontend post, with replies from three other offices. */
-export const SAMPLE_THREAD: readonly Reply[] = [
+export const SAMPLE_THREAD: readonly SampleReply[] = [
   { id: 'r-1', author: 'colleague_eight', office: 'Ukraine', body: 'Vitest. Same config as Vite, and the watch mode is fast.', votes: 24, age: '1 h' },
   { id: 'r-2', author: 'colleague_one', office: 'Serbia', body: 'Does it play well with Testing Library?', votes: 6, age: '50 min', depth: 1 },
   { id: 'r-3', author: 'colleague_nine', office: 'Netherlands', body: 'It does, we switched last sprint. Happy to share our setup.', votes: 11, age: '40 min', depth: 1 },

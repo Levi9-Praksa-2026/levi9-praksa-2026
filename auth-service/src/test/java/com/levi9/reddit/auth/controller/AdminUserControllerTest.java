@@ -4,7 +4,7 @@ import com.levi9.reddit.auth.exception.ConflictException;
 import com.levi9.reddit.auth.exception.ErrorType;
 import com.levi9.reddit.auth.exception.ForbiddenException;
 import com.levi9.reddit.auth.exception.NotFoundException;
-import com.levi9.reddit.auth.security.UserApiSecurityConfig;
+import com.levi9.reddit.auth.config.UserApiSecurityConfig;
 import com.levi9.reddit.auth.service.UserBanService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
