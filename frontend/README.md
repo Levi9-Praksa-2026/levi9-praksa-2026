@@ -13,7 +13,7 @@ npm run build   # type check + production build into dist/
 ## Layout
 
 - `src/app/`: entry point, router and layouts. `app/shell/` is the forum frame (top bar, sidebar, community
-  search) every forum screen renders in; login and register render outside it.
+  search) every forum screen renders in; sign-in and sign-up (`pages/auth`) render outside it.
 - `src/pages/`: one folder per route (`home`, `community`, `auth`, `not-found`).
 - `src/pages/welcome/` + `welcome/index.html`: the welcome page at `/welcome/`. It is a separate document,
   not a React Router route, so links to it reload the page. The 3D globe (three.js) loads lazily and only there.
@@ -49,7 +49,9 @@ All paths live in `src/shared/config/routes.ts`.
   The mock starts logged in as `demo_user`; `mockSignInAs('admin')` or `mockSignInAs(null)` switches.
 
 When the backend is ready, each function body becomes a request; the signatures and the pages stay.
-Login and register are not here: they come with the new auth flow.
+`auth.ts` is already real: who is logged in (`GET /api/me`), log out, and the sign-in and sign-up calls with
+auth-service's own CSRF token. "Log in" is a page load to `routes.login` (the gateway's OAuth start), which
+comes back through `/signin`.
 
 ## Styling
 
@@ -89,7 +91,7 @@ Rules of thumb:
 ## Docker
 
 The image builds the static site and serves it with nginx. `nginx.conf` sends every unknown path to
-`index.html`, so refreshing a route such as `/login` works, and
+`index.html`, so refreshing a route such as `/signin` works, and
 `/welcome` redirects to `/welcome/` (`absolute_redirect off` keeps the host and port).
 nginx also forwards the gateway's paths (`/api/`, `/oauth2/`, `/login/oauth2/`, `/logout`, `/connect/`,
 `/.well-known/`, Swagger) to the gateway, so the app and the API share one origin and every call is relative.
