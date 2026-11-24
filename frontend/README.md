@@ -78,4 +78,7 @@ Rules of thumb:
 The image builds the static site and serves it with nginx. `nginx.conf` sends every unknown path to
 `index.html`, so refreshing a route such as `/login` works, and
 `/welcome` redirects to `/welcome/` (`absolute_redirect off` keeps the host and port).
-`VITE_API_URL` (the gateway URL) is baked in at build time.
+nginx also forwards the gateway's paths (`/api/`, `/oauth2/`, `/login/oauth2/`, `/logout`, `/connect/`,
+`/.well-known/`, Swagger) to the gateway, so the app and the API share one origin and every call is relative.
+`npm run dev` does the same on port 3000 (`server.proxy` in `vite.config.ts`), against a gateway on `localhost:8080`.
+In AWS the load balancer (or CloudFront) does this routing instead.
