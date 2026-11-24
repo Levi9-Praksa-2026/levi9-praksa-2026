@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, type Plugin, type ProxyOptions } from 'vite'
 
 /** `/welcome` (no slash) would fall back to the app's index.html; send it to the welcome document. */
 const welcomeSlash: Plugin = {
@@ -25,7 +25,20 @@ const welcomeSlash: Plugin = {
  * matches /logout exactly. Everything else, /signin and /signup included, is the React app.
  */
 const gatewayPaths = ['/api', '/oauth2', '/login/oauth2', '^/logout$', '/connect', '/.well-known', '/swagger-ui', '/v3/api-docs']
-const toGateway = { target: 'http://localhost:8080', xfwd: true } // Host stays localhost:3000 (no changeOrigin)
+/**
+ * The same headers nginx.conf sends: Host stays localhost:3000 (no changeOrigin), plus X-Forwarded-For and -Proto.
+ * Not `xfwd: true`: it also adds X-Forwarded-Host and -Port, and with those the gateway hands auth-service a host
+ * it builds its own address from, so "Log in" redirected the browser to http://auth-service/signin.
+ */
+const toGateway: ProxyOptions = {
+  target: 'http://localhost:8080',
+  configure: proxy => {
+    proxy.on('proxyReq', (request, incoming) => {
+      request.setHeader('X-Forwarded-For', incoming.socket.remoteAddress ?? '')
+      request.setHeader('X-Forwarded-Proto', 'http')
+    })
+  },
+}
 
 // Two documents: the forum app at / (index.html) and the welcome page at /welcome (welcome/index.html).
 // Both load src/shared/styles/index.css; motion, section grounds and three.js load on the welcome page only.
