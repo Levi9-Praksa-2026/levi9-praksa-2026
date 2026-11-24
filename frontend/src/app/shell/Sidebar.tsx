@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router'
 import { ChevronDown, Home, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react'
+import type { UseQueryResult } from '@tanstack/react-query'
 import type { CommunityResponse } from '@/shared/api/contracts/communities'
 import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
 import { routes } from '@/shared/config/routes'
@@ -12,7 +13,7 @@ export interface SidebarProps {
   variant: 'open' | 'rail' | 'drawer'
   /** Logged in: show "My communities". */
   loggedIn: boolean
-  communities: { data: CommunityResponse[] | undefined; loading: boolean; error: unknown; retry: () => void }
+  communities: Pick<UseQueryResult<CommunityResponse[]>, 'data' | 'error' | 'isLoading' | 'refetch'>
   /** Desktop: collapse or expand. Drawer: close. */
   onToggle: () => void
 }
@@ -80,16 +81,16 @@ export function Sidebar({ id, variant, loggedIn, communities, onToggle }: Sideba
             </h2>
           )}
           <div id={listId} hidden={!rail && !mineOpen} className="flex flex-col gap-0.5">
-            {communities.loading && <CommunitySkeleton rail={rail} />}
-            {!communities.loading && communities.error != null && (
+            {communities.isLoading && <CommunitySkeleton rail={rail} />}
+            {!communities.isLoading && communities.error != null && (
               rail ? null : (
                 <p className="px-3 py-2 text-small text-muted">
                   Couldn't load your communities.{' '}
-                  <button type="button" className="cursor-pointer font-medium text-accent underline underline-offset-2" onClick={communities.retry}>Try again</button>
+                  <button type="button" className="cursor-pointer font-medium text-accent underline underline-offset-2" onClick={() => void communities.refetch()}>Try again</button>
                 </p>
               )
             )}
-            {!communities.loading && communities.error == null && communities.data?.length === 0 && !rail && (
+            {!communities.isLoading && communities.error == null && communities.data?.length === 0 && !rail && (
               <p className="px-3 py-2 text-small text-muted">You haven't joined any communities yet.</p>
             )}
             {communities.data?.map(c => (

@@ -36,7 +36,13 @@ All paths live in `src/shared/config/routes.ts`.
   send yet; it changes once the team decides.
 - `communities.ts`, `posts.ts`, `users.ts`: one async function per endpoint, named after what it does
   (`listPosts`, `votePost`, `joinCommunity`), with the method and path in its comment. Pages call only these.
-- `errors.ts`: every failure is an `ApiError` with the backend's problem details (`status`, `errorType`, `errors`).
+- `http.ts`: the one `fetch` wrapper real requests go through: cookies, the `X-XSRF-TOKEN` header on writes,
+  errors turned into `ApiError`.
+- `errors.ts`: every failure is an `ApiError` with the backend's problem details (`status`, `errorType`, `errors`,
+  and `retryAfter` when the server says to wait).
+- `queryKeys.ts`: the TanStack Query keys. Screens read server data through `useQuery` hooks in `src/features`;
+  the client in `src/app/queryClient.ts` decides what is retried (never a 4xx; a 503 waits for `Retry-After`)
+  and asks "who's logged in" again after any 401.
 - `mock/`: for now the functions answer from in-memory data with the services' rules (401 without a login,
   403 for a non-member, 404 for a removed post, 409 for a taken name, 422 for voting on your own post)
   after a fake 150 to 400 ms delay, so every screen gets a loading state from the start.
