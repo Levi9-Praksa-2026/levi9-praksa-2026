@@ -7,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -24,16 +25,11 @@ import java.util.Optional;
  * <p>
  * Created in {@link SecurityConfig}, not as a bean: a {@code Filter} bean would also be registered for every request.
  */
-class LoginRateLimitFilter extends OncePerRequestFilter {
+@RequiredArgsConstructor
+public class LoginRateLimitFilter extends OncePerRequestFilter {
     private final RequestMatcher login;
     private final RateLimiter limiter;
     private final JsonMapper json;
-
-    LoginRateLimitFilter(RequestMatcher login, RateLimiter limiter, JsonMapper json) {
-        this.login = login;
-        this.limiter = limiter;
-        this.json = json;
-    }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {

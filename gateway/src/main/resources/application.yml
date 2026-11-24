@@ -2,11 +2,12 @@ server:
   port: 8080
   servlet:
     session:
-      # The browser's only credential. Not readable by scripts, not sent on cross-site requests. Production also
-      # needs secure: true (HTTPS only): see docs/production-changes.md.
+      # The browser's only credential. Not readable by scripts, not sent on cross-site requests, only sent over
+      # HTTPS (the dev profile allows plain http://localhost).
       cookie:
         http-only: true
         same-site: lax
+        secure: true
 
 spring:
   application:
@@ -68,7 +69,14 @@ spring:
 app:
   oauth:
     # The origin the browser sees (frontend, gateway and auth-service behind one address). auth-service's issuer.
-    public-url: ${APP_PUBLIC_URL:http://localhost:3000}
+    public-url: ${APP_PUBLIC_URL}   # required; the dev profile falls back to http://localhost:3000
     # Where the gateway reaches auth-service itself, for the code exchange, refresh and the signing key.
     auth-service-url: ${AUTH_SERVICE_URL:http://localhost:8081}
     client-secret: ${APP_OAUTH_GATEWAY_CLIENT_SECRET:}   # required; the same value auth-service has
+
+# Swagger UI is a dev tool: off here, on in application-dev.yml.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

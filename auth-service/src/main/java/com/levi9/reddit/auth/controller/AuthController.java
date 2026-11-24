@@ -5,6 +5,7 @@ import com.levi9.reddit.auth.dto.UserProfileDTO;
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.service.AuthService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,12 +18,9 @@ import java.net.URI;
 /** Registration. Public (see {@code SecurityConfig}). Login is Spring Security's form login, not a controller. */
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
     private final AuthService auth;
-
-    public AuthController(AuthService auth) {
-        this.auth = auth;
-    }
 
     /** {@code 201} with the new user and {@code Location} pointing at their public profile. No tokens. */
     @PostMapping("/register")

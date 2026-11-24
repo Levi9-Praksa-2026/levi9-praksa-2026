@@ -17,10 +17,7 @@ import org.springframework.data.repository.query.Param;
  */
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select u from User u where u.id = :id")
-    Optional<User> findByIdForUpdate(@Param("id") Long id);
-
+    /** Locks the row until the transaction ends ({@code select ... for update}). Use it before changing a user. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<User> findUserById(Long id);
 

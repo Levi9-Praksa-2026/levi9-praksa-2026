@@ -1,5 +1,6 @@
 package com.levi9.reddit.auth.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
@@ -15,14 +16,10 @@ import org.springframework.stereotype.Component;
  * name is the user id (see {@code UserAccountService}). Runs in the caller's transaction.
  */
 @Component
+@RequiredArgsConstructor
 public class AuthorizationRevoker {
     private final JdbcTemplate jdbc;
     private final OAuth2AuthorizationService authorizations;
-
-    public AuthorizationRevoker(JdbcTemplate jdbc, OAuth2AuthorizationService authorizations) {
-        this.jdbc = jdbc;
-        this.authorizations = authorizations;
-    }
 
     /** Every login of the user: account deleted, banned. */
     public int revokeAllOf(long userId) {

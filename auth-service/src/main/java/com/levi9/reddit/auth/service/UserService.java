@@ -12,25 +12,22 @@ import com.levi9.reddit.auth.exception.UnauthorizedException;
 import com.levi9.reddit.auth.exception.UserBannedException;
 import com.levi9.reddit.auth.repository.UserRepository;
 import com.levi9.reddit.auth.security.AuthorizationRevoker;
-import java.time.Instant;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.Optional;
+
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository users;
     private final AuthorizationRevoker authorizations;
     private final PasswordEncoder passwords;
-
-    public UserService(UserRepository users, AuthorizationRevoker authorizations, PasswordEncoder passwords) {
-        this.users = users;
-        this.authorizations = authorizations;
-        this.passwords = passwords;
-    }
 
     @Transactional(readOnly = true)
     public UserProfileDTO getProfile(Long userId) {
@@ -39,7 +36,7 @@ public class UserService {
 
     @Transactional
     public UserProfileDTO updateProfile(Long userId, UpdateUserDTO request) {
-        User user = requireProfileUser(users.findByIdForUpdate(userId));
+        User user = requireProfileUser(users.findUserById(userId));
         String email = request.getEmail();
         if (email != null && !email.equals(user.getEmail())) {
             verifyPassword(user, request.getCurrentPassword());
@@ -60,7 +57,7 @@ public class UserService {
 
     @Transactional
     public void delete(Long userId, String password) {
-        User user = requireExistingUser(users.findByIdForUpdate(userId));
+        User user = requireExistingUser(users.findUserById(userId));
         if (user.getRole() != UserRole.USER) {
             throw new ForbiddenException(ErrorType.ACCOUNT_DELETION_FORBIDDEN, "This account cannot be deleted");
         }

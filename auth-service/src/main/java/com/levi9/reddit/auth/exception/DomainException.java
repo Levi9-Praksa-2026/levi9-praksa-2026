@@ -1,5 +1,7 @@
 package com.levi9.reddit.auth.exception;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /**
@@ -8,6 +10,7 @@ import java.util.Objects;
  * Sealed so the API layer's status mapping is checked by the compiler: a new subtype must be added to
  * {@code permits}, and every exhaustive switch over it then fails to compile until it is mapped.
  */
+@Getter
 public abstract sealed class DomainException extends RuntimeException
         permits UnauthorizedException, ForbiddenException, ConflictException, NotFoundException,
         TooManyRequestsException {
@@ -16,9 +19,5 @@ public abstract sealed class DomainException extends RuntimeException
     protected DomainException(ErrorType errorType, String detail) {
         super(detail);
         this.errorType = Objects.requireNonNull(errorType, "errorType");
-    }
-
-    public ErrorType getErrorType() {
-        return errorType;
     }
 }

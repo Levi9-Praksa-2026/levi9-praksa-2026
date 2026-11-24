@@ -1,0 +1,36 @@
+# Local development. docker compose turns this profile on; in IntelliJ, put "dev" in the run configuration's
+# Active profiles. Never active in production: see docs/production-changes.md.
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false   # http://localhost has no HTTPS
+
+spring:
+  datasource:   # compose's Postgres from the host; inside compose, SPRING_DATASOURCE_* point at the postgres container
+    url: jdbc:postgresql://localhost:5432/reddit
+    username: reddit
+    password: reddit_local
+
+app:
+  oauth:
+    public-url: ${APP_PUBLIC_URL:http://localhost:3000}
+    client-secret: ${APP_OAUTH_GATEWAY_CLIENT_SECRET:local-gateway-secret}   # auth-service's dev profile has the same value
+
+# Swagger UI for every service at http://localhost:8080/swagger-ui.html. Each service's OpenAPI document comes through
+# the gateway (ApiDocsRoutes), and "Try it out" calls go through the normal routes, so they carry the session's token.
+springdoc:
+  api-docs:
+    enabled: true   # the UI loads its settings from /v3/api-docs/swagger-config
+  swagger-ui:
+    enabled: true
+    csrf:
+      enabled: true   # sends the XSRF-TOKEN cookie back as X-XSRF-TOKEN; the gateway requires it on writes
+    urls-primary-name: community-service
+    urls:
+      - name: community-service
+        url: /api-docs/community
+      - name: post-service
+        url: /api-docs/post
+      - name: auth-service
+        url: /api-docs/auth

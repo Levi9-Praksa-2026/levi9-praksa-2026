@@ -8,9 +8,11 @@ import com.levi9.reddit.auth.exception.ForbiddenException;
 import com.levi9.reddit.auth.exception.NotFoundException;
 import com.levi9.reddit.auth.repository.UserRepository;
 import com.levi9.reddit.auth.security.AuthorizationRevoker;
-import java.time.Instant;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 
 /**
  * Admin ban and unban. A ban ends every login of the user at once: their authorizations are deleted, so the gateway's
@@ -19,14 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
  * An unban brings no session back: the user logs in again.
  */
 @Service
+@RequiredArgsConstructor
 public class UserBanService {
     private final UserRepository users;
     private final AuthorizationRevoker authorizations;
-
-    public UserBanService(UserRepository users, AuthorizationRevoker authorizations) {
-        this.users = users;
-        this.authorizations = authorizations;
-    }
 
     @Transactional
     public void ban(String username, Long adminId, String reason) {

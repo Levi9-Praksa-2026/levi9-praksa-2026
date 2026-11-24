@@ -10,8 +10,7 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,9 +33,8 @@ import java.util.UUID;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(JwtProperties.class)
+@Slf4j
 public class JwtKeyConfig {
-    private static final Logger log = LoggerFactory.getLogger(JwtKeyConfig.class);
-
     @Bean
     RSAKey jwtSigningKey(JwtProperties properties) {
         if (StringUtils.hasText(properties.privateKey())) {

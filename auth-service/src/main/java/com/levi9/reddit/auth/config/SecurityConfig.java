@@ -1,6 +1,7 @@
 package com.levi9.reddit.auth.config;
 
 import com.levi9.reddit.auth.security.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -25,29 +26,28 @@ import java.time.Clock;
  */
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
-    static final String LOGIN_URL = "/api/auth/login";
     /** The React login page. Form login only needs it so it doesn't generate a login page of its own. */
     private static final String SIGN_IN_PAGE = "/signin";
-    private static final RequestMatcher LOGIN = PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, LOGIN_URL);
     private static final RequestMatcher REGISTER =
             PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/api/auth/register");
 
     @Bean
     @Order(3)
-    SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimitProperties limits, Clock clock, JsonMapper json)
-            throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimitProperties limits, Clock clock, JsonMapper json,
+            @Value("${app.auth.login-url}") String loginUrl) throws Exception {
+        RequestMatcher login = PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, loginUrl);
         LoginResponses loginResponses = new LoginResponses(json);
         http
                 // Only the two cookie-based POSTs need it: the token comes from GET /api/auth/csrf and is kept in the
                 // session. Requests with a bearer token carry no cookie a forged request could ride on.
-                .csrf(csrf -> csrf.requireCsrfProtectionMatcher(new OrRequestMatcher(LOGIN, REGISTER)))
+                .csrf(csrf -> csrf.requireCsrfProtectionMatcher(new OrRequestMatcher(login, REGISTER)))
                 .formLogin(form -> form
                         .loginPage(SIGN_IN_PAGE)
-                        .loginProcessingUrl(LOGIN_URL)
+                        .loginProcessingUrl(loginUrl)
                         .usernameParameter("email")
                         .successHandler(loginResponses)
                         .failureHandler(loginResponses))
-                .addFilterBefore(new LoginRateLimitFilter(LOGIN, new RateLimiter(limits.login(), clock), json),
+                .addFilterBefore(new LoginRateLimitFilter(login,new RateLimiter(limits.login(), clock), json),
                         CsrfFilter.class)
                 // An API, not pages: a request that needs a login gets 401, never a redirect to the login page.
                 .exceptionHandling(exceptions -> exceptions
