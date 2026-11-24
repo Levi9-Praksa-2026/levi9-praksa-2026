@@ -45,7 +45,8 @@
 		</dependency>
 		<!-- The HTTP client the gateway forwards requests with. Without it Spring Boot falls back to the JDK client,
 		     which now and then fails a forwarded request with an empty body (NPE in Http1Exchange.requestMoreBody).
-		     Nothing imports it: Spring Boot detects it on the classpath. -->
+		     Spring Boot detects it on the classpath. Its cookie jar is turned off in ProxyClientConfig: the gateway
+		     must never keep cookies of its own. -->
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>
 			<artifactId>httpclient5</artifactId>

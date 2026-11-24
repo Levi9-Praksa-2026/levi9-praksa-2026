@@ -50,6 +50,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -254,6 +256,22 @@ class GatewayBffTests {
         assertThat(sessions.findById(session.getId())).isNull();
     }
 
+    // --- Cookies ---
+
+    @Test
+    void oneBrowsersAuthServiceCookieNeverReachesAnotherBrowser() throws Exception {
+        // A browser without cookies: auth-service starts a login session, and its cookie goes back to that browser,
+        // next to the gateway's own XSRF-TOKEN.
+        mvc.perform(get("/api/auth/csrf"))
+                .andExpect(status().isOk())
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(startsWith("JSESSIONID=first-browser"))));
+
+        // Another browser without cookies must reach auth-service without the first one's session.
+        mvc.perform(get("/api/auth/csrf")).andExpect(status().isOk());
+
+        assertThat(BACKEND.cookieByPath.get("/api/auth/csrf")).isEmpty();
+    }
+
     // --- CSRF ---
 
     @Test
@@ -374,7 +392,8 @@ class GatewayBffTests {
      * Stands in for auth-service and the services: records each path's Authorization header and answers 200,
      * except the token endpoint. It refreshes {@code good-refresh}, drops the connection for
      * {@code auth-unreachable} (a restart or network failure), answers 500 for {@code auth-error}, and refuses
-     * anything else with {@code invalid_grant}.
+     * anything else with {@code invalid_grant}. It also sets a login cookie on {@code /api/auth/csrf}, as
+     * auth-service does.
      */
     private record Backend(HttpServer server, Map<String, String> authorizationByPath,
                            Map<String, String> cookieByPath) {
@@ -423,6 +442,9 @@ class GatewayBffTests {
             authorizationByPath.put(path, authorization == null ? "" : authorization);
             String cookie = exchange.getRequestHeaders().getFirst(HttpHeaders.COOKIE);
             cookieByPath.put(path, cookie == null ? "" : cookie);
+            if (path.equals("/api/auth/csrf")) {
+                exchange.getResponseHeaders().add(HttpHeaders.SET_COOKIE, "JSESSIONID=first-browser; Path=/; HttpOnly");
+            }
             respond(exchange, 200, "{}");
         }
 
