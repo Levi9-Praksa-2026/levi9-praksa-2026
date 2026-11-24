@@ -45,4 +45,13 @@ public class CommunityMembershipService {
         members.deleteById(memberId);
         community.updateMemberCount(community.getMemberCount() - 1);
     }
+
+    /** Internal membership check: a missing or inactive community is a 404, a non-member is simply false. */
+    @Transactional(readOnly = true)
+    public boolean isMember(long communityId, long userId) {
+        Community community = communities.findById(communityId)
+                .filter(Community::isActive)
+                .orElseThrow(() -> new CommunityNotFoundException(communityId));
+        return members.existsById(new CommunityMemberId(community.getId(), userId));
+    }
 }

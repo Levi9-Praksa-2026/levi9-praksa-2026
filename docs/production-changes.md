@@ -113,6 +113,12 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 
 ## community-service
 
+### Internal endpoints
+- Internal endpoints (`/internal/`) rely on network isolation; community-service must never be exposed publicly and gateway must never route `/internal/`.
+- **Production:** keep community-service inside the private network only: do not publish its port and do not add a
+  `/internal/**` route to the gateway. These calls carry no user token and no service secret, so the network boundary
+  is the only control.
+
 ### Mock authentication
 - **Local:** the dev profile sets `app.mock-auth.enabled: true`, which puts a hard-coded `ROLE_ADMIN` caller with
   user id `1` into the security context, but only for requests without an access token: a real token always wins.
@@ -141,7 +147,7 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
   including ADMIN, by sending a header.
 
 ### Community stub
-- **Local:** community-service does not have the `/internal/communities/...` endpoints yet, so
+- **Local:** post-service has no HTTP client for community-service's `/internal/communities/...` endpoints yet, so
   `APP_COMMUNITYSTUB_ENABLED=true` replaces those calls with a stub: every community is active and every user is a
   member of every community. `APP_COMMUNITYSTUB_UNAVAILABLECOMMUNITYIDS` and `APP_COMMUNITYSTUB_NONMEMBERUSERIDS`
   (comma-separated ids, `999` in `docker-compose.yml`) carve out exceptions, so creating a post in community `999`

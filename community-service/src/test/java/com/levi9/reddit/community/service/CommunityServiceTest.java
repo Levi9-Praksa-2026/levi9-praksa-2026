@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.levi9.reddit.community.dto.CommunityDTO;
 import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
+import com.levi9.reddit.community.dto.InternalCommunityDTO;
 import com.levi9.reddit.community.dto.PageDTO;
 import com.levi9.reddit.community.entity.Community;
 import com.levi9.reddit.community.exception.CommunityNotFoundException;
@@ -118,6 +119,32 @@ class CommunityServiceTest {
         assertThatThrownBy(() -> service.getCommunity("missing"))
                 .isInstanceOf(CommunityNotFoundException.class)
                 .hasMessage("Community not found: missing");
+    }
+
+    @Test
+    void getActiveById_returnsNameAndStatus() {
+        Community community = new Community("backend", 1L);
+        when(communities.findById(7L)).thenReturn(Optional.of(community));
+
+        InternalCommunityDTO result = service.getActiveById(7L);
+
+        assertThat(result).isEqualTo(new InternalCommunityDTO("backend", true));
+    }
+
+    @Test
+    void getActiveById_missingOrInactive_throwsNotFound() {
+        when(communities.findById(7L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getActiveById(7L))
+                .isInstanceOf(CommunityNotFoundException.class)
+                .hasMessage("Community not found by id: 7");
+
+        Community inactive = new Community("backend", 1L);
+        inactive.deactivate();
+        when(communities.findById(8L)).thenReturn(Optional.of(inactive));
+
+        assertThatThrownBy(() -> service.getActiveById(8L))
+                .isInstanceOf(CommunityNotFoundException.class);
     }
 
     @Test
