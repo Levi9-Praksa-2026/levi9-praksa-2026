@@ -2,7 +2,6 @@ package com.levi9.reddit.community.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.levi9.reddit.community.security.MockAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
