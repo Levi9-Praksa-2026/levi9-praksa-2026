@@ -2,12 +2,14 @@ import { createBrowserRouter } from 'react-router'
 import { COMMUNITY_PATTERN, routes } from '@/shared/config/routes'
 import { HomePage } from '@/pages/home/HomePage'
 import { CommunityPage } from '@/pages/community/CommunityPage'
-import { AuthPage } from '@/pages/auth/AuthPage'
+import { AuthLayout } from '@/pages/auth/AuthLayout'
+import { SignInPage } from '@/pages/auth/SignInPage'
+import { SignUpPage } from '@/pages/auth/SignUpPage'
 import { NotFoundPage } from '@/pages/not-found/NotFoundPage'
 import { ForumLayout } from './shell/ForumLayout'
 import { RootLayout } from './RootLayout'
 
-/** The forum's route table. Forum screens render inside ForumLayout; login and register have their own frame. */
+/** The forum's route table. Forum screens render inside ForumLayout; sign-in and sign-up have their own frame. */
 export const router = createBrowserRouter([
   {
     path: routes.home,
@@ -22,8 +24,13 @@ export const router = createBrowserRouter([
           { path: '*', element: <NotFoundPage /> },
         ],
       },
-      { path: routes.login, element: <AuthPage mode="login" /> },
-      { path: routes.register, element: <AuthPage mode="register" /> },
+      {
+        element: <AuthLayout />,
+        children: [
+          { path: routes.signIn, element: <SignInPage /> },
+          { path: routes.signUp, element: <SignUpPage /> },
+        ],
+      },
     ],
   },
 ])

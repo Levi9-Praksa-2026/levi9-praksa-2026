@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router'
 import { ChevronDown, Home, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react'
+import type { UseQueryResult } from '@tanstack/react-query'
 import type { CommunityResponse } from '@/shared/api/contracts/communities'
 import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
 import { routes } from '@/shared/config/routes'
@@ -10,9 +11,9 @@ export interface SidebarProps {
   id: string
   /** Desktop: open beside the page, or collapsed to a rail of icons. */
   variant: 'open' | 'rail' | 'drawer'
-  /** Logged in: show "My communities". */
-  loggedIn: boolean
-  communities: { data: CommunityResponse[] | undefined; loading: boolean; error: unknown; retry: () => void }
+  /** Show "My communities" (logged in, and the backend can list them). */
+  showMyCommunities: boolean
+  communities: Pick<UseQueryResult<CommunityResponse[]>, 'data' | 'error' | 'isLoading' | 'refetch'>
   /** Desktop: collapse or expand. Drawer: close. */
   onToggle: () => void
 }
@@ -37,7 +38,7 @@ function SidebarLink({ to, icon, label, rail, end }: { to: string; icon: ReactNo
 }
 
 /** The forum's sidebar: Home and the communities you joined. */
-export function Sidebar({ id, variant, loggedIn, communities, onToggle }: SidebarProps) {
+export function Sidebar({ id, variant, showMyCommunities, communities, onToggle }: SidebarProps) {
   const rail = variant === 'rail'
   const [mineOpen, setMineOpen] = useState(true)
   const listId = `${id}-mine`
@@ -63,7 +64,7 @@ export function Sidebar({ id, variant, loggedIn, communities, onToggle }: Sideba
         <SidebarLink to={routes.home} end rail={rail} label="Home" icon={<Home className="size-5 flex-none" aria-hidden="true" />} />
       </div>
 
-      {loggedIn && (
+      {showMyCommunities && (
         <section className="mt-3 border-t border-line px-3 pt-3" aria-labelledby={rail ? undefined : `${listId}-title`} aria-label={rail ? 'My communities' : undefined}>
           {!rail && (
             <h2 id={`${listId}-title`} className="text-label">
@@ -80,16 +81,16 @@ export function Sidebar({ id, variant, loggedIn, communities, onToggle }: Sideba
             </h2>
           )}
           <div id={listId} hidden={!rail && !mineOpen} className="flex flex-col gap-0.5">
-            {communities.loading && <CommunitySkeleton rail={rail} />}
-            {!communities.loading && communities.error != null && (
+            {communities.isLoading && <CommunitySkeleton rail={rail} />}
+            {!communities.isLoading && communities.error != null && (
               rail ? null : (
                 <p className="px-3 py-2 text-small text-muted">
                   Couldn't load your communities.{' '}
-                  <button type="button" className="cursor-pointer font-medium text-accent underline underline-offset-2" onClick={communities.retry}>Try again</button>
+                  <button type="button" className="cursor-pointer font-medium text-accent underline underline-offset-2" onClick={() => void communities.refetch()}>Try again</button>
                 </p>
               )
             )}
-            {!communities.loading && communities.error == null && communities.data?.length === 0 && !rail && (
+            {!communities.isLoading && communities.error == null && communities.data?.length === 0 && !rail && (
               <p className="px-3 py-2 text-small text-muted">You haven't joined any communities yet.</p>
             )}
             {communities.data?.map(c => (

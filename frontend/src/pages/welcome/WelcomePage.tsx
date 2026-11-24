@@ -14,7 +14,7 @@ import { Offices } from '@/pages/welcome/sections/Offices'
 import { SiteFooter } from '@/pages/welcome/sections/SiteFooter'
 import { SiteNav } from '@/pages/welcome/sections/SiteNav'
 
-const register = { label: 'Join now', href: routes.register }
+const register = { label: 'Join now', href: routes.signUp }
 const login = { label: 'Log in', href: routes.login }
 
 export function WelcomePage() {
@@ -41,7 +41,7 @@ export function WelcomePage() {
           places={offices.map(o => o.label)}
           register={register}
         />
-        <Communities title="Seven communities to start with" lead="Topic by topic, open to every office." communities={SAMPLE_COMMUNITIES} posts={SAMPLE_POSTS} joinHref={routes.register} />
+        <Communities title="Seven communities to start with" lead="Topic by topic, open to every office." communities={SAMPLE_COMMUNITIES} posts={SAMPLE_POSTS} joinHref={routes.signUp} />
         <HowToJoin title="How to join in three steps" steps={joinSteps} post={samplePost('frontend')} replies={SAMPLE_THREAD} />
       </main>
       <SiteFooter name={site.name} lede="The internal forum for Levi9 people." title="Register with your Levi9 email" line="Already have an account? Log in and carry on where you left off." register={register} columns={footerColumns} legal="© 2026 Levddit" />

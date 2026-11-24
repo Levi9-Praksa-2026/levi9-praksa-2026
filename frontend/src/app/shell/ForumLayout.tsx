@@ -8,13 +8,20 @@ import { TopBar } from './TopBar'
 import { useSidebar } from './useSidebar'
 
 /**
+ * "My communities" waits for the backend: community-service can't list the caller's memberships yet (a contract
+ * gap, `member=me`). Until it can, the mock would show demo_user's list to whoever is really logged in, so the
+ * section stays hidden. Turn this on when the endpoint exists.
+ */
+const MY_COMMUNITIES_READY = false
+
+/**
  * The frame of every forum screen: the top bar, the sidebar (beside the page from 1024px, a drawer
  * under it) and the page column. Login and register render outside it.
  */
 export function ForumLayout() {
   const sidebarId = useId()
   const { user } = useCurrentUser()
-  const communities = useMyCommunities(user?.id ?? null)
+  const communities = useMyCommunities(MY_COMMUNITIES_READY && user ? user.id : null)
   const { desktop, expanded, toggleExpanded, drawerOpen, setDrawerOpen } = useSidebar()
   const drawerRef = useRef<HTMLDivElement>(null)
   const wasOpen = useRef(false)
@@ -30,7 +37,7 @@ export function ForumLayout() {
     <Sidebar
       id={sidebarId}
       variant={variant}
-      loggedIn={!!user}
+      showMyCommunities={MY_COMMUNITIES_READY && !!user}
       communities={communities}
       onToggle={variant === 'drawer' ? () => setDrawerOpen(false) : toggleExpanded}
     />

@@ -100,7 +100,7 @@ export const footerColumns: readonly [FooterColumn, FooterColumn] = [
   {
     title: 'Account',
     links: [
-      { label: 'Join now', href: routes.register },
+      { label: 'Join now', href: routes.signUp },
       { label: 'Log in', href: routes.login },
     ],
   },

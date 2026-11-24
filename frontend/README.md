@@ -13,7 +13,7 @@ npm run build   # type check + production build into dist/
 ## Layout
 
 - `src/app/`: entry point, router and layouts. `app/shell/` is the forum frame (top bar, sidebar, community
-  search) every forum screen renders in; login and register render outside it.
+  search) every forum screen renders in; sign-in and sign-up (`pages/auth`) render outside it.
 - `src/pages/`: one folder per route (`home`, `community`, `auth`, `not-found`).
 - `src/pages/welcome/` + `welcome/index.html`: the welcome page at `/welcome/`. It is a separate document,
   not a React Router route, so links to it reload the page. The 3D globe (three.js) loads lazily and only there.
@@ -36,14 +36,22 @@ All paths live in `src/shared/config/routes.ts`.
   send yet; it changes once the team decides.
 - `communities.ts`, `posts.ts`, `users.ts`: one async function per endpoint, named after what it does
   (`listPosts`, `votePost`, `joinCommunity`), with the method and path in its comment. Pages call only these.
-- `errors.ts`: every failure is an `ApiError` with the backend's problem details (`status`, `errorType`, `errors`).
+- `http.ts`: the one `fetch` wrapper real requests go through: cookies, the `X-XSRF-TOKEN` header on writes,
+  errors turned into `ApiError`.
+- `errors.ts`: every failure is an `ApiError` with the backend's problem details (`status`, `errorType`, `errors`,
+  and `retryAfter` when the server says to wait).
+- `queryKeys.ts`: the TanStack Query keys. Screens read server data through `useQuery` hooks in `src/features`;
+  the client in `src/app/queryClient.ts` decides what is retried (never a 4xx; a 503 waits for `Retry-After`)
+  and asks "who's logged in" again after any 401.
 - `mock/`: for now the functions answer from in-memory data with the services' rules (401 without a login,
   403 for a non-member, 404 for a removed post, 409 for a taken name, 422 for voting on your own post)
   after a fake 150 to 400 ms delay, so every screen gets a loading state from the start.
   The mock starts logged in as `demo_user`; `mockSignInAs('admin')` or `mockSignInAs(null)` switches.
 
 When the backend is ready, each function body becomes a request; the signatures and the pages stay.
-Login and register are not here: they come with the new auth flow.
+`auth.ts` is already real: who is logged in (`GET /api/me`), log out, and the sign-in and sign-up calls with
+auth-service's own CSRF token. "Log in" is a page load to `routes.login` (the gateway's OAuth start), which
+comes back through `/signin`.
 
 ## Styling
 
@@ -83,7 +91,7 @@ Rules of thumb:
 ## Docker
 
 The image builds the static site and serves it with nginx. `nginx.conf` sends every unknown path to
-`index.html`, so refreshing a route such as `/login` works, and
+`index.html`, so refreshing a route such as `/signin` works, and
 `/welcome` redirects to `/welcome/` (`absolute_redirect off` keeps the host and port).
 nginx also forwards the gateway's paths (`/api/`, `/oauth2/`, `/login/oauth2/`, `/logout`, `/connect/`,
 `/.well-known/`, Swagger) to the gateway, so the app and the API share one origin and every call is relative.
