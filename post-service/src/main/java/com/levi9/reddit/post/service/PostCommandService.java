@@ -7,46 +7,43 @@ import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.entity.Actor;
 import com.levi9.reddit.post.entity.ImageUpload;
 import com.levi9.reddit.post.entity.Post;
+import com.levi9.reddit.post.exception.CommunityServiceUnavailableException;
 import com.levi9.reddit.post.exception.CommunityUnavailableException;
 import com.levi9.reddit.post.exception.NotCommunityMemberException;
 import com.levi9.reddit.post.exception.PostNotFoundException;
 import com.levi9.reddit.post.exception.ValidationException;
 import com.levi9.reddit.post.repository.PostRepository;
-import com.levi9.reddit.post.storage.ImageStorage;
 import java.time.Clock;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Creating, editing and removing posts on behalf of a logged-in {@link Actor}. Who may edit or remove is decided by
  * {@link Post#editBy} and {@link Post#removeBy}; this service loads, checks the community and saves.
+ *
+ * <p>Not {@code @Transactional} as a whole: {@link #create} calls community-service over HTTP, and must not hold a
+ * database connection while it waits. Every method that touches the database opens its own transaction.
  */
 @Service
-@Transactional
-@Slf4j
 @RequiredArgsConstructor
 public class PostCommandService {
     private final PostRepository posts;
     private final CommunityDirectory communities;
-    private final ImageStorage imageStorage;
+    private final NewPostWriter newPosts;
     private final Clock clock;
 
     /**
      * Creates a post with up to three images. Everything that can reject the request (images, community,
-     * membership) is checked before any file goes to storage. S3 is not part of the database transaction, so files
-     * uploaded here are deleted again if the transaction rolls back.
+     * membership) is checked first, outside any transaction and before any file goes to storage; only the upload
+     * and the save run in a transaction ({@link NewPostWriter}).
      *
      * @param images raw file bytes in the order the client sent them; may be empty
-     * @throws ValidationException           too many images, one too large or not an image (422)
-     * @throws CommunityUnavailableException the community doesn't exist or was shut down (422)
-     * @throws NotCommunityMemberException   the caller hasn't joined the community (403)
+     * @throws ValidationException                  too many images, one too large or not an image (422)
+     * @throws CommunityUnavailableException        the community doesn't exist or was shut down (422)
+     * @throws NotCommunityMemberException          the caller hasn't joined the community (403)
+     * @throws CommunityServiceUnavailableException community-service did not answer (503)
      */
     public PostDTO create(CreatePostDTO request, List<byte[]> images, Actor actor) {
         List<ImageUpload> uploads = ImageUpload.validate(images);
@@ -57,17 +54,7 @@ public class PostCommandService {
         if (!communities.isMember(communityId, actor.id())) {
             throw new NotCommunityMemberException(communityId);
         }
-
-        // The author always comes from the caller, never from the request.
-        Post post = new Post(request.title(), request.content(), actor.id(), actor.username(), communityId);
-        List<String> storedKeys = uploads.isEmpty() ? List.of() : deleteOnRollback();
-        for (ImageUpload upload : uploads) {
-            String key = "posts/" + UUID.randomUUID() + "." + upload.type().extension();
-            imageStorage.store(key, upload.content(), upload.type().contentType());
-            storedKeys.add(key);
-            post.addImage(key);
-        }
-        return PostMapper.toResponse(posts.save(post));
+        return newPosts.write(request, uploads, actor);
     }
 
     /**
@@ -75,6 +62,7 @@ public class PostCommandService {
      *
      * @throws PostNotFoundException the post doesn't exist or was removed (404)
      */
+    @Transactional
     public PostDTO edit(long postId, EditPostDTO request, Actor actor) {
         Post post = loadForUpdate(postId);
         post.editBy(actor, request.title(), request.content(), clock.instant());
@@ -86,33 +74,9 @@ public class PostCommandService {
      *
      * @throws PostNotFoundException the post never existed (404)
      */
+    @Transactional
     public void delete(long postId, Actor actor) {
         loadForUpdate(postId).removeBy(actor, clock.instant());
-    }
-
-    /**
-     * A list the caller fills with stored image keys; when the surrounding transaction rolls back (an exception
-     * here, a failed flush or a failed commit), every key in it is deleted from storage. A failed delete is only
-     * logged: the request already failed for another reason, and an orphaned file is harmless.
-     */
-    private List<String> deleteOnRollback() {
-        List<String> keys = new ArrayList<>();
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCompletion(int status) {
-                if (status == STATUS_COMMITTED) {
-                    return;
-                }
-                for (String key : keys) {
-                    try {
-                        imageStorage.delete(key);
-                    } catch (RuntimeException e) {
-                        log.warn("Could not delete image {} after a failed post creation", key, e);
-                    }
-                }
-            }
-        });
-        return keys;
     }
 
     // The row lock makes concurrent edits/removals of one post run one after another instead of interleaving.

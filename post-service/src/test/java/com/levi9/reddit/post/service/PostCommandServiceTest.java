@@ -56,8 +56,8 @@ class PostCommandServiceTest {
     private final PostRepository posts = mock(PostRepository.class);
     private final CommunityDirectory communities = mock(CommunityDirectory.class);
     private final ImageStorage imageStorage = mock(ImageStorage.class);
-    private final PostCommandService service =
-            new PostCommandService(posts, communities, imageStorage, Clock.fixed(NOW, ZoneOffset.UTC));
+    private final PostCommandService service = new PostCommandService(
+            posts, communities, new NewPostWriter(posts, imageStorage), Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Nested
     class Create {
