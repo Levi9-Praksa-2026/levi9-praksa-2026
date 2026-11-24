@@ -6,7 +6,7 @@ import { EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_PATTERN, type RegisterReque
 import { isApiError } from '@/shared/api/errors'
 import { routes } from '@/shared/config/routes'
 import { checkPassword } from '@/features/auth/password'
-import { PasswordField } from '@/features/auth/PasswordField'
+import { PasswordField, PasswordRules } from '@/features/auth/PasswordField'
 import { authErrorMessage, isEmail } from '@/features/auth/messages'
 import { Button } from '@/shared/ui/Button'
 import { AppLink } from '@/shared/ui/Link'
@@ -169,6 +169,7 @@ export function SignUpPage() {
         </div>
         <PasswordField
           id={`${id}-password`}
+          rulesId={`${id}-rules`}
           autoComplete="new-password"
           value={form.password}
           onChange={value => set('password', value)}
@@ -184,6 +185,7 @@ export function SignUpPage() {
           onChange={value => set('confirmPassword', value)}
           error={errors.confirmPassword}
         />
+        <PasswordRules id={`${id}-rules`} password={form.password} />
         <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Creating your account…' : 'Create account'}</Button>
       </form>
 
