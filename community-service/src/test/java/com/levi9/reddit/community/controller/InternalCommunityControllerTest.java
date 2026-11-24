@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.levi9.reddit.community.dto.InternalCommunityDTO;
 import com.levi9.reddit.community.exception.CommunityNotFoundException;
 import com.levi9.reddit.community.exception.GlobalExceptionHandler;
-import com.levi9.reddit.community.security.SecurityConfig;
+import com.levi9.reddit.community.config.SecurityConfig;
 import com.levi9.reddit.community.service.CommunityMembershipService;
 import com.levi9.reddit.community.service.CommunityService;
 import org.junit.jupiter.api.Test;
