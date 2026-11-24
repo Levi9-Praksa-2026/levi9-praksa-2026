@@ -1,16 +1,16 @@
 import { Menu } from 'lucide-react'
-import type { UserProfileResponse } from '@/shared/api/contracts/users'
-import { UserAvatar } from '@/features/users/UserAvatar'
+import { LOGIN_START } from '@/shared/api/auth'
+import type { MeResponse } from '@/shared/api/contracts/auth'
 import { routes } from '@/shared/config/routes'
 import { Brand } from '@/shared/ui/Brand'
 import { Button } from '@/shared/ui/Button'
-import { AppLink } from '@/shared/ui/Link'
 import { cn } from '@/shared/lib/cn'
+import { AccountMenu } from './AccountMenu'
 import { CommunitySearch } from './CommunitySearch'
 
 export interface TopBarProps {
   /** Logged in, logged out (null), or still asking (undefined: the account area stays empty). */
-  user: UserProfileResponse | null | undefined
+  user: MeResponse | null | undefined
   /** Under 1024px: the button that opens the sidebar drawer. */
   drawerOpen: boolean
   drawerId: string
@@ -54,18 +54,14 @@ export function TopBar({ user, drawerOpen, drawerId, onOpenDrawer, sidebar }: To
         <div className="ml-auto flex flex-none items-center gap-2 lg:absolute lg:top-1/2 lg:right-4 lg:-translate-y-1/2">
           {user === null && (
             <>
-              <AppLink href={routes.login} className="hidden rounded-btn px-3 py-2 text-small font-medium text-accent hover:bg-surface sm:inline-flex">
+              {/* a plain link on purpose: the login is a chain of redirects through the gateway, a full page load */}
+              <a href={LOGIN_START} className="hidden rounded-btn px-3 py-2 text-small font-medium text-accent hover:bg-surface sm:inline-flex">
                 Log in
-              </AppLink>
+              </a>
               <Button href={routes.register} size="md" className="h-10 px-4 text-small">Join now</Button>
             </>
           )}
-          {user && (
-            <span className="flex items-center gap-2 rounded-btn py-1 pr-1 sm:pr-3">
-              <UserAvatar username={user.username} />
-              <span className="hidden text-small font-medium text-ink sm:inline">{user.username}</span>
-            </span>
-          )}
+          {user && <AccountMenu user={user} />}
         </div>
       </div>
     </header>

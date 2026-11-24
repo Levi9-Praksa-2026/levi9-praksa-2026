@@ -11,8 +11,8 @@ export interface SidebarProps {
   id: string
   /** Desktop: open beside the page, or collapsed to a rail of icons. */
   variant: 'open' | 'rail' | 'drawer'
-  /** Logged in: show "My communities". */
-  loggedIn: boolean
+  /** Show "My communities" (logged in, and the backend can list them). */
+  showMyCommunities: boolean
   communities: Pick<UseQueryResult<CommunityResponse[]>, 'data' | 'error' | 'isLoading' | 'refetch'>
   /** Desktop: collapse or expand. Drawer: close. */
   onToggle: () => void
@@ -38,7 +38,7 @@ function SidebarLink({ to, icon, label, rail, end }: { to: string; icon: ReactNo
 }
 
 /** The forum's sidebar: Home and the communities you joined. */
-export function Sidebar({ id, variant, loggedIn, communities, onToggle }: SidebarProps) {
+export function Sidebar({ id, variant, showMyCommunities, communities, onToggle }: SidebarProps) {
   const rail = variant === 'rail'
   const [mineOpen, setMineOpen] = useState(true)
   const listId = `${id}-mine`
@@ -64,7 +64,7 @@ export function Sidebar({ id, variant, loggedIn, communities, onToggle }: Sideba
         <SidebarLink to={routes.home} end rail={rail} label="Home" icon={<Home className="size-5 flex-none" aria-hidden="true" />} />
       </div>
 
-      {loggedIn && (
+      {showMyCommunities && (
         <section className="mt-3 border-t border-line px-3 pt-3" aria-labelledby={rail ? undefined : `${listId}-title`} aria-label={rail ? 'My communities' : undefined}>
           {!rail && (
             <h2 id={`${listId}-title`} className="text-label">
