@@ -119,14 +119,6 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
   `/internal/**` route to the gateway. These calls carry no user token and no service secret, so the network boundary
   is the only control.
 
-### Mock authentication
-- **Local:** the dev profile sets `app.mock-auth.enabled: true`, which puts a hard-coded `ROLE_ADMIN` caller with
-  user id `1` into the security context, but only for requests without an access token: a real token always wins.
-  It keeps the ADMIN endpoints usable while nobody can log in through the browser yet. Startup logs a WARN while
-  the mock filter is registered.
-- **Production:** without the dev profile the flag is `false`. Never set `APP_MOCKAUTH_ENABLED`. Turning it on would let anyone perform ADMIN
-  operations.
-
 ## post-service
 
 ### S3
