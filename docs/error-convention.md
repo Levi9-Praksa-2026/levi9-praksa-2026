@@ -29,14 +29,15 @@ Every service returns errors as RFC 9457 problem details (`application/problem+j
 | `UnauthorizedException` | 401    |
 | `ForbiddenException`    | 403    |
 | `ConflictException`     | 409    |
+| `TooManyRequestsException` | 429, with a `Retry-After` header in seconds (auth-service rate limits) |
 
 Add `NotFoundException` (404) and `ValidationException` (422, well-formed but breaks a business rule) when your
 service needs them: add them to `permits` in `DomainException` and the compiler shows the switch to update.
 
 ## Adding it to your service
 
-Copy `auth-service`'s `core/exception` package and `api/GlobalExceptionHandler` into your service, change the
-package names, and replace the `ErrorType` values with your own codes. Each service owns its codes.
+Copy `auth-service`'s `exception` package (the exceptions and `GlobalExceptionHandler`) into your service, change
+the package names, and replace the `ErrorType` values with your own codes. Each service owns its codes.
 
 Rules:
 - Expected failures a correct client can cause → throw a `DomainException` subtype. Bugs → let them be a 500.

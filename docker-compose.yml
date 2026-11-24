@@ -1,5 +1,5 @@
 # Local run: docker compose up --build
-# React -> gateway -> services -> Postgres. Only the frontend, gateway and Postgres are published to the host.
+# React -> gateway -> services -> Postgres. The frontend, gateway, Postgres and Moto are published to the host.
 # Database settings shared by every service (merged with <<: *db-env).
 x-db-env: &db-env
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-reddit}
@@ -27,26 +27,37 @@ services:
     build: ./auth-service
     environment:
       <<: *db-env
-      APP_JWT_GENERATE_KEY: "true"   # local only, see docs/production-changes.md
+      SPRING_PROFILES_ACTIVE: dev   # local shortcuts (generated JWT key, local client secret): application-dev.yml
     depends_on:
       postgres:
         condition: service_healthy
 
   community-service:
     build: ./community-service
-    environment: *db-env
+    environment:
+      <<: *db-env
+      SPRING_PROFILES_ACTIVE: dev   # local datasource and JWT fallbacks: application-dev.yml
+      AUTH_JWKS_URI: http://auth-service:8081/oauth2/jwks   # where the public key comes from
     depends_on:
       postgres:
         condition: service_healthy
 
   moto:
     image: motoserver/moto:5.2.5
+    ports:
+      - "5000:5000"
 
   post-service:
     build: ./post-service
     environment:
       <<: *db-env
-      APP_S3_ENDPOINT: http://moto:5000
+      SPRING_PROFILES_ACTIVE: dev
+      AUTH_JWKS_URI: http://auth-service:8081/oauth2/jwks   # where the public key comes from
+      APP_S3_ENDPOINT: http://moto:5000   # Moto, a fake S3; local only
+      APP_MOCKAUTH_ENABLED: "true"   # local only, see docs/production-changes.md
+      APP_COMMUNITYSTUB_ENABLED: "true"                    # local only, see docs/production-changes.md
+      APP_COMMUNITYSTUB_UNAVAILABLECOMMUNITYIDS: "999"     # community 999 behaves as missing/shut down
+      APP_COMMUNITYSTUB_NONMEMBERUSERIDS: "999"            # user 999 is a member of nothing
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,20 +69,24 @@ services:
     ports:
       - "8080:8080"
     environment:
+      <<: *db-env   # sessions live in Postgres (schema gateway)
+      SPRING_PROFILES_ACTIVE: dev   # local client secret and public URL: application-dev.yml
       AUTH_SERVICE_URL: http://auth-service:8081
       COMMUNITY_SERVICE_URL: http://community-service:8082
       POST_SERVICE_URL: http://post-service:8083
-      AUTH_JWKS_URI: http://auth-service:8081/.well-known/jwks.json
     depends_on:
-      - auth-service
-      - community-service
-      - post-service
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      community-service:
+        condition: service_started
+      post-service:
+        condition: service_started
 
   frontend:
     build:
       context: ./frontend
-      args:
-        VITE_API_URL: http://localhost:8080
     ports:
       - "3000:80"
     depends_on:

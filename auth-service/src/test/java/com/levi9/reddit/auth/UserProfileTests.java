@@ -1,7 +1,7 @@
 package com.levi9.reddit.auth;
 
-import com.levi9.reddit.auth.core.model.User;
-import com.levi9.reddit.auth.infrastructure.repository.UserRepository;
+import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.repository.UserRepository;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -121,7 +121,7 @@ class UserProfileTests {
 
     @Test
     void rejectsMissingOrInvalidUserIdentity() throws Exception {
-        mvc.perform(get(PROFILE)).andExpect(status().isForbidden());
+        mvc.perform(get(PROFILE)).andExpect(status().isUnauthorized());
         update(jwt().jwt(token -> token.subject("invalid")), "{\"firstName\":\"Ana\"}")
                 .andExpect(status().isUnauthorized());
     }

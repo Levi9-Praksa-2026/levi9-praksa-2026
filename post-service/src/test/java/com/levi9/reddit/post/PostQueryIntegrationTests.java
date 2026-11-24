@@ -5,10 +5,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.levi9.reddit.post.core.model.Comment;
-import com.levi9.reddit.post.core.model.Post;
-import com.levi9.reddit.post.infrastructure.repository.CommentRepository;
-import com.levi9.reddit.post.infrastructure.repository.PostRepository;
+import com.levi9.reddit.post.entity.Comment;
+import com.levi9.reddit.post.entity.Post;
+import com.levi9.reddit.post.repository.CommentRepository;
+import com.levi9.reddit.post.repository.PostRepository;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
