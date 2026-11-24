@@ -6,12 +6,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.Objects;
 
 @Entity
 @Table(name = "comments")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,49 +46,11 @@ public class Comment {
     @Column(name = "removed_by")
     private Long removedBy;
 
-    protected Comment() {}
-
     public Comment(Long postId, Long authorId, String authorUsername, String content) {
         this.postId = Objects.requireNonNull(postId, "postId");
         this.authorId = Objects.requireNonNull(authorId, "authorId");
         this.authorUsername = Objects.requireNonNull(authorUsername, "authorUsername");
         this.content = Objects.requireNonNull(content, "content");
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Long getPostId() {
-        return postId;
-    }
-
-    public Long getAuthorId() {
-        return authorId;
-    }
-
-    public String getAuthorUsername() {
-        return authorUsername;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getRemovedAt() {
-        return removedAt;
-    }
-
-    public Long getRemovedBy() {
-        return removedBy;
     }
 
     public void updateScore(int score) {

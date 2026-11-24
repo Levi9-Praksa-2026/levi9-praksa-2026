@@ -13,12 +13,12 @@ import com.levi9.reddit.post.repository.CommentRepository;
 import com.levi9.reddit.post.repository.PostRepository;
 import com.levi9.reddit.post.storage.ImageStorage.StoredImage;
 import com.levi9.reddit.post.storage.ImageStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 import java.util.function.Function;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,26 +29,18 @@ import org.springframework.transaction.annotation.Transactional;
 /** Read-only queries for posts and comments. Removed posts and comments are never returned. */
 @Service
 @Transactional(readOnly = true)
+@Slf4j
+@RequiredArgsConstructor
 public class PostQueryService {
     // id breaks ties, so two rows with the same timestamp never swap places between pages.
     private static final Sort NEWEST_FIRST = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
 
     private static final Duration WEEK = Duration.ofDays(7);
 
-    private static final Logger log = LoggerFactory.getLogger(PostQueryService.class);
-
     private final PostRepository posts;
     private final CommentRepository comments;
     private final ImageStorage imageStorage;
     private final Clock clock;
-
-    public PostQueryService(
-            PostRepository posts, CommentRepository comments, ImageStorage imageStorage, Clock clock) {
-        this.posts = posts;
-        this.comments = comments;
-        this.imageStorage = imageStorage;
-        this.clock = clock;
-    }
 
     /**
      * Newest posts first. Both filters are optional and can be combined.
