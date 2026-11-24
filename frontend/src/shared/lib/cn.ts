@@ -18,7 +18,7 @@ const twMerge = extendTailwindMerge({
       radius: ['sm', 'md', 'lg', 'btn'],
       spacing: ['gut', 'gutter', 'nav', 'padt', 'padb', 'card-gap', 'card-pad', 'head-gap', 'btn', 'btn-sm', 'icon',
         'app-bar', 'sidebar', 'rail'],
-      container: ['container', 'measure', 'feed'],
+      container: ['container', 'measure', 'feed', 'form'],
       ease: ['ui'],
       animate: ['album-run'],
     },

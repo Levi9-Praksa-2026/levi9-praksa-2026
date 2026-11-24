@@ -89,6 +89,7 @@
   --container-container: var(--container);
   --container-measure: 62ch;
   --container-feed: var(--feed);
+  --container-form: var(--form);
 }
 
 /* Animations */
@@ -202,6 +203,7 @@
   --sidebar: 272px;
   --rail: 64px;
   --feed: 720px;
+  --form: 400px;          /* the sign-in and sign-up column */
 
   --icon: 16px;         /* small icons: socials, menu chevrons, mono brand marks */
 

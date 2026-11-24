@@ -1,5 +1,4 @@
 import { Menu } from 'lucide-react'
-import { LOGIN_START } from '@/shared/api/auth'
 import type { MeResponse } from '@/shared/api/contracts/auth'
 import { routes } from '@/shared/config/routes'
 import { Brand } from '@/shared/ui/Brand'
@@ -55,10 +54,10 @@ export function TopBar({ user, drawerOpen, drawerId, onOpenDrawer, sidebar }: To
           {user === null && (
             <>
               {/* a plain link on purpose: the login is a chain of redirects through the gateway, a full page load */}
-              <a href={LOGIN_START} className="hidden rounded-btn px-3 py-2 text-small font-medium text-accent hover:bg-surface sm:inline-flex">
+              <a href={routes.login} className="hidden rounded-btn px-3 py-2 text-small font-medium text-accent hover:bg-surface sm:inline-flex">
                 Log in
               </a>
-              <Button href={routes.register} size="md" className="h-10 px-4 text-small">Join now</Button>
+              <Button href={routes.signUp} size="md" className="h-10 px-4 text-small">Join now</Button>
             </>
           )}
           {user && <AccountMenu user={user} />}
