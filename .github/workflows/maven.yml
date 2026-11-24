@@ -6,13 +6,33 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java CI with Maven
+name: Backend build and tests
 
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'auth-service/**'
+      - 'community-service/**'
+      - 'gateway/**'
+      - 'post-service/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - 'mvnw'
+      - 'mvnw.cmd'
+      - '.github/workflows/maven.yml'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'auth-service/**'
+      - 'community-service/**'
+      - 'gateway/**'
+      - 'post-service/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - 'mvnw'
+      - 'mvnw.cmd'
+      - '.github/workflows/maven.yml'
 
 jobs:
   build:
