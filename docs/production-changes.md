@@ -66,6 +66,28 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - Sessions expire after 30 minutes without a request (Spring's default). Expired rows are deleted by Spring Session
   itself.
 
+### Admin endpoint masking
+- The gateway conceals `/api/admin` and `/api/admin/**` from anonymous callers and non-admins with its normal
+  `404` error response, before CSRF validation or proxying. This includes unknown paths in that namespace.
+  Admins must log in through the existing login flow first.
+- The gate resolves (and when necessary refreshes) the session's access token, validates its signature, issuer,
+  timestamps and subject, and checks its `roles` claim. It does not use the login-time ID-token roles returned
+  by `/api/me`. An admin request relays exactly the checked token to auth-service; downstream JWT checks remain.
+- Access-token validation fetches public keys from `${AUTH_SERVICE_URL}/oauth2/jwks` and caches them. No new secret,
+  database lookup of user roles, session store, or deployment component is required. Keep this endpoint internally
+  reachable from the gateway. The current shared JWT contract does not enforce service audiences.
+- A rejected refresh ends the gateway session and returns `404` on admin paths. A token refresh or key-fetch
+  infrastructure failure returns `503` with `Retry-After: 5`, keeping the session for retry.
+- Role changes are visible to the mask when the access token refreshes (the existing 15-minute token lifetime,
+  with Spring's refresh skew), or after a full logout/login. This is not immediate role revocation. `/api/me`
+  still reads the session's OIDC principal and can display old roles until a new login.
+- Masked errors use `sendError(404)`, letting Boot render the same JSON/HTML as an ordinary gateway missing route,
+  including the original request path. Both paths keep the existing SPA CSRF-cookie behavior and security cache
+  headers (`no-store`). Do not enable error-message/exception disclosure or add admin-only response headers.
+- Scope is the dedicated admin API namespace. Community admin operations still share public resource paths and
+  retain their existing behavior. Services must stay private and enforce permissions independently. Masking does
+  not rate-limit probes, and no artificial delay or dummy database work is added.
+
 ### One origin: who routes the gateway's paths
 - The browser only ever talks to `APP_PUBLIC_URL`. Locally that's the frontend's nginx (`frontend/nginx.conf`) or
   the Vite dev server, which forward `/api/`, `/oauth2/`, `/login/oauth2/`, `/logout`, `/connect/` and

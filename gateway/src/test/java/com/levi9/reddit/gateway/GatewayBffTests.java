@@ -1,6 +1,15 @@
 package com.levi9.reddit.gateway;
 
 import com.levi9.reddit.gateway.security.OAuthClientConfig;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import jakarta.servlet.http.Cookie;
@@ -9,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -39,6 +49,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Date;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -65,14 +80,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * records what reaches it), with real Postgres for the sessions.
  */
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 class GatewayBffTests {
     private static final String PUBLIC_URL = "http://localhost:3000";
     private static final Backend BACKEND = Backend.start();
+    private String currentAdminToken;
 
     @Autowired
     private MockMvc mvc;
+
+    @LocalServerPort
+    private int port;
 
     @Autowired
     private ClientRegistrationRepository registrations;
@@ -141,6 +160,135 @@ class GatewayBffTests {
         mvc.perform(get("/api/me")).andExpect(status().isUnauthorized());
     }
 
+    // --- Admin concealment ---
+
+    @Test
+    void anonymousAdminPathsAre404ForEveryMethodEvenWithoutCsrf() throws Exception {
+        for (String method : List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")) {
+            for (String path : List.of("/api/admin", "/api/admin/", "/api/admin/users/marko/ban", "/api/admin/unknown")) {
+                mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .request(org.springframework.http.HttpMethod.valueOf(method), path)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer leaked"))
+                        .andExpect(status().isNotFound());
+            }
+        }
+        assertThat(BACKEND.authorizationByPath).isEmpty();
+    }
+
+    @Test
+    void aNonAdminAccessTokenIsMaskedAndItsSessionIsKept() throws Exception {
+        Session session = storedSessionWithCurrentToken("USER");
+        mvc.perform(post("/api/admin/users/marko/ban").cookie(sessionCookie(session)))
+                .andExpect(status().isNotFound());
+        assertThat(sessions.findById(session.getId())).isNotNull();
+        assertThat(BACKEND.authorizationByPath).isEmpty();
+    }
+
+    @Test
+    void anAdminStillNeedsCsrfAndClientAuthorizationCannotOverrideTheCheckedToken() throws Exception {
+        Session session = storedSessionWithCurrentToken("ADMIN");
+        mvc.perform(post("/api/admin/users/marko/ban").cookie(sessionCookie(session)))
+                .andExpect(status().isForbidden());
+        assertThat(BACKEND.authorizationByPath).isEmpty();
+        mvc.perform(post("/api/admin/users/marko/ban").cookie(sessionCookie(session))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer leaked").with(csrfLikeTheBrowser()))
+                .andExpect(status().isOk());
+        assertThat(BACKEND.authorizationOf("/api/admin/users/marko/ban")).contains("Bearer " + currentAdminToken);
+    }
+
+    @Test
+    void aPromotionInTheRefreshedAccessTokenOpensTheMaskDespiteOldUserIdToken() throws Exception {
+        Session session = storedSessionWithTokens("good-admin-refresh");
+        mvc.perform(post("/api/admin/users/marko/ban").cookie(sessionCookie(session)).with(csrfLikeTheBrowser()))
+                .andExpect(status().isOk());
+        assertThat(BACKEND.authorizationOf("/api/admin/users/marko/ban")).contains("Bearer " + Backend.ADMIN_TOKEN);
+    }
+
+    @Test
+    void aDemotionInTheRefreshedTokenClosesTheMaskDespiteOldAdminIdToken() throws Exception {
+        Session session = storedSessionWithTokens("good-refresh");
+        var admin = oidcAuthentication("ADMIN");
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                new SecurityContextImpl(admin));
+        save(session);
+        mvc.perform(post("/api/admin/users/marko/ban").cookie(sessionCookie(session)))
+                .andExpect(status().isNotFound());
+        assertThat(BACKEND.authorizationByPath).isEmpty();
+    }
+
+    @Test
+    void missingExpiredAndRevokedSessionsAreConcealed() throws Exception {
+        mvc.perform(get("/api/admin/users").cookie(new Cookie("SESSION", "bm90LWEtc2Vzc2lvbg==")))
+                .andExpect(status().isNotFound());
+        Session expired = storedSessionWithCurrentToken("ADMIN");
+        expired.setLastAccessedTime(Instant.now().minusSeconds(3600));
+        save(expired);
+        mvc.perform(get("/api/admin/users").cookie(sessionCookie(expired))).andExpect(status().isNotFound());
+        for (Session session : List.of(storedSessionWithTokens("revoked-refresh"), storedSession(null))) {
+            mvc.perform(get("/api/admin/users").cookie(sessionCookie(session))).andExpect(status().isNotFound());
+            assertThat(sessions.findById(session.getId())).isNull();
+        }
+        assertThat(BACKEND.authorizationByPath).isEmpty();
+    }
+
+    @Test
+    void anAdminRefreshOutageKeepsTheSessionAndReturns503() throws Exception {
+        Session session = storedSessionWithTokens("auth-error");
+        mvc.perform(get("/api/admin/users").cookie(sessionCookie(session)))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(header().string(HttpHeaders.RETRY_AFTER, "5"));
+        assertThat(sessions.findById(session.getId())).isNotNull();
+        assertThat(BACKEND.authorizationByPath).isEmpty();
+    }
+
+    @Test
+    void invalidSignaturesExpiredTokensAndTokensForAnotherUserCannotOpenTheMask() throws Exception {
+        for (String token : List.of(Backend.jwt("ADMIN", "another-user", PUBLIC_URL, 900),
+                Backend.jwt("ADMIN", "42", "https://wrong-issuer", 900),
+                Backend.jwt("ADMIN", "42", PUBLIC_URL, -120),
+                Backend.jwt("ADMIN", "42", PUBLIC_URL, 900, Backend.key()), "not-a-jwt")) {
+            Session session = storedSession(new OAuth2AuthorizedClient(levddit(), "42",
+                    new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, token,
+                            Instant.now(), Instant.now().plusSeconds(900))));
+            mvc.perform(get("/api/admin/users").cookie(sessionCookie(session))).andExpect(status().isNotFound());
+        }
+        assertThat(BACKEND.authorizationByPath).isEmpty();
+    }
+
+    @Test
+    void realHttpMaskedAndMissingRoutesHaveTheSame404ShapeAndHeaders() throws Exception {
+        // Real embedded servlet container: MockMvc does not run sendError's /error dispatch.
+        try (var client = HttpClient.newHttpClient()) {
+            for (String accept : List.of("application/json", "text/html")) {
+                var missing = client.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/missing"))
+                        .header("Accept", accept).build(), HttpResponse.BodyHandlers.ofString());
+                var masked = client.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/admin/users"))
+                        .header("Accept", accept).build(), HttpResponse.BodyHandlers.ofString());
+                assertThat(masked.statusCode()).isEqualTo(404);
+                assertThat(missing.statusCode()).isEqualTo(404);
+                assertThat(masked.headers().firstValue("cache-control").orElse("")).contains("no-store");
+                for (String header : List.of("content-type", "cache-control", "pragma", "x-content-type-options",
+                        "x-frame-options", "location", "www-authenticate")) {
+                    assertThat(masked.headers().allValues(header)).as(header).isEqualTo(missing.headers().allValues(header));
+                }
+                assertThat(masked.headers().allValues("set-cookie")).anyMatch(v -> v.startsWith("XSRF-TOKEN="));
+                assertThat(missing.headers().allValues("set-cookie")).anyMatch(v -> v.startsWith("XSRF-TOKEN="));
+                if (accept.equals("application/json")) {
+                    var mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+                    var maskedBody = mapper.readTree(masked.body());
+                    var missingBody = mapper.readTree(missing.body());
+                    assertThat(maskedBody.get("path").asString()).isEqualTo("/api/admin/users");
+                    assertThat(maskedBody.propertyNames()).isEqualTo(missingBody.propertyNames());
+                    assertThat(maskedBody.get("status")).isEqualTo(missingBody.get("status"));
+                    assertThat(maskedBody.get("error")).isEqualTo(missingBody.get("error"));
+                } else {
+                    assertThat(masked.body().replaceAll("<div id='created'>.*?</div>", ""))
+                            .isEqualTo(missing.body().replaceAll("<div id='created'>.*?</div>", ""));
+                }
+            }
+        }
+    }
+
     // --- Calls to the services ---
 
     @Test
@@ -152,10 +300,11 @@ class GatewayBffTests {
 
     @Test
     void adminRoutesForUsersGoToAuthServiceWithTheToken() throws Exception {
-        mvc.perform(post("/api/admin/users/marko/ban").with(loggedInAsMarko()).with(csrfLikeTheBrowser()))
+        mvc.perform(post("/api/admin/users/marko/ban").cookie(sessionCookie(storedSessionWithCurrentToken("ADMIN"))).with(csrfLikeTheBrowser()))
                 .andExpect(status().isOk());
 
-        assertThat(BACKEND.authorizationOf("/api/admin/users/marko/ban")).contains("Bearer access-token");
+        assertThat(BACKEND.authorizationOf("/api/admin/users/marko/ban"))
+                .contains("Bearer " + currentAdminToken);
     }
 
     @Test
@@ -211,7 +360,7 @@ class GatewayBffTests {
 
         mvc.perform(get("/api/posts").cookie(sessionCookie(session))).andExpect(status().isOk());
 
-        assertThat(BACKEND.authorizationOf("/api/posts")).contains("Bearer fresh-access-token");
+        assertThat(BACKEND.authorizationOf("/api/posts")).contains("Bearer " + Backend.USER_TOKEN);
     }
 
     @Test
@@ -323,9 +472,21 @@ class GatewayBffTests {
                 .idToken(token -> token.subject("42").claim("username", "marko").claim("roles", List.of("USER")));
     }
 
+    private Session storedSessionWithCurrentToken(String role) {
+        String token = Backend.jwt(role, "42", PUBLIC_URL, 900);
+        if (role.equals("ADMIN")) currentAdminToken = token;
+        return storedSession(new OAuth2AuthorizedClient(levddit(), "42",
+                new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, token,
+                        Instant.now(), Instant.now().plusSeconds(900))));
+    }
+
     private OAuth2AuthenticationToken markoToken() {
+        return oidcAuthentication("USER");
+    }
+
+    private OAuth2AuthenticationToken oidcAuthentication(String role) {
         OidcIdToken idToken = OidcIdToken.withTokenValue("id-token").subject("42")
-                .claim("username", "marko").claim("roles", List.of("USER"))
+                .claim("username", "marko").claim("roles", List.of(role))
                 .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(1800)).build();
         var user = new DefaultOidcUser(List.of(new SimpleGrantedAuthority("OIDC_USER")), idToken);
         return new OAuth2AuthenticationToken(user, user.getAuthorities(), OAuthClientConfig.REGISTRATION_ID);
@@ -397,6 +558,36 @@ class GatewayBffTests {
      */
     private record Backend(HttpServer server, Map<String, String> authorizationByPath,
                            Map<String, String> cookieByPath) {
+        private static final RSAKey KEY = key();
+        private static final String ADMIN_TOKEN = jwt("ADMIN", "42", PUBLIC_URL, 900);
+        private static final String USER_TOKEN = jwt("USER", "42", PUBLIC_URL, 900);
+
+        private static RSAKey key() {
+            try {
+                return new RSAKeyGenerator(2048).keyID("test-signing-key").generate();
+            } catch (JOSEException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        static String jwt(String role, String subject, String issuer, int lifetime) {
+            return jwt(role, subject, issuer, lifetime, KEY);
+        }
+
+        static String jwt(String role, String subject, String issuer, int lifetime, RSAKey signingKey) {
+            try {
+                var claims = new JWTClaimsSet.Builder().issuer(issuer).subject(subject)
+                        .issueTime(Date.from(Instant.now().minusSeconds(180)))
+                        .expirationTime(Date.from(Instant.now().plusSeconds(lifetime)))
+                        .claim("roles", List.of(role)).build();
+                var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(KEY.getKeyID()).build(), claims);
+                jwt.sign(new RSASSASigner(signingKey));
+                return jwt.serialize();
+            } catch (JOSEException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
         static Backend start() {
             try {
                 HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
@@ -419,6 +610,10 @@ class GatewayBffTests {
 
         private void handle(HttpExchange exchange) throws IOException {
             String path = exchange.getRequestURI().getPath();
+            if (path.equals("/oauth2/jwks")) {
+                respond(exchange, 200, new JWKSet(KEY.toPublicJWK()).toString());
+                return;
+            }
             if (path.equals("/oauth2/token")) {
                 String form = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 if (form.contains("refresh_token=auth-unreachable")) {
@@ -429,10 +624,11 @@ class GatewayBffTests {
                     respond(exchange, 500, "{}");
                     return;
                 }
-                if (form.contains("refresh_token=good-refresh")) {
+                if (form.contains("refresh_token=good-refresh") || form.contains("refresh_token=good-admin-refresh")) {
                     respond(exchange, 200, """
-                            {"access_token":"fresh-access-token","token_type":"Bearer","expires_in":900,
-                             "refresh_token":"rotated-refresh"}""");
+                            {"access_token":"%s","token_type":"Bearer","expires_in":900,
+                             "refresh_token":"rotated-refresh"}""".formatted(
+                                     form.contains("good-admin-refresh") ? ADMIN_TOKEN : USER_TOKEN));
                 } else {
                     respond(exchange, 400, "{\"error\":\"invalid_grant\"}");
                 }

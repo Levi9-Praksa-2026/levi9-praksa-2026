@@ -9,9 +9,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
@@ -24,21 +27,24 @@ import java.io.IOException;
  * The gateway as a BFF: the browser holds only this session cookie, and the gateway attaches the user's access token
  * to API calls ({@code TokenRelay} in application.yml).
  * <p>
- * <b>Who may call what is still decided by each service.</b> Every route is open here: a request without a session
- * simply goes on without a token, and the service answers 401 if it needs one.
+ * Admin paths are concealed at the gateway using the access token that will be relayed.
+ * Services still independently decide who may call what; other routes retain their existing behavior.
  */
 @Configuration(proxyBeanMethods = false)
 class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository registrations,
-                                            OAuthProperties oauth, JsonMapper json) throws Exception {
+                                            OAuthProperties oauth, JsonMapper json,
+                                            OAuth2AuthorizedClientManager clients, JwtDecoder adminAccessTokenDecoder) throws Exception {
         PathPatternRequestMatcher.Builder path = PathPatternRequestMatcher.withDefaults();
+        var csrfTokens = CookieCsrfTokenRepository.withHttpOnlyFalse();
         http
+                .addFilterBefore(new AdminMaskingFilter(clients, adminAccessTokenDecoder, csrfTokens), CsrfFilter.class)
                 // The session cookie goes along on every request, so every state-changing call needs the token from
                 // the XSRF-TOKEN cookie in the X-XSRF-TOKEN header. Login and register are left to auth-service,
                 // which checks its own token: one request should not need two.
-                .csrf(csrf -> csrf.spa()
+                .csrf(csrf -> csrf.spa().csrfTokenRepository(csrfTokens)
                         .ignoringRequestMatchers(
                                 path.matcher(HttpMethod.POST, "/api/auth/login"),
                                 path.matcher(HttpMethod.POST, "/api/auth/register")))

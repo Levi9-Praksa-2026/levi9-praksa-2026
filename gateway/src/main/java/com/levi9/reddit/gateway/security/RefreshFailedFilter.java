@@ -47,20 +47,29 @@ class RefreshFailedFilter extends OncePerRequestFilter {
             if (failure == null || response.isCommitted()) {
                 throw e;
             }
-            response.resetBuffer();
-            if (LOGIN_OVER.contains(failure.getError().getErrorCode())) {
-                HttpSession session = request.getSession(false);
-                if (session != null) {
-                    session.invalidate();
-                }
-                writeProblem(response, HttpStatus.UNAUTHORIZED, "Your session has ended, please log in again");
-            } else {
-                log.warn("Could not refresh an access token ({}), keeping the session: {}",
-                        failure.getError().getErrorCode(), failure.getError().getDescription());
-                response.setHeader(HttpHeaders.RETRY_AFTER, String.valueOf(RETRY_AFTER_SECONDS));
-                writeProblem(response, HttpStatus.SERVICE_UNAVAILABLE,
-                        "Signing in is briefly unavailable, please try again in a moment");
+            respondToFailure(request, response, failure);
+        }
+    }
+
+    static void respondToFailure(HttpServletRequest request, HttpServletResponse response,
+                                 ClientAuthorizationException failure) throws IOException {
+        response.resetBuffer();
+        if (LOGIN_OVER.contains(failure.getError().getErrorCode())) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
             }
+            if (AdminMaskingFilter.isAdminPath(request)) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            } else {
+                writeProblem(response, HttpStatus.UNAUTHORIZED, "Your session has ended, please log in again");
+            }
+        } else {
+            log.warn("Could not refresh an access token ({}), keeping the session: {}",
+                    failure.getError().getErrorCode(), failure.getError().getDescription());
+            response.setHeader(HttpHeaders.RETRY_AFTER, String.valueOf(RETRY_AFTER_SECONDS));
+            writeProblem(response, HttpStatus.SERVICE_UNAVAILABLE,
+                    "Signing in is briefly unavailable, please try again in a moment");
         }
     }
 
