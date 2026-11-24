@@ -31,6 +31,10 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(DomainException.class)
     ProblemDetail handleDomain(DomainException ex) {
+        if (ex instanceof ServiceUnavailableException) {
+            // The client only learns "try again"; which dependency failed and why stays in the log.
+            log.warn("Dependency unavailable: {}", ex.getErrorType(), ex.getCause());
+        }
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(statusOf(ex), ex.getMessage());
         problem.setProperty("errorType", ex.getErrorType().name());
         return problem;
@@ -95,6 +99,7 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             case NotFoundException _ -> HttpStatus.NOT_FOUND;
             case ForbiddenException _ -> HttpStatus.FORBIDDEN;
             case ValidationException _ -> HttpStatus.UNPROCESSABLE_CONTENT;
+            case ServiceUnavailableException _ -> HttpStatus.SERVICE_UNAVAILABLE;
         };
     }
 

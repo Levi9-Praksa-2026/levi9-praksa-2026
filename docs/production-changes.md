@@ -146,12 +146,16 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - **Production:** the flag defaults to `false` in code, so leave `APP_MOCKAUTH_ENABLED` unset or `false`. Turning it on would let anyone act as any user,
   including ADMIN, by sending a header.
 
-### Community stub
-- **Local:** post-service has no HTTP client for community-service's `/internal/communities/...` endpoints yet, so
-  `APP_COMMUNITYSTUB_ENABLED=true` replaces those calls with a stub: every community is active and every user is a
-  member of every community. `APP_COMMUNITYSTUB_UNAVAILABLECOMMUNITYIDS` and `APP_COMMUNITYSTUB_NONMEMBERUSERIDS`
-  (comma-separated ids, `999` in `docker-compose.yml`) carve out exceptions, so creating a post in community `999`
-  gives 422 and creating one as user `999` (`X-Mock-User-Id: 999`) gives 403. Startup logs a WARN while the stub is
-  registered.
-- **Production:** leave `APP_COMMUNITYSTUB_*` unset. The flag defaults to `false`; without it and without the real
-  community-service client the app fails to start instead of letting everyone post everywhere.
+### community-service client
+- Creating a post asks community-service whether the community is active (`GET /internal/communities/{id}`) and
+  whether the caller has joined it (`GET /internal/communities/{id}/members/{userId}`). 404 means no (422
+  `COMMUNITY_UNAVAILABLE` or 403 `NOT_COMMUNITY_MEMBER`). No answer, a timeout or a 5xx is a 503
+  `COMMUNITY_SERVICE_UNAVAILABLE`: the post is refused, never accepted unchecked.
+- **Local:** `docker-compose.yml` sets `COMMUNITY_SERVICE_URL=http://community-service:8082`; the dev profile falls
+  back to `http://localhost:8082` for runs from the IDE.
+- **Production:**
+  - `COMMUNITY_SERVICE_URL`: community-service's internal address. The service refuses to start without it.
+  - Timeouts default to 1 s to connect and 2 s to answer; `APP_COMMUNITYSERVICE_CONNECTTIMEOUT` and
+    `APP_COMMUNITYSERVICE_READTIMEOUT` (e.g. `500ms`, `3s`) change them.
+  - The calls carry no token: post-service must reach community-service over the private network (see
+    community-service, "Internal endpoints").

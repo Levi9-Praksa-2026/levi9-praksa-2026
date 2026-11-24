@@ -34,7 +34,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Create, edit and delete end to end: HTTP, security, controller, service, community stub and real Postgres.
+ * Create, edit and delete end to end: HTTP, security, controller, service, a fake community-service and real Postgres.
  *
  * <p>MockMvc runs in the test's thread, so each request joins the test transaction (rolled back afterwards).
  * {@link #reloadFromDatabase} flushes and clears the persistence context, so assertions read what was really
@@ -47,8 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 class PostCommandIntegrationTests {
 
     private static final long COMMUNITY = 100L;
-    private static final long UNAVAILABLE_COMMUNITY = 999L; // see src/test/resources/application.properties
-    private static final long NON_MEMBER = 999L;
+    private static final long UNAVAILABLE_COMMUNITY = TestcontainersConfiguration.UNAVAILABLE_COMMUNITY;
+    private static final long NON_MEMBER = TestcontainersConfiguration.NON_MEMBER;
 
     @Autowired
     private MockMvc mockMvc;
@@ -185,7 +185,7 @@ class PostCommandIntegrationTests {
                 .andExpect(status().isNotFound());
     }
 
-    // --- community checks (stub) and validation: nothing is written ---
+    // --- community checks (fake community-service) and validation: nothing is written ---
 
     @Test
     void nonMember_isForbidden_andNothingIsSaved() throws Exception {

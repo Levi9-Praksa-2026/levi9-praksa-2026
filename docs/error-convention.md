@@ -34,6 +34,10 @@ Every service returns errors as RFC 9457 problem details (`application/problem+j
 Add `NotFoundException` (404) and `ValidationException` (422, well-formed but breaks a business rule) when your
 service needs them: add them to `permits` in `DomainException` and the compiler shows the switch to update.
 
+`ServiceUnavailableException` (503) is for a service whose request depends on another one that did not answer
+(down, timed out or a 5xx), e.g. post-service's `COMMUNITY_SERVICE_UNAVAILABLE`. The client may retry. The `detail`
+only says to try again later; which service failed and why goes to the log (WARN), never into the response.
+
 ## Adding it to your service
 
 Copy `auth-service`'s `exception` package (the exceptions and `GlobalExceptionHandler`) into your service, change
