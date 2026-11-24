@@ -1,12 +1,12 @@
 import { Section, SectionHead } from '@/pages/welcome/ui/Section'
-import type { Community, Post } from '@/features/posts/types'
+import type { SampleCommunity, SamplePost } from '@/pages/welcome/ui/samples/types'
 
 export interface CommunitiesProps {
   title: string
   lead: string
-  communities: readonly Community[]
+  communities: readonly SampleCommunity[]
   /** Sample posts; each row shows its community's first one as what is hot there. */
-  posts: readonly Post[]
+  posts: readonly SamplePost[]
   /** Where a row leads: joining means registering first. */
   joinHref: string
 }

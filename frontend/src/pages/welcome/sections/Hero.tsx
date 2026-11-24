@@ -4,10 +4,10 @@ import { ButtonRow } from '@/shared/ui/Button'
 import type { ActionItem } from '@/shared/ui/types'
 import { lazy, Suspense } from 'react'
 import type { GlobePlace } from '@/features/offices/OfficeGlobe'
-import { PostCard } from '@/features/posts/PostCard'
+import { SamplePostCard } from '@/pages/welcome/ui/samples/SamplePostCard'
 import { cn } from '@/shared/lib/cn'
 import { grid12 } from '@/pages/welcome/ui/layout/screen'
-import type { Post } from '@/features/posts/types'
+import type { SamplePost } from '@/pages/welcome/ui/samples/types'
 
 export interface HeroProps {
   kicker: string
@@ -18,7 +18,7 @@ export interface HeroProps {
   focus: { lat: number; lng: number }
   globeLabel: string
   /** The sample post rendered over the globe panel's corner. */
-  post: Post
+  post: SamplePost
   register: ActionItem
   login: ActionItem
 }
@@ -47,7 +47,7 @@ export function Hero({ kicker, title, lead, places, focus, globeLabel, post, reg
               <OfficeGlobe places={places} focus={focus} label={globeLabel} />
             </Suspense>
             <div className="absolute bottom-6 left-6 z-[2] grid w-[min(300px,calc(100%-48px))] gap-1 rounded-md border border-line bg-bg p-4 text-ink max-md:hidden">
-              <PostCard post={post} />
+              <SamplePostCard post={post} />
             </div>
           </div>
         </div>

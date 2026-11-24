@@ -1,14 +1,14 @@
-export interface Community {
+export interface SampleCommunity {
   /** The slug after "l/": "frontend". */
   slug: string
   /** One plain line about what is posted there. */
   blurb: string
 }
 
-export interface Post {
+export interface SamplePost {
   id: string
   /** The slug of the community it was posted in. */
-  community: Community['slug']
+  community: SampleCommunity['slug']
   title: string
   /** The author's handle without the "u/". */
   author: string
@@ -21,7 +21,7 @@ export interface Post {
 }
 
 /** One reply in a post's thread. */
-export interface Reply {
+export interface SampleReply {
   id: string
   /** The author's handle without the "u/". */
   author: string

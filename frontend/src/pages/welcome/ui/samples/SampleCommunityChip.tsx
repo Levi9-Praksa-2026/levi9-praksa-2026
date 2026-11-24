@@ -1,13 +1,13 @@
 import { cn } from '@/shared/lib/cn'
-import type { Community } from '@/features/posts/types'
+import type { SampleCommunity } from '@/pages/welcome/ui/samples/types'
 
-export interface CommunityChipProps {
-  community: Pick<Community, 'slug'>
+export interface SampleCommunityChipProps {
+  community: Pick<SampleCommunity, 'slug'>
   className?: string
 }
 
 /** The "l/slug" label of a community, the same wherever a post or a list names it. Fixed palette, so it reads the same on any ground. */
-export function CommunityChip({ community, className }: CommunityChipProps) {
+export function SampleCommunityChip({ community, className }: SampleCommunityChipProps) {
   return (
     <span
       className={cn(

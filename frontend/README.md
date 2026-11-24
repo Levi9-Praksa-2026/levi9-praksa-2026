@@ -18,7 +18,8 @@ npm run build   # type check + production build into dist/
 - `src/pages/welcome/` + `welcome/index.html`: the welcome page at `/welcome/`. It is a separate document,
   not a React Router route, so links to it reload the page. The 3D globe (three.js) loads lazily and only there.
   Its own building blocks live in `src/pages/welcome/ui/`: the hero and its entrance (`hero/`), the marketing
-  nav, closing band and page shell (`layout/`), and the one-screen `Section`. Forum screens do not use them.
+  nav, closing band and page shell (`layout/`), the made-up sample posts, replies and community chips
+  (`samples/`), and the one-screen `Section`. Forum screens do not use them.
 - `src/features/`: feature code shared by several pages, such as posts and communities.
 - `src/shared/`: the theme, the primitives every screen uses (`Button`, `AppLink`, `Brand`), the API layer, config
   and helpers. Nothing here imports from `pages` or `features`.

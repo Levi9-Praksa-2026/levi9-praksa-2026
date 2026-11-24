@@ -1,9 +1,9 @@
 import { Section, SectionHead } from '@/pages/welcome/ui/Section'
-import { PostCard } from '@/features/posts/PostCard'
-import { ReplyCard } from '@/features/posts/ReplyCard'
+import { SamplePostCard } from '@/pages/welcome/ui/samples/SamplePostCard'
+import { SampleReplyCard } from '@/pages/welcome/ui/samples/SampleReplyCard'
 import { cn } from '@/shared/lib/cn'
 import { grid12 } from '@/pages/welcome/ui/layout/screen'
-import type { Post, Reply } from '@/features/posts/types'
+import type { SamplePost, SampleReply } from '@/pages/welcome/ui/samples/types'
 
 export interface JoinStep {
   id: string
@@ -15,8 +15,8 @@ export interface HowToJoinProps {
   title: string
   steps: readonly JoinStep[]
   /** The thread shown beside the steps: a post and its replies from other offices. */
-  post: Post
-  replies: readonly Reply[]
+  post: SamplePost
+  replies: readonly SampleReply[]
 }
 
 /** Three ruled steps with large numerals on the left; on the right, a render of a thread in the app's own cards. */
@@ -42,10 +42,10 @@ export function HowToJoin({ title, steps, post, replies }: HowToJoinProps) {
           className="col-span-full grid min-w-0 gap-5 rounded-lg bg-white p-7 shadow-[0_1px_2px_rgb(20_24_51/0.05),0_18px_40px_-18px_rgb(43_63_160/0.28)] lg:col-span-6 lg:col-start-7"
           data-ui=""
         >
-          <PostCard post={post} />
+          <SamplePostCard post={post} />
           <div className="grid gap-[18px] border-t border-line pt-5">
             {replies.map(r => (
-              <ReplyCard key={r.id} reply={r} />
+              <SampleReplyCard key={r.id} reply={r} />
             ))}
           </div>
         </div>

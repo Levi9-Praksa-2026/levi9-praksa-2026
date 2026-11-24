@@ -1,8 +1,8 @@
-import type { Reply } from '@/features/posts/types'
+import type { SampleReply } from '@/pages/welcome/ui/samples/types'
 import { cn } from '@/shared/lib/cn'
 
-export interface ReplyCardProps {
-  reply: Reply
+export interface SampleReplyCardProps {
+  reply: SampleReply
   className?: string
 }
 
@@ -12,7 +12,7 @@ function initials(handle: string): string {
 }
 
 /** One reply in a thread: avatar, who and where from, the text, votes. Presentational only; fixed palette. */
-export function ReplyCard({ reply, className }: ReplyCardProps) {
+export function SampleReplyCard({ reply, className }: SampleReplyCardProps) {
   return (
     <article className={cn('grid grid-cols-[32px_minmax(0,1fr)] items-start gap-3 text-left font-text', reply.depth === 1 && 'ml-11', className)}>
       <span
