@@ -66,13 +66,26 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 - Sessions expire after 30 minutes without a request (Spring's default). Expired rows are deleted by Spring Session
   itself.
 
+### One origin: who routes the gateway's paths
+- The browser only ever talks to `APP_PUBLIC_URL`. Locally that's the frontend's nginx (`frontend/nginx.conf`) or
+  the Vite dev server, which forward `/api/`, `/oauth2/`, `/login/oauth2/`, `/logout`, `/connect/` and
+  `/.well-known/` to the gateway and serve React for everything else.
+- **AWS (Fargate behind an ALB):** the load balancer does this instead, with a listener rule sending those paths to
+  the gateway's target group. If React is served from S3, CloudFront is the front door: those paths go to the ALB,
+  everything else to S3. nginx's proxying is never used there. Swagger's paths stay out: it is off in production.
+
 ### Trusted proxies
-- **Local and single EC2:** `trusted-proxies` trusts only loopback, because nothing sits in front of the gateway.
-  The gateway drops a client's own `X-Forwarded-For` and sends the address it saw.
-- **With a load balancer or reverse proxy in front** (ALB, Beanstalk's nginx): the gateway would then see the
-  proxy's address for every request, so every user would share one rate limit. Set
-  `SPRING_CLOUD_GATEWAY_SERVER_WEBMVC_TRUSTEDPROXIES` to match the proxy's addresses, and check with a
-  request through the whole chain which address reaches auth-service before relying on it.
+- **Base config:** `trusted-proxies` trusts only loopback. **Local:** the dev profile also trusts Docker's private
+  ranges, because the frontend's nginx sits in front of the gateway. The gateway drops an untrusted caller's own
+  `X-Forwarded-For` and sends the address it saw.
+- **AWS (Fargate behind an ALB):** the gateway sees the ALB's private addresses for every request, so without this
+  every user would share one login rate limit. Set `SPRING_CLOUD_GATEWAY_SERVER_WEBMVC_TRUSTEDPROXIES` to the VPC's
+  CIDR (for example `10\.0\..*`). That is safe because the gateway's security group only lets the ALB in. The ALB
+  appends the client's address to `X-Forwarded-For` itself.
+- **With CloudFront in front of the ALB:** the ALB sees CloudFront's address, not the user's. Take the client
+  address from `CloudFront-Viewer-Address` or trust CloudFront's ranges, or users behind one edge share a rate limit.
+- Either way, check with a real request through the whole chain which address reaches auth-service before relying
+  on it.
 
 ## Database
 
