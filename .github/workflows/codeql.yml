@@ -17,7 +17,7 @@ on:
   pull_request:
     branches: [ "main" ]
   schedule:
-    - cron: '00 12 * * *'
+    - cron: '0 12 * * *'
 
 jobs:
   analyze:
@@ -60,6 +60,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v7
+      with:
+        # Scheduled runs analyze develop; push and PR runs use their event ref.
+        ref: ${{ github.event_name == 'schedule' && 'develop' || github.ref }}
 
     # Add any setup steps before running the `github/codeql-action/init` action.
     # This includes steps like installing compilers or runtimes (`actions/setup-node`
