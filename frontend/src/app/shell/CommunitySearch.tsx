@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { Loader2, Search, Users, X } from 'lucide-react'
 import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
@@ -18,6 +18,7 @@ export function CommunitySearch({ className }: { className?: string }) {
   const id = useId()
   const listId = `${id}-list`
   const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
@@ -27,6 +28,12 @@ export function CommunitySearch({ className }: { className?: string }) {
   const hasQuery = query.trim() !== ''
   const showList = open && hasQuery
   const activeResult = showList && active >= 0 ? results[active] : undefined
+
+  useEffect(() => {
+    if (activeResult) {
+      listRef.current?.children[active]?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [active, activeResult])
 
   function go(name: string) {
     setQuery('')
@@ -115,7 +122,7 @@ export function CommunitySearch({ className }: { className?: string }) {
           !showList && 'hidden',
         )}
       >
-        <div id={listId} role="listbox" aria-label="Communities" className="max-h-80 overflow-y-auto py-1.5">
+        <div ref={listRef} id={listId} role="listbox" aria-label="Communities" className="max-h-80 overflow-y-auto py-1.5">
           {results.map((c, i) => (
             // the options are worked from the input's keys (aria-activedescendant), so a click is all they need
             // oxlint-disable-next-line jsx-a11y/click-events-have-key-events
