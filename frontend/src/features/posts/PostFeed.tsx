@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router'
 import { cn } from '@/shared/lib/cn'
 import { Pagination } from '@/shared/ui/Pagination'
 import { usePosts } from './hooks'
+import { pastLastPage } from './pastLastPage'
 import { PostCard, PostCardSkeleton } from './PostCard'
 
 const PAGE_SIZE = 20
@@ -42,11 +43,12 @@ export function PostFeed({ communityId, hideCommunity = false, emptyText = 'No p
     window.scrollTo({ top: 0 })
   }, [setSearchParams])
 
-  // A shared link can point past the last page (posts were removed since); move to the last one.
-  const totalPages = data?.totalPages ?? 0
+  // A shared link can point past the last page (posts were removed since); move to the last one, but only once
+  // the answer for this page is in, not the previous page's answer kept on screen while it loads.
+  const correction = pastLastPage(page, data?.totalPages, isPlaceholderData)
   useEffect(() => {
-    if (data && totalPages > 0 && page >= totalPages) setPage(totalPages - 1)
-  }, [data, totalPages, page, setPage])
+    if (correction !== null) setPage(correction)
+  }, [correction, setPage])
 
   if (isPending) {
     return (
