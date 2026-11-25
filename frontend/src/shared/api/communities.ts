@@ -8,14 +8,14 @@ import {
   type UpdateCommunityRequest,
 } from './contracts/communities'
 import { ApiError } from './errors'
+import { http } from './http'
 import { db, type CommunityRow } from './mock/db'
 import { invalid, optionalUser, requireAdmin, requireUser } from './mock/guards'
-import { containsIgnoreCase, handle, newestFirst, page } from './mock/server'
+import { handle } from './mock/server'
 
 /*
-  community-service, /api/communities/**. Mocked: every function answers from the in-memory data
-  with the service's rules and status codes. Replace each body with a request when the backend is up;
-  the signatures stay.
+  community-service, /api/communities/**. The list is a real request; the other operations are still
+  mocked from the in-memory data with the service's rules and status codes. Their signatures stay.
 */
 
 const memberCount = (c: CommunityRow) => db.members.filter(m => m.communityId === c.id).length
@@ -50,32 +50,26 @@ function toDetail(c: CommunityRow): CommunityDetailResponse {
   }
 }
 
-/** Activity in the last 24 h for `hot`: new posts and comments there (the real one counts upvotes too). */
-function activity(c: CommunityRow): number {
-  const since = new Date(Date.now() - 24 * 3_600_000).toISOString()
-  const posts = db.posts.filter(p => p.communityId === c.id && !p.removedAt)
-  const ids = new Set(posts.map(p => p.id))
-  return posts.filter(p => p.createdAt >= since).length + db.comments.filter(m => ids.has(m.postId) && !m.removedAt && m.createdAt >= since).length
-}
-
-/** `GET /api/communities?sort=&name=&member=&status=&page=&size=`: active communities, newest first by default. */
-export function listCommunities(params: CommunityListParams = {}): Promise<PageResponse<CommunityResponse>> {
-  return handle(() => {
-    const { sort = 'new', name, member, status } = params
-    if (name !== undefined && name.length > 50) throw invalid('name', 'size must be between 0 and 50')
-    if (status === 'inactive') requireAdmin()
-    let rows = db.communities.filter(c => c.isActive === (status !== 'inactive'))
-    if (name) rows = rows.filter(c => containsIgnoreCase(c.name, name))
-    if (member === 'me') {
-      const me = requireUser()
-      rows = rows.filter(c => db.members.some(m => m.communityId === c.id && m.userId === me.id))
-    }
-    const sorted = [...rows].sort(
-      sort === 'top' ? (a, b) => memberCount(b) - memberCount(a)
-      : sort === 'hot' ? (a, b) => activity(b) - activity(a)
-      : newestFirst,
-    )
-    return page(sorted.map(c => ({ name: c.name, memberCount: memberCount(c) })), params)
+/**
+ * `GET /api/communities?sort=&name=&inactive=&page=&size=`: active communities, newest first by
+ * default. The backend's admin handler is selected by the presence of `inactive`, so the parameter
+ * is left out entirely for the public list (`inactive=false` would still require ADMIN).
+ */
+export function listCommunities({
+  sort = 'new',
+  name,
+  inactive,
+  page,
+  size,
+}: CommunityListParams = {}): Promise<PageResponse<CommunityResponse>> {
+  return http<PageResponse<CommunityResponse>>('/api/communities', {
+    query: {
+      sort,
+      name,
+      inactive: inactive === true ? true : undefined,
+      page,
+      size,
+    },
   })
 }
 
