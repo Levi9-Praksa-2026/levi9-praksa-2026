@@ -34,6 +34,8 @@ fail CI. The status table also appears in the GitHub run summary, and the artifa
 includes `maven-verify.log` for diagnosis.
 
 The community list is `GET /api/communities?sort=new|top&name=&page=&size=`. It returns active communities
-with only their name and member count; the default order is `new`. The endpoints document also defines
+with only their name and member count; the default order is `new`. Admins list shut-down communities with
+`?inactive=true`: the *presence* of the parameter selects the admin handler, so `inactive=false` still
+requires ADMIN. The frontend's searchable directory is `/communities`. The endpoints document also defines
 `sort=hot`, but that is not implemented yet — it needs activity data from post-service's
 `/internal/posts/community-activity`, which is a separate piece of work.

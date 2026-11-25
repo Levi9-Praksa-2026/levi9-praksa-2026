@@ -15,6 +15,8 @@ export const routes = {
   /** "Join now": the registration form. `?email=` fills in the email. */
   signUp: '/signup',
   welcome: '/welcome/',
+  /** The searchable community directory. */
+  communities: '/communities',
   /** A community's page: `/l/frontend`. */
   community: (name: string) => `/l/${encodeURIComponent(name)}`,
 } as const

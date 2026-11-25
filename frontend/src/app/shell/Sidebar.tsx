@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router'
-import { ChevronDown, Home, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react'
+import { ChevronDown, Compass, Home, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { CommunityResponse } from '@/shared/api/contracts/communities'
 import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
@@ -62,6 +62,7 @@ export function Sidebar({ id, variant, showMyCommunities, communities, onToggle 
 
       <div className="flex flex-col gap-0.5 px-3 pt-1">
         <SidebarLink to={routes.home} end rail={rail} label="Home" icon={<Home className="size-5 flex-none" aria-hidden="true" />} />
+        <SidebarLink to={routes.communities} rail={rail} label="Communities" icon={<Compass className="size-5 flex-none" aria-hidden="true" />} />
       </div>
 
       {showMyCommunities && (

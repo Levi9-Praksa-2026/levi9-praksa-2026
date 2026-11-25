@@ -25,21 +25,24 @@ export interface CommunityDetailResponse {
   joined: boolean
 }
 
-/** `new`: newest first. `top`: most members. `hot` (activity in the last 24 h) is agreed but not built. */
-export type CommunitySort = 'new' | 'top' | 'hot'
+/** `new`: newest first. `top`: most members. `hot` is not supported by the backend. */
+export type CommunitySort = 'new' | 'top'
 
-/** `GET /api/communities?sort=&name=&page=&size=` */
+/** `GET /api/communities?sort=&name=&inactive=&page=&size=` */
 export interface CommunityListParams extends PageParams {
   sort?: CommunitySort
-  /** Filters by name (contains, any case). */
+  /** Filters by name (contains, any case; at most 50 characters). */
   name?: string
   /**
-   * Contract gap: "my communities" (the sidebar). Proposed: `member=me` limits the list to the
-   * caller's memberships.
+   * ADMIN only: list shut-down communities instead of active ones. The real backend selects its admin
+   * handler by the *presence* of this parameter, so it must be omitted entirely when off.
+   */
+  inactive?: boolean
+  /**
+   * Mock-only contract gap: the sidebar's "my communities". community-service has no endpoint for
+   * the caller's memberships, so this is ignored by the real request and the sidebar stays hidden.
    */
   member?: 'me'
-  /** ADMIN only (agreed, not built): the shut-down communities instead of the active ones. */
-  status?: 'inactive'
 }
 
 /** `POST /api/communities` (ADMIN): `CreateCommunityRequest.java`. */
