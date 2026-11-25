@@ -9,14 +9,16 @@ import type {
   UpdatePostRequest,
 } from './contracts/posts'
 import { ApiError } from './errors'
+import { http } from './http'
 import { db, voteKey, type CommentRow, type PostRow, type UserRow } from './mock/db'
 import { fileUrl, invalid, notBlank, optionalUser, requireUser } from './mock/guards'
-import { containsIgnoreCase, handle, newestFirst, page } from './mock/server'
+import { handle, newestFirst, page } from './mock/server'
 
 /*
-  post-service, /api/posts/** and /api/comments/**. Mocked: every function answers from the
-  in-memory data with the service's rules (docs/data-model.md, the endpoints doc). Replace each body
-  with a request when the backend is up; the signatures stay.
+  post-service, /api/posts/** and /api/comments/**. `listPosts` is the real request. Post votes have no
+  endpoint yet, so `votePost` and `unvotePost` send nothing. Everything else is still mocked: it
+  answers from the in-memory data with the service's rules (docs/data-model.md, the endpoints doc).
+  Replace each body with a request when the backend is up; the signatures stay.
 */
 
 // Not fixed by the backend yet (no create-post DTO exists): the search limit, and a generous body.
@@ -75,13 +77,13 @@ function toPost(p: PostRow): PostResponse {
     authorId: p.authorId,
     authorUsername: p.authorUsername,
     communityId: p.communityId,
-    communityName: db.communities.find(c => c.id === p.communityId)?.name ?? '',
+    communityName: db.communities.find(c => c.id === p.communityId)?.name ?? null,
     score: p.score,
     commentCount: p.commentCount,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
+    images: p.imageUrls.map((url, index) => ({ id: index + 1, url })),
     myVote: me ? (db.postVotes.get(voteKey(p.id, me.id)) ?? null) : null,
-    imageUrls: p.imageUrls,
   }
 }
 
@@ -105,17 +107,8 @@ const now = () => new Date().toISOString()
 // ---------------------------------------------------------------- posts
 
 /** `GET /api/posts?communityId=&q=&page=&size=`: latest first. No filter is the main page; `q` searches titles. */
-export function listPosts(params: PostListParams = {}): Promise<PageResponse<PostResponse>> {
-  return handle(() => {
-    const { communityId, q } = params
-    if (q !== undefined && q.length > TITLE_MAX) throw invalid('q', `size must be between 0 and ${TITLE_MAX}`)
-    const rows = db.posts
-      .filter(p => !p.removedAt)
-      .filter(p => communityId === undefined || p.communityId === communityId)
-      .filter(p => !q || containsIgnoreCase(p.title, q))
-      .sort(newestFirst)
-    return page(rows.map(toPost), params)
-  })
+export function listPosts({ communityId, q, page, size }: PostListParams = {}): Promise<PageResponse<PostResponse>> {
+  return http<PageResponse<PostResponse>>('/api/posts', { query: { communityId, q, page, size } })
 }
 
 /** `GET /api/posts/top?period=ALL|WEEK`: the 10 highest scores; WEEK only counts posts created in the last 7 days. */
@@ -189,23 +182,17 @@ export function removePost(id: number): Promise<void> {
   })
 }
 
-/** `PUT /api/posts/{id}/vote`: cast or change your vote. Any logged-in user; 422 on your own post. */
-export function votePost(id: number, value: VoteValue): Promise<void> {
-  return handle(() => {
-    const me = requireUser()
-    checkVote(value)
-    const post = livePost(id)
-    if (post.authorId === me.id) throw new ApiError({ status: 422, title: 'Unprocessable Entity', detail: 'You cannot vote on your own post' })
-    castVote(db.postVotes, post, me.id, value)
-  })
+/**
+ * `PUT /api/posts/{id}/vote`: cast or change your vote; 422 on your own post. post-service has the vote
+ * tables but no endpoint yet, so this sends nothing and a vote lasts until the page reloads.
+ */
+export function votePost(_id: number, _value: VoteValue): Promise<void> {
+  return Promise.resolve()
 }
 
-/** `DELETE /api/posts/{id}/vote`: take your vote back. Harmless when there is none. */
-export function unvotePost(id: number): Promise<void> {
-  return handle(() => {
-    const me = requireUser()
-    castVote(db.postVotes, livePost(id), me.id, null)
-  })
+/** `DELETE /api/posts/{id}/vote`: take your vote back. No endpoint yet, see `votePost`. */
+export function unvotePost(_id: number): Promise<void> {
+  return Promise.resolve()
 }
 
 // ---------------------------------------------------------------- comments

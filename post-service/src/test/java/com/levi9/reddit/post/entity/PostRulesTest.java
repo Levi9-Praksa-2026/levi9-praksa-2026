@@ -18,7 +18,7 @@ class PostRulesTest {
     private static final Actor STRANGER = new Actor(6, "ana", false);
     private static final Actor ADMIN = new Actor(7, "boss", true);
 
-    private final Post post = new Post("Title", AUTHOR.id(), AUTHOR.username(), 1L);
+    private final Post post = new Post("Title", AUTHOR.id(), AUTHOR.username(), 1L, "java");
 
     // --- edit ---
 

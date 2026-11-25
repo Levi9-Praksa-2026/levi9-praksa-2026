@@ -74,7 +74,7 @@ class PostCommandControllerTest {
     }
 
     private static PostDTO response(long id, String title, Instant updatedAt) {
-        return new PostDTO(id, title, "Body", MARKO.id(), MARKO.username(), 7L, 0, 0, CREATED, updatedAt, List.of());
+        return new PostDTO(id, title, "Body", MARKO.id(), MARKO.username(), 7L, "java", 0, 0, CREATED, updatedAt, List.of());
     }
 
     @Nested

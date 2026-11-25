@@ -41,10 +41,10 @@ class PostQueryIntegrationTests {
     @BeforeEach
     void setUp() {
         // Saved one by one, so ids grow: the newest post has the largest id.
-        postRepository.save(new Post("First in backend", 1L, "luka", 100L));
-        springPost = postRepository.save(new Post("Learning SPRING Boot", 2L, "ana", 100L));
-        postRepository.save(new Post("React tips", 3L, "mika", 200L));
-        removedPost = new Post("Removed spring post", 1L, "luka", 100L);
+        postRepository.save(new Post("First in backend", 1L, "luka", 100L, "backend"));
+        springPost = postRepository.save(new Post("Learning SPRING Boot", 2L, "ana", 100L, "backend"));
+        postRepository.save(new Post("React tips", 3L, "mika", 200L, "frontend"));
+        removedPost = new Post("Removed spring post", 1L, "luka", 100L, "backend");
         removedPost.remove(99L, Instant.now());
         removedPost = postRepository.save(removedPost);
 

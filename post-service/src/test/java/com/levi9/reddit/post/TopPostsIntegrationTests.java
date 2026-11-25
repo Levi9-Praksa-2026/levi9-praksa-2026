@@ -51,7 +51,7 @@ class TopPostsIntegrationTests {
     @Test
     void skipsRemovedPostsEvenWithTheHighestScore() throws Exception {
         savePost("Visible", 5);
-        Post removed = new Post("Removed", 1L, "luka", 7L);
+        Post removed = new Post("Removed", 1L, "luka", 7L, "java");
         removed.updateScore(100);
         removed.remove(99L, Instant.now());
         postRepository.save(removed);
@@ -100,7 +100,7 @@ class TopPostsIntegrationTests {
     @Test
     void week_skipsRemovedPosts() throws Exception {
         savePost("Visible", 1);
-        Post removed = new Post("Removed", 1L, "luka", 7L);
+        Post removed = new Post("Removed", 1L, "luka", 7L, "java");
         removed.updateScore(50);
         removed.remove(99L, Instant.now());
         postRepository.save(removed);
@@ -111,7 +111,7 @@ class TopPostsIntegrationTests {
     }
 
     private Post savePost(String title, int score) {
-        Post post = new Post(title, 1L, "luka", 7L);
+        Post post = new Post(title, 1L, "luka", 7L, "java");
         post.updateScore(score);
         return postRepository.saveAndFlush(post);
     }

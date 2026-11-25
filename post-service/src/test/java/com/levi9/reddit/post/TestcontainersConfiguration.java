@@ -3,6 +3,7 @@ package com.levi9.reddit.post;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import com.levi9.reddit.post.client.CommunityDirectory;
+import java.util.Optional;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.DynamicPropertyRegistrar;
@@ -33,7 +34,7 @@ class TestcontainersConfiguration {
 
 	/**
 	 * Stands in for community-service in tests that start the whole app (the HTTP client itself is tested in
-	 * {@code HttpCommunityDirectoryTest}). Every community is active and every user a member, except
+	 * {@code HttpCommunityDirectoryTest}). Every community is active (named "community" plus its id) and every user a member, except
 	 * {@link #UNAVAILABLE_COMMUNITY} and {@link #NON_MEMBER}.
 	 */
 	@Bean
@@ -41,13 +42,13 @@ class TestcontainersConfiguration {
 	CommunityDirectory fakeCommunityDirectory() {
 		return new CommunityDirectory() {
 			@Override
-			public boolean isActive(long communityId) {
-				return communityId != UNAVAILABLE_COMMUNITY;
+			public Optional<String> findActiveName(long communityId) {
+				return communityId == UNAVAILABLE_COMMUNITY ? Optional.empty() : Optional.of("community" + communityId);
 			}
 
 			@Override
 			public boolean isMember(long communityId, long userId) {
-				return isActive(communityId) && userId != NON_MEMBER;
+				return findActiveName(communityId).isPresent() && userId != NON_MEMBER;
 			}
 		};
 	}

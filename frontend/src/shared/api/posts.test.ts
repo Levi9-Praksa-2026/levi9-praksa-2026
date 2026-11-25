@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from './errors'
 import { mockSignInAs, resetMockDb } from './mock/db'
 import { setMockLatency } from './mock/server'
@@ -30,30 +30,33 @@ beforeEach(() => {
   resetMockDb()
 })
 
+describe('post list (real API)', () => {
+  const fetchMock = vi.fn<typeof fetch>()
+  const examplePage = { content: [], page: 1, size: 5, totalElements: 6, totalPages: 2 }
+
+  beforeEach(() => {
+    vi.stubGlobal('fetch', fetchMock)
+    fetchMock.mockImplementation(async () =>
+      new Response(JSON.stringify(examplePage), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+  })
+
+  afterEach(() => {
+    fetchMock.mockReset()
+    vi.unstubAllGlobals()
+  })
+
+  it('asks for the main page with no filters, and returns the page as the backend gives it', async () => {
+    expect(await listPosts()).toEqual(examplePage)
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/posts')
+  })
+
+  it('sends the community, search and page it is given', async () => {
+    await listPosts({ communityId: 3, q: 'tailwind', page: 1, size: 5 })
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/posts?communityId=3&q=tailwind&page=1&size=5')
+  })
+})
+
 describe('reading posts', () => {
-  it('lists the main page newest first and leaves removed posts out', async () => {
-    const page = await listPosts()
-    const dates = page.content.map(p => p.createdAt)
-    expect(dates).toEqual([...dates].sort().reverse())
-    expect(page.content.some(p => p.title === 'Removed by its author')).toBe(false)
-    expect(page.totalElements).toBe(17)
-  })
-
-  it('pages like Spring and rejects a size over 100', async () => {
-    const second = await listPosts({ page: 1, size: 5 })
-    expect(second).toMatchObject({ page: 1, size: 5, totalPages: 4 })
-    expect(second.content).toHaveLength(5)
-    expect(await statusOf(listPosts({ size: 101 }))).toBe(400)
-  })
-
-  it('filters by community and searches titles in any case', async () => {
-    const frontend = await getCommunity('frontend')
-    const inFrontend = await listPosts({ communityId: frontend.id })
-    expect(inFrontend.content.every(p => p.communityName === 'frontend')).toBe(true)
-    const found = await listPosts({ q: 'TAILWIND' })
-    expect(found.content.map(p => p.title)).toEqual(['CSS modules, Tailwind or something else?'])
-  })
-
   it('gives the caller its own vote, and none when logged out', async () => {
     expect((await getPost(1)).myVote).toBe(1)
     mockSignInAs(null)
@@ -95,7 +98,7 @@ describe('writing posts', () => {
     expect(await statusOf(updatePost(1, { title: 'Mine now' }))).toBe(403)
     const edited = await updatePost(3, { title: 'Edited' })
     expect(edited.title).toBe('Edited')
-    expect(edited.updatedAt >= edited.createdAt).toBe(true)
+    expect(edited.updatedAt! >= edited.createdAt).toBe(true)
     expect(await statusOf(removePost(1))).toBe(403)
     mockSignInAs('admin')
     await removePost(1)
@@ -104,18 +107,19 @@ describe('writing posts', () => {
 })
 
 describe('votes', () => {
-  it('moves the score by new minus old', async () => {
-    const before = (await getPost(1)).score // demo_user already voted +1 here
-    await votePost(1, -1)
-    expect((await getPost(1)).score).toBe(before - 2)
-    await unvotePost(1)
-    const after = await getPost(1)
-    expect(after.score).toBe(before - 1)
-    expect(after.myVote).toBeNull()
+  it('sends nothing for a post vote while post-service has no vote endpoint', async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+    vi.stubGlobal('fetch', fetchMock)
+    try {
+      await votePost(1, -1)
+      await unvotePost(1)
+      expect(fetchMock).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
-  it('refuses a vote on your own post or comment with 422', async () => {
-    expect(await statusOf(votePost(3, 1))).toBe(422)
+  it('refuses a vote on your own comment with 422', async () => {
     const mine = await createComment(1, { content: 'Mine' })
     expect(await statusOf(voteComment(mine.id, 1))).toBe(422)
   })

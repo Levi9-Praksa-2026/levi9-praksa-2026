@@ -47,29 +47,39 @@ class HttpCommunityDirectoryTest {
     }
 
     @Nested
-    class IsActive {
+    class FindActiveName {
 
         @Test
-        void ok_isActive() {
+        void ok_returnsTheName() {
             server.expect(requestTo(BASE + "/internal/communities/5"))
                     .andExpect(method(HttpMethod.GET))
                     .andRespond(withSuccess("{\"name\":\"java\",\"active\":true}", MediaType.APPLICATION_JSON));
 
-            assertThat(directory.isActive(5)).isTrue();
+            assertThat(directory.findActiveName(5)).contains("java");
         }
 
         @Test
-        void notFound_isNotActive() {
+        void notFound_isEmpty() {
             server.expect(requestTo(BASE + "/internal/communities/5")).andRespond(withResourceNotFound());
 
-            assertThat(directory.isActive(5)).isFalse();
+            assertThat(directory.findActiveName(5)).isEmpty();
         }
 
         @Test
         void serverError_isUnavailable() {
             server.expect(requestTo(BASE + "/internal/communities/5")).andRespond(withServerError());
 
-            assertThatThrownBy(() -> directory.isActive(5))
+            assertThatThrownBy(() -> directory.findActiveName(5))
+                    .isInstanceOf(CommunityServiceUnavailableException.class);
+        }
+
+        /** A 200 that doesn't say which community is not a usable answer: the post would get no name. */
+        @Test
+        void okWithoutName_isUnavailable() {
+            server.expect(requestTo(BASE + "/internal/communities/5"))
+                    .andRespond(withSuccess("{\"active\":true}", MediaType.APPLICATION_JSON));
+
+            assertThatThrownBy(() -> directory.findActiveName(5))
                     .isInstanceOf(CommunityServiceUnavailableException.class);
         }
     }
@@ -102,7 +112,7 @@ class HttpCommunityDirectoryTest {
             server.expect(requestTo(BASE + "/internal/communities/5"))
                     .andRespond(withException(new SocketTimeoutException("Read timed out")));
 
-            assertThatThrownBy(() -> directory.isActive(5))
+            assertThatThrownBy(() -> directory.findActiveName(5))
                     .isInstanceOf(CommunityServiceUnavailableException.class)
                     .hasRootCauseInstanceOf(SocketTimeoutException.class);
         }
@@ -121,7 +131,7 @@ class HttpCommunityDirectoryTest {
         void unexpectedClientError_isUnavailable() {
             server.expect(requestTo(BASE + "/internal/communities/5")).andRespond(withStatus(HttpStatus.BAD_REQUEST));
 
-            assertThatThrownBy(() -> directory.isActive(5))
+            assertThatThrownBy(() -> directory.findActiveName(5))
                     .isInstanceOf(CommunityServiceUnavailableException.class);
         }
 
@@ -130,7 +140,7 @@ class HttpCommunityDirectoryTest {
             server.expect(requestTo(BASE + "/internal/communities/5"))
                     .andRespond(withException(new ConnectException("community-service:8082 refused")));
 
-            assertThatThrownBy(() -> directory.isActive(5))
+            assertThatThrownBy(() -> directory.findActiveName(5))
                     .hasMessageNotContaining("community-service:8082");
         }
     }
