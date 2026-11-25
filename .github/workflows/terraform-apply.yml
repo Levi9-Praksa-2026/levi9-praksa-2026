@@ -1,0 +1,84 @@
+name: Terraform apply
+
+# Changes AWS. Runs only when someone presses "Run workflow" on main; merging never applies.
+# It plans and applies in the same job: the repo is public, and a saved plan file holds
+# secrets in plain text, so it is never uploaded as an artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      allow_destroy:
+        description: "Allow a plan that deletes or replaces resources"
+        type: boolean
+        default: false
+
+concurrency:
+  group: terraform-apply
+  cancel-in-progress: false    # never stop an apply half-way
+
+env:
+  TF_VERSION: "1.17.2"
+  AWS_REGION: eu-central-1
+  TF_DIR: infra
+
+jobs:
+  apply:
+    # AWS refuses the apply role on any other branch; this fails earlier with a clearer message.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+      id-token: write
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: AWS credentials (apply role, main only)
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Init
+        run: terraform init -input=false
+
+      - name: Plan
+        run: |
+          terraform plan -input=false -no-color -lock-timeout=5m -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+          {
+            echo "### Plan being applied"
+            grep -E '^(Plan:|No changes)' plan.txt || true
+            echo
+            echo "<details><summary>Full plan</summary>"
+            echo
+            echo '```'
+            head -c 60000 plan.txt
+            echo '```'
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop on deletes unless allowed
+        if: ${{ !inputs.allow_destroy }}
+        run: |
+          # A replacement ("forces replacement") is a delete too, so it is caught here.
+          terraform show -json tfplan \
+            | jq -r '.resource_changes[]? | select(.change.actions | index("delete")) | .address' > deletes.txt
+          if [ -s deletes.txt ]; then
+            echo "::error::This plan deletes or replaces resources. Run again with 'Allow destroy' if that is intended:"
+            cat deletes.txt
+            exit 1
+          fi
+
+      - name: Apply
+        run: terraform apply -input=false -no-color -lock-timeout=5m tfplan
