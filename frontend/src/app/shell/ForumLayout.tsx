@@ -51,7 +51,7 @@ export function ForumLayout() {
       </div>
 
       {desktop && (
-        <aside className={cn('fixed top-app-bar bottom-0 left-0 z-30 border-r border-line bg-bg', expanded ? 'w-sidebar' : 'w-rail')}>
+        <aside className={cn('transition-[width] duration-240 ease-in-out motion-reduce:transition-none fixed top-app-bar bottom-0 left-0 z-30 border-r border-line bg-bg', expanded ? 'w-sidebar' : 'w-rail')}>
           <button
             type="button"
             className="absolute right-0 bottom-8 z-10 grid size-8 translate-x-1/2 cursor-pointer place-items-center rounded-full border border-line-strong bg-bg text-muted hover:bg-surface hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
@@ -66,10 +66,20 @@ export function ForumLayout() {
         </aside>
       )}
 
-      {!desktop && drawerOpen && (
-        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Menu">
-          <div className="absolute inset-0 bg-[rgb(20_24_51/0.4)]" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
-          <div ref={drawerRef} className="absolute inset-y-0 left-0 w-sidebar max-w-[85vw] border-r border-line bg-bg shadow-[8px_0_32px_-16px_rgb(20_24_51/0.3)]">
+      {!desktop && (
+        <div
+          className={cn(
+            'fixed inset-0 z-50 transition-[visibility] duration-240 motion-reduce:transition-none',
+            drawerOpen ? 'visible' : 'invisible pointer-events-none',
+          )}
+          role="dialog"
+          aria-modal={drawerOpen ? true : undefined}
+          aria-hidden={!drawerOpen}
+          aria-label="Menu"
+          inert={!drawerOpen}
+        >
+          <div className={cn('absolute inset-0 bg-[rgb(20_24_51/0.4)] transition-opacity duration-240 ease-in-out motion-reduce:transition-none', drawerOpen ? 'opacity-100' : 'opacity-0')} onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+          <div ref={drawerRef} className={cn('absolute inset-y-0 left-0 w-sidebar max-w-[85vw] border-r border-line bg-bg shadow-[8px_0_32px_-16px_rgb(20_24_51/0.3)] transition-transform duration-240 ease-in-out motion-reduce:transition-none', drawerOpen ? 'translate-x-0' : '-translate-x-full')}>
             {sidebar('drawer')}
           </div>
         </div>
@@ -79,7 +89,7 @@ export function ForumLayout() {
         id="content"
         tabIndex={-1}
         inert={drawerOpen}
-        className={cn('pt-app-bar outline-none', desktop && (expanded ? 'pl-sidebar' : 'pl-rail'))}
+        className={cn('transition-[padding-left] duration-240 ease-in-out motion-reduce:transition-none pt-app-bar outline-none', desktop && (expanded ? 'pl-sidebar' : 'pl-rail'))}
       >
         <div className="mx-auto max-w-feed px-4 py-6 sm:px-6">
           <Outlet />

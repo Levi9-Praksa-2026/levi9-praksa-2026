@@ -26,13 +26,13 @@ function SidebarLink({ to, icon, label, rail, end }: { to: string; icon: ReactNo
       end={end}
       title={rail ? label : undefined}
       className={cn(
-        'flex min-h-10 items-center gap-3 rounded-sm px-3 text-small font-medium text-muted hover:bg-surface hover:text-ink',
+        'transition-[padding,gap] duration-240 ease-in-out motion-reduce:transition-none flex min-h-10 items-center gap-3 rounded-sm px-3 text-small font-medium text-muted hover:bg-surface hover:text-ink',
         'aria-[current=page]:bg-surface aria-[current=page]:text-ink',
-        rail && 'justify-center px-0',
+        rail && 'gap-0 px-[10px]',
       )}
     >
       {icon}
-      <span className={cn('truncate', rail && 'sr-only')}>{label}</span>
+      <span className={cn('truncate transition-[max-width,opacity] duration-240 ease-in-out motion-reduce:transition-none', rail ? 'max-w-0 opacity-0' : 'max-w-sidebar opacity-100')}>{label}</span>
     </NavLink>
   )
 }
@@ -110,7 +110,7 @@ function CommunitySkeleton({ rail }: { rail: boolean }) {
   return (
     <div aria-hidden="true" className="flex flex-col gap-0.5">
       {[0, 1, 2].map(i => (
-        <div key={i} className={cn('flex min-h-10 items-center gap-3 px-3', rail && 'justify-center px-0')}>
+        <div key={i} className={cn('transition-[padding,gap] duration-240 ease-in-out motion-reduce:transition-none flex min-h-10 items-center gap-3 px-3', rail && 'gap-0 px-[10px]')}>
           <span className="size-7 flex-none animate-pulse rounded-full bg-surface" />
           {!rail && <span className={cn('h-3 flex-1 animate-pulse rounded-sm bg-surface', SKELETON_WIDTHS[i])} />}
         </div>

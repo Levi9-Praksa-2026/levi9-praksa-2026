@@ -47,7 +47,7 @@ export function TopBar({ user, drawerOpen, drawerId, onOpenDrawer, sidebar }: To
           mark={<img className="size-7 rounded-sm" src="/brand/levi9-mark.png" alt="" width={28} height={28} />}
           className="lg:absolute lg:top-1/2 lg:left-4 lg:-translate-y-1/2"
         />
-        <div className={cn('order-last col-span-full flex min-w-0 self-start pb-2 sm:order-none sm:flex-1 sm:self-auto sm:pb-0 sm:justify-center lg:px-52', sidebar === 'open' ? 'lg:ml-sidebar' : 'lg:ml-rail')}>
+        <div className={cn('transition-[margin-left] duration-240 ease-in-out motion-reduce:transition-none order-last col-span-full flex min-w-0 self-start pb-2 sm:order-none sm:flex-1 sm:self-auto sm:pb-0 sm:justify-center lg:px-52', sidebar === 'open' ? 'lg:ml-sidebar' : 'lg:ml-rail')}>
           <CommunitySearch className="w-full max-w-[560px]" />
         </div>
         <div className="ml-auto flex flex-none items-center gap-2 lg:absolute lg:top-1/2 lg:right-4 lg:-translate-y-1/2">
