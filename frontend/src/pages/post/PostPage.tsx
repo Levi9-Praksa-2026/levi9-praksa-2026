@@ -1,11 +1,13 @@
-import { Link, useParams } from 'react-router'
+import { useEffect } from 'react'
+import { Link, useLocation, useParams } from 'react-router'
+import { CommentList } from '@/features/comments/CommentList'
 import { usePost } from '@/features/posts/hooks'
 import { PostImages, PostMeta, ShareButton } from '@/features/posts/PostParts'
 import { PostVote } from '@/features/posts/PostVote'
 import { isApiError } from '@/shared/api/errors'
 import { routes } from '@/shared/config/routes'
 
-/** `/posts/:id`: one post in full. Anyone may read it; voting asks for a login. */
+/** `/posts/:id`: one post in full, then its comments. Anyone may read it; voting asks for a login. */
 export function PostPage() {
   const { id = '' } = useParams()
   const postId = Number(id)
@@ -16,6 +18,13 @@ export function PostPage() {
 
 function PostView({ postId }: { postId: number }) {
   const { data: post, error, isPending, refetch } = usePost(postId)
+  const { hash } = useLocation()
+  const loaded = post !== undefined
+
+  // "3 comments" on a card links to #comments; the section only exists once the post is in, so jump then.
+  useEffect(() => {
+    if (loaded && hash === '#comments') document.getElementById('comments')?.scrollIntoView()
+  }, [loaded, hash])
 
   if (isPending) {
     return (
@@ -45,21 +54,30 @@ function PostView({ postId }: { postId: number }) {
   }
 
   return (
-    <article aria-labelledby="post-title" className="grid gap-4 rounded-lg border border-line bg-bg p-card-pad">
-      <header className="grid gap-2">
-        <PostMeta post={post} />
-        <h1 id="post-title" className="text-h3 break-words">{post.title}</h1>
-      </header>
+    // The post and its comments on one white surface, split only by a hairline.
+    <div className="grid gap-6 rounded-lg border border-line bg-bg p-card-pad">
+      <article aria-labelledby="post-title" className="grid gap-4">
+        <header className="grid gap-2">
+          <PostMeta post={post} />
+          <h1 id="post-title" className="text-h3 break-words">{post.title}</h1>
+        </header>
 
-      {post.content && <p className="text-body whitespace-pre-line break-words text-ink">{post.content}</p>}
+        {post.content && <p className="text-body whitespace-pre-line break-words text-ink">{post.content}</p>}
 
-      {post.images.length > 0 && <PostImages images={post.images} variant="page" />}
+        {post.images.length > 0 && <PostImages images={post.images} variant="page" />}
 
-      <footer className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-muted">
-        <PostVote post={post} />
-        <ShareButton postId={post.id} />
-      </footer>
-    </article>
+        <footer className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-muted">
+          <PostVote post={post} />
+          <ShareButton postId={post.id} />
+        </footer>
+      </article>
+      <CommentList
+        postId={post.id}
+        postAuthorId={post.authorId}
+        commentCount={post.commentCount}
+        className="border-t border-line pt-5"
+      />
+    </div>
   )
 }
 
