@@ -24,10 +24,16 @@ function PostView({ postId }: { postId: number }) {
   const [editing, setEditing] = useState(false)
   const loaded = post !== undefined
 
+  // The app doesn't restore scroll positions, so a post opened from halfway down the feed would open halfway down.
+  // Start at the top, unless the link asked for the comments.
+  useEffect(() => {
+    if (hash !== '#comments') window.scrollTo({ top: 0 })
+  }, [postId, hash])
+
   // "3 comments" on a card links to #comments; the section only exists once the post is in, so jump then.
   useEffect(() => {
     if (loaded && hash === '#comments') document.getElementById('comments')?.scrollIntoView()
-  }, [loaded, hash])
+  }, [postId, loaded, hash])
 
   if (isPending) {
     return (
