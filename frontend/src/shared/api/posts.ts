@@ -12,11 +12,12 @@ import { ApiError } from './errors'
 import { http } from './http'
 import { db, voteKey, type CommentRow, type PostRow, type UserRow } from './mock/db'
 import { fileUrl, invalid, notBlank, optionalUser, requireUser } from './mock/guards'
-import { handle, newestFirst, page } from './mock/server'
+import { handle, newestFirst } from './mock/server'
 
 /*
-  post-service, /api/posts/** and /api/comments/**. `listPosts` is the real request. Post votes have no
-  endpoint yet, so `votePost` and `unvotePost` send nothing. Everything else is still mocked: it
+  post-service, /api/posts/** and /api/comments/**. The reads (`listPosts`, `getPost`, `listComments`), editing
+  and removing a post are real requests. Post votes have no endpoint yet, so `votePost` and `unvotePost` send nothing.
+  Everything else is still mocked: it
   answers from the in-memory data with the service's rules (docs/data-model.md, the endpoints doc).
   Replace each body with a request when the backend is up; the signatures stay.
 */
@@ -125,7 +126,7 @@ export function getTopPosts(period: TopPeriod = 'ALL'): Promise<PostResponse[]> 
 
 /** `GET /api/posts/{id}`: 404 if it does not exist or was removed. */
 export function getPost(id: number): Promise<PostResponse> {
-  return handle(() => toPost(livePost(id)))
+  return http<PostResponse>(`/api/posts/${id}`)
 }
 
 /** `POST /api/posts` (multipart: the JSON part and up to 3 images). Members only; 201 with the post. */
@@ -157,29 +158,20 @@ export function createPost(request: CreatePostRequest, images: readonly File[] =
   })
 }
 
-/** `PATCH /api/posts/{id}`: title and content, the author only. 404 if removed. */
+/**
+ * `PATCH /api/posts/{id}`: a new title and content, the author only (an admin too is refused, 403). 404 if it
+ * was removed meanwhile.
+ */
 export function updatePost(id: number, request: UpdatePostRequest): Promise<PostResponse> {
-  return handle(() => {
-    const me = requireUser()
-    const post = livePost(id)
-    requireAuthor(me, post.authorId)
-    if (request.title === undefined && request.content === undefined) throw invalid('title', 'give a title or content')
-    if (request.title !== undefined) post.title = notBlank('title', request.title, TITLE_MAX)
-    if (request.content !== undefined) post.content = notBlank('content', request.content, CONTENT_MAX)
-    post.updatedAt = now()
-    return toPost(post)
-  })
+  return http<PostResponse>(`/api/posts/${id}`, { method: 'PATCH', body: request })
 }
 
-/** `DELETE /api/posts/{id}`: the author or an admin. Soft: the post disappears from every read. */
+/**
+ * `DELETE /api/posts/{id}`: the author or an admin; 204, also when it was already removed. Soft: the row stays,
+ * the post disappears from every read.
+ */
 export function removePost(id: number): Promise<void> {
-  return handle(() => {
-    const me = requireUser()
-    const post = livePost(id)
-    requireAuthorOrAdmin(me, post.authorId)
-    post.removedAt = now()
-    post.removedBy = me.id
-  })
+  return http<void>(`/api/posts/${id}`, { method: 'DELETE' })
 }
 
 /**
@@ -198,12 +190,8 @@ export function unvotePost(_id: number): Promise<void> {
 // ---------------------------------------------------------------- comments
 
 /** `GET /api/posts/{id}/comments?page=&size=`: newest first, flat. 404 if the post is gone. */
-export function listComments(postId: number, params: PageParams = {}): Promise<PageResponse<CommentResponse>> {
-  return handle(() => {
-    livePost(postId)
-    const rows = db.comments.filter(c => c.postId === postId && !c.removedAt).sort(newestFirst)
-    return page(rows.map(toComment), params)
-  })
+export function listComments(postId: number, { page, size }: PageParams = {}): Promise<PageResponse<CommentResponse>> {
+  return http<PageResponse<CommentResponse>>(`/api/posts/${postId}/comments`, { query: { page, size } })
 }
 
 /** `POST /api/posts/{id}/comments`: members of the post's community only; 201 with the comment. */

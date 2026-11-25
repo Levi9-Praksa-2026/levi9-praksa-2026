@@ -1,10 +1,9 @@
 import { MessageSquare } from 'lucide-react'
 import { Link } from 'react-router'
-import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
-import type { PostImage, PostResponse } from '@/shared/api/contracts/posts'
+import type { PostResponse } from '@/shared/api/contracts/posts'
 import { routes } from '@/shared/config/routes'
 import { cn } from '@/shared/lib/cn'
-import { relativeTime } from '@/shared/lib/relativeTime'
+import { PostImages, PostMeta, ShareButton } from './PostParts'
 import { PostVote } from './PostVote'
 
 export interface PostCardProps {
@@ -14,39 +13,21 @@ export interface PostCardProps {
   className?: string
 }
 
-/**
- * One post in a feed: where and who from, title, a short preview, its images, then votes and comments.
- * The title and the comment count are plain text until a post has its own page.
- */
+/** One post in a feed: where and who from, the title (a link to the post), a short preview, its images, then actions. */
 export function PostCard({ post, hideCommunity = false, className }: PostCardProps) {
-  const communityName = hideCommunity ? null : post.communityName
   const titleId = `post-${post.id}-title`
 
   return (
     <article aria-labelledby={titleId} className={cn('grid gap-3 rounded-lg border border-line bg-bg p-card-pad', className)}>
-      <header className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-label text-muted">
-        {communityName && (
-          <>
-            <Link
-              to={routes.community(communityName)}
-              className="flex min-w-0 items-center gap-1.5 font-medium text-ink hover:text-accent"
-            >
-              <CommunityAvatar name={communityName} className="size-5 text-[11px]" />
-              <span className="truncate">l/{communityName}</span>
-            </Link>
-            <span aria-hidden="true">·</span>
-          </>
-        )}
-        <span className="truncate">u/{post.authorUsername}</span>
-        <span aria-hidden="true">·</span>
-        <PostDate createdAt={post.createdAt} updatedAt={post.updatedAt} />
+      <header>
+        <PostMeta post={post} hideCommunity={hideCommunity} />
       </header>
 
       <div className="grid gap-1.5">
         {/* `text-card` would read as the card colour (--color-card), so the size is named as a length. Text
             font like the h4 default: a feed of display-font titles is loud. */}
         <h2 id={titleId} className="font-text text-(length:--t-card) leading-[1.3] font-semibold tracking-[-0.01em] break-words text-ink">
-          {post.title}
+          <Link to={routes.post(post.id)} className="hover:text-accent">{post.title}</Link>
         </h2>
         {post.content && (
           <p className="line-clamp-3 text-small whitespace-pre-line break-words text-muted">{post.content}</p>
@@ -55,49 +36,25 @@ export function PostCard({ post, hideCommunity = false, className }: PostCardPro
 
       {post.images.length > 0 && <PostImages images={post.images} />}
 
-      <footer className="flex flex-wrap items-center gap-x-4 gap-y-1 text-label text-muted">
+      <footer className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-muted">
         <PostVote post={post} />
-        <span className="flex items-center gap-1.5">
-          <MessageSquare className="size-4" aria-hidden="true" />
-          {post.commentCount} {post.commentCount === 1 ? 'comment' : 'comments'}
-        </span>
+        <CommentCount postId={post.id} count={post.commentCount} />
+        <ShareButton postId={post.id} />
       </footer>
     </article>
   )
 }
 
-/** "3h ago", with the exact moment on hover and for machines; "edited" once the author changed it. */
-function PostDate({ createdAt, updatedAt }: { createdAt: string; updatedAt: string | null }) {
+/** "3 comments", a link to the post's comments. */
+export function CommentCount({ postId, count }: { postId: number; count: number }) {
   return (
-    <>
-      <time dateTime={createdAt} title={new Date(createdAt).toLocaleString()}>{relativeTime(createdAt)}</time>
-      {updatedAt && (
-        <span title={`Edited ${new Date(updatedAt).toLocaleString()}`}>(edited)</span>
-      )}
-    </>
-  )
-}
-
-/** One image at its own shape (capped in height); two or three side by side as squares. */
-function PostImages({ images }: { images: readonly PostImage[] }) {
-  const single = images.length === 1
-  return (
-    <div className={cn('grid gap-2', !single && (images.length === 2 ? 'grid-cols-2' : 'grid-cols-3'))}>
-      {images.map((image, index) => (
-        <img
-          key={image.id}
-          src={image.url}
-          // Uploads carry no description; say there is an image and which one.
-          alt={single ? 'Post image' : `Post image ${index + 1} of ${images.length}`}
-          loading="lazy"
-          decoding="async"
-          className={cn(
-            'w-full rounded-md border border-line bg-surface object-cover',
-            single ? 'max-h-[400px]' : 'aspect-square',
-          )}
-        />
-      ))}
-    </div>
+    <Link
+      to={`${routes.post(postId)}#comments`}
+      className="flex items-center gap-1.5 rounded-full px-2 py-1 text-label text-muted hover:bg-surface hover:text-ink"
+    >
+      <MessageSquare className="size-4" aria-hidden="true" />
+      {count} {count === 1 ? 'comment' : 'comments'}
+    </Link>
   )
 }
 

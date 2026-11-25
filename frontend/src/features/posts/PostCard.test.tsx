@@ -43,6 +43,12 @@ describe('PostCard', () => {
     expect(html).not.toContain('(edited)')
   })
 
+  it('links the title to the post, and the count to its comments', () => {
+    const html = render()
+    expect(html).toContain('href="/posts/7" data-discover="true">Spring Boot 4 upgrade notes</a>')
+    expect(html).toContain('href="/posts/7#comments"')
+  })
+
   it('names the article by its title', () => {
     expect(render()).toMatch(/<article aria-labelledby="post-7-title".*<h2 id="post-7-title"/)
   })

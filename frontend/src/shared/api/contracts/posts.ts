@@ -34,7 +34,7 @@ export interface PostResponse {
   myVote?: VoteValue | null
 }
 
-/** `CommentResponse.java` */
+/** `CommentDTO.java` */
 export interface CommentResponse {
   id: number
   postId: number
@@ -43,10 +43,10 @@ export interface CommentResponse {
   content: string
   score: number
   createdAt: Instant
-  /** Contract gap: comments are editable, so the "edited" marker needs this. */
-  updatedAt: Instant
-  /** Contract gap: the caller's own vote, null when none or logged out. */
-  myVote: VoteValue | null
+  /** Contract gap: comments are editable, so the "edited" marker needs this. Not sent yet. */
+  updatedAt?: Instant | null
+  /** Contract gap: the caller's own vote, null when none or logged out. Not sent yet. */
+  myVote?: VoteValue | null
 }
 
 /** `GET /api/posts?communityId=&q=&page=&size=`: latest first. Without filters, the main page. */
@@ -66,10 +66,10 @@ export interface CreatePostRequest {
   communityId: number
 }
 
-/** `PATCH /api/posts/{id}`: the author only. */
+/** `PATCH /api/posts/{id}` (`EditPostDTO.java`): the author only. Both fields every time; null content empties it. */
 export interface UpdatePostRequest {
-  title?: string
-  content?: string
+  title: string
+  content: string | null
 }
 
 /** `POST /api/posts/{id}/comments` and `PATCH /api/comments/{id}` */

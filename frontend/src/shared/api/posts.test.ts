@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from './errors'
-import { mockSignInAs, resetMockDb } from './mock/db'
+import { db, mockSignInAs, resetMockDb } from './mock/db'
 import { setMockLatency } from './mock/server'
 import {
   createComment,
@@ -30,7 +30,7 @@ beforeEach(() => {
   resetMockDb()
 })
 
-describe('post list (real API)', () => {
+describe('post reads (real API)', () => {
   const fetchMock = vi.fn<typeof fetch>()
   const examplePage = { content: [], page: 1, size: 5, totalElements: 6, totalPages: 2 }
 
@@ -54,19 +54,46 @@ describe('post list (real API)', () => {
     await listPosts({ communityId: 3, q: 'tailwind', page: 1, size: 5 })
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/posts?communityId=3&q=tailwind&page=1&size=5')
   })
-})
 
-describe('reading posts', () => {
-  it('gives the caller its own vote, and none when logged out', async () => {
-    expect((await getPost(1)).myVote).toBe(1)
-    mockSignInAs(null)
-    expect((await getPost(1)).myVote).toBeNull()
+  it('asks for one post by id', async () => {
+    await getPost(42)
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/posts/42')
   })
 
-  it('returns 404 for a removed post', async () => {
+  it('turns a 404 for a missing or removed post into an ApiError', async () => {
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify({ status: 404, title: 'Not Found' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/problem+json' },
+    }))
     expect(await statusOf(getPost(18))).toBe(404)
   })
 
+  it('edits a post with a PATCH of both fields, with the CSRF header', async () => {
+    vi.stubGlobal('document', { cookie: 'XSRF-TOKEN=gateway-token' })
+    await updatePost(42, { title: 'New title', content: null })
+    const [url, init] = fetchMock.mock.calls[0]!
+    expect(url).toBe('/api/posts/42')
+    expect(init).toMatchObject({ method: 'PATCH', body: JSON.stringify({ title: 'New title', content: null }) })
+    expect(new Headers(init?.headers).get('X-XSRF-TOKEN')).toBe('gateway-token')
+  })
+
+  it('removes a post with a DELETE and takes the 204 as done', async () => {
+    fetchMock.mockImplementation(async () => new Response(null, { status: 204 }))
+    await expect(removePost(42)).resolves.toBeUndefined()
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/posts/42')
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: 'DELETE' })
+  })
+
+  it('asks for a page of a post\'s comments', async () => {
+    await listComments(42, { page: 1, size: 10 })
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/posts/42/comments?page=1&size=10')
+  })
+})
+
+/** A post as the mock holds it, for the mocked writes below (reads are real requests now). */
+const stored = (id: number) => db.posts.find(p => p.id === id)!
+
+describe('top posts (mocked)', () => {
   it('keeps the top 10, and WEEK only counts the last 7 days', async () => {
     const all = await getTopPosts('ALL')
     expect(all).toHaveLength(10)
@@ -93,17 +120,6 @@ describe('writing posts', () => {
     mockSignInAs(null)
     expect(await statusOf(createPost({ title: 'x', content: 'y', communityId: backend.id }))).toBe(401)
   })
-
-  it('lets only the author edit, and the author or an admin remove', async () => {
-    expect(await statusOf(updatePost(1, { title: 'Mine now' }))).toBe(403)
-    const edited = await updatePost(3, { title: 'Edited' })
-    expect(edited.title).toBe('Edited')
-    expect(edited.updatedAt! >= edited.createdAt).toBe(true)
-    expect(await statusOf(removePost(1))).toBe(403)
-    mockSignInAs('admin')
-    await removePost(1)
-    expect(await statusOf(getPost(1))).toBe(404)
-  })
 })
 
 describe('votes', () => {
@@ -126,19 +142,12 @@ describe('votes', () => {
 })
 
 describe('comments', () => {
-  it('lists newest first and 404s when the post is gone', async () => {
-    const page = await listComments(1)
-    const dates = page.content.map(c => c.createdAt)
-    expect(dates).toEqual([...dates].sort().reverse())
-    expect(await statusOf(listComments(18))).toBe(404)
-  })
-
   it('keeps the post comment count in step', async () => {
-    const before = (await getPost(1)).commentCount
+    const before = stored(1).commentCount
     const comment = await createComment(1, { content: 'Hello' })
-    expect((await getPost(1)).commentCount).toBe(before + 1)
+    expect(stored(1).commentCount).toBe(before + 1)
     await removeComment(comment.id)
-    expect((await getPost(1)).commentCount).toBe(before)
+    expect(stored(1).commentCount).toBe(before)
   })
 
   it('needs membership in the post community', async () => {
@@ -147,7 +156,7 @@ describe('comments', () => {
 })
 
 it('hands back copies, so editing a response never edits the mock data', async () => {
-  const post = await getPost(1)
-  post.title = 'changed on the client'
-  expect((await getPost(1)).title).not.toBe('changed on the client')
+  const [post] = await getTopPosts('ALL')
+  post!.title = 'changed on the client'
+  expect(stored(post!.id).title).not.toBe('changed on the client')
 })

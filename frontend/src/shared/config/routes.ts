@@ -19,10 +19,14 @@ export const routes = {
   communities: '/communities',
   /** A community's page: `/l/frontend`. */
   community: (name: string) => `/l/${encodeURIComponent(name)}`,
+  /** A post with its comments: `/posts/42`. `#comments` jumps to the comments. */
+  post: (id: number) => `/posts/${id}`,
 } as const
 
 /** The route pattern for `routes.community`, for the router. */
 export const COMMUNITY_PATTERN = '/l/:name'
+/** The route pattern for `routes.post`, for the router. */
+export const POST_PATTERN = '/posts/:id'
 
 /** Paths that leave the forum app and load another document (or a chain of redirects). */
 export const externalDocuments: readonly string[] = [routes.welcome, routes.login]
