@@ -23,5 +23,8 @@ export const queryKeys = {
     all: ['posts'] as const,
     /** One feed page: the community, search and page are all part of the key. */
     list: (params: PostListParams) => ['posts', 'list', params] as const,
+    detail: (id: number) => ['posts', 'detail', id] as const,
+    /** One page of a post's comments, under the post so removing the post can clear both. */
+    comments: (postId: number, page: number) => ['posts', 'detail', postId, 'comments', page] as const,
   },
 }
