@@ -170,6 +170,7 @@ export function SignUpPage() {
         <PasswordField
           id={`${id}-password`}
           rulesId={`${id}-rules`}
+          userInputs={[form.username, form.email, form.firstName, form.lastName]}
           autoComplete="new-password"
           value={form.password}
           onChange={value => set('password', value)}

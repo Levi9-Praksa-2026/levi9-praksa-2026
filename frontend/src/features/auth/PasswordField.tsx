@@ -1,9 +1,11 @@
-import { useId, useState, type Ref } from 'react'
+import { lazy, Suspense, useId, useState, type Ref } from 'react'
 import { Check, Eye, EyeOff } from 'lucide-react'
 import { PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH } from '@/shared/api/contracts/auth'
 import { cn } from '@/shared/lib/cn'
 import { TextField } from '@/shared/ui/TextField'
-import { checkPassword, STRENGTH_LABELS } from './password'
+import { checkPassword } from './password'
+
+const PasswordStrength = lazy(() => import('./PasswordStrength'))
 
 export interface PasswordFieldProps {
   id?: string
@@ -16,6 +18,8 @@ export interface PasswordFieldProps {
   autoComplete: 'new-password' | 'current-password'
   /** The strength bar under the field. On for a new password, unless turned off (its confirmation). */
   showStrength?: boolean
+  /** Personal details used locally to detect predictable passwords. */
+  userInputs?: string[]
   /** The id of the rules for this password (`PasswordRules`) when they sit elsewhere, so they are read with it. */
   rulesId?: string
   autoFocus?: boolean
@@ -23,7 +27,7 @@ export interface PasswordFieldProps {
 }
 
 /** A password input with a show/hide button; on sign-up also a strength bar under it. */
-export function PasswordField({ id, label = 'Password', name = 'password', value, onChange, error, autoComplete, showStrength, rulesId, autoFocus, ref }: PasswordFieldProps) {
+export function PasswordField({ id, label = 'Password', name = 'password', value, onChange, error, autoComplete, showStrength, userInputs, rulesId, autoFocus, ref }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false)
   const strengthId = useId()
   const isNew = showStrength ?? autoComplete === 'new-password'
@@ -54,29 +58,12 @@ export function PasswordField({ id, label = 'Password', name = 'password', value
           {visible ? <EyeOff className="size-5" aria-hidden="true" /> : <Eye className="size-5" aria-hidden="true" />}
         </button>
       }
-      below={isNew ? <PasswordStrength id={strengthId} password={value} /> : undefined}
+      below={isNew ? (
+        <Suspense fallback={<div id={strengthId} className="text-label text-muted">Loading strength estimate…</div>}>
+          <PasswordStrength id={strengthId} password={value} userInputs={userInputs} />
+        </Suspense>
+      ) : undefined}
     />
-  )
-}
-
-/** A blue bar that fills with the strength, and its word. */
-function PasswordStrength({ id, password }: { id: string; password: string }) {
-  const { strength } = checkPassword(password)
-  return (
-    <div id={id} className="flex items-center gap-3">
-      <div className="grid h-1.5 flex-1 grid-cols-4 gap-1" aria-hidden="true">
-        {[1, 2, 3, 4].map(step => (
-          <span
-            key={step}
-            className={cn('rounded-full transition-colors duration-200 motion-reduce:transition-none', step <= strength ? 'bg-accent' : 'bg-line')}
-          />
-        ))}
-      </div>
-      <span className="w-16 text-right text-label font-medium text-muted">
-        <span className="sr-only">Strength: </span>
-        {password ? STRENGTH_LABELS[strength] : ''}
-      </span>
-    </div>
   )
 }
 
