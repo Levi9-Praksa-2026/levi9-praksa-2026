@@ -331,7 +331,7 @@ class CommunityControllerTest {
                         .content("""
                                 {"description":"New description"}
                                 """))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(communityService).updateDescription("backend", "New description");
     }
