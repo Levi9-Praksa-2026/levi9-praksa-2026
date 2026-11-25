@@ -17,6 +17,8 @@ export const routes = {
   welcome: '/welcome/',
   /** A community's page: `/l/frontend`. */
   community: (name: string) => `/l/${encodeURIComponent(name)}`,
+  /** The logged-in user's own profile. */
+  profile: '/profile',
 } as const
 
 /** The route pattern for `routes.community`, for the router. */

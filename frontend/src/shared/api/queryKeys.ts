@@ -6,6 +6,10 @@
 export const queryKeys = {
   /** Who is logged in. */
   me: ['me'] as const,
+  /** The logged-in user's profile Overview (communities and recent posts). */
+  profile: {
+    overview: ['profile', 'overview'] as const,
+  },
   communities: {
     all: ['communities'] as const,
     /** The sidebar's list: one per user, so switching accounts never shows the last one's. */
