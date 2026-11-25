@@ -35,12 +35,14 @@ class NewPostWriter {
     /**
      * S3 is not part of the database transaction, so files uploaded here are deleted again if it rolls back.
      *
-     * @param uploads already checked images, in the order the client sent them; may be empty
+     * @param communityName the community's name as community-service gave it, kept on the post
+     * @param uploads       already checked images, in the order the client sent them; may be empty
      */
     @Transactional
-    public PostDTO write(CreatePostDTO request, List<ImageUpload> uploads, Actor actor) {
+    public PostDTO write(CreatePostDTO request, String communityName, List<ImageUpload> uploads, Actor actor) {
         // The author always comes from the caller, never from the request.
-        Post post = new Post(request.title(), request.content(), actor.id(), actor.username(), request.communityId());
+        Post post = new Post(request.title(), request.content(), actor.id(), actor.username(),
+                request.communityId(), communityName);
         List<String> storedKeys = uploads.isEmpty() ? List.of() : deleteOnRollback();
         for (ImageUpload upload : uploads) {
             String key = "posts/" + UUID.randomUUID() + "." + upload.type().extension();

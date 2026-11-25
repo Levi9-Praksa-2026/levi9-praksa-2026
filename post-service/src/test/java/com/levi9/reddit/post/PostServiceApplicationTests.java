@@ -49,7 +49,7 @@ class PostServiceApplicationTests {
     @Transactional
     void persistsAndReloadsServiceModels() {
         Instant now = Instant.parse("2026-01-01T00:00:00Z");
-        Post post = postRepository.save(new Post("Original title", 42L, "reader", 7L));
+        Post post = postRepository.save(new Post("Original title", 42L, "reader", 7L, "java"));
         postImageService.addImage(post.getId(), "posts/example.png");
         PostVoteId postVoteId = new PostVoteId(post.getId(), 43L);
         postVoteRepository.save(new PostVote(postVoteId, (short) 1));
@@ -101,7 +101,7 @@ class PostServiceApplicationTests {
     @Test
     @Transactional
     void managesImageLimitAndDeletesOrphansThroughPost() {
-        Post post = new Post("Images", 42L, "reader", 7L);
+        Post post = new Post("Images", 42L, "reader", 7L, "java");
         post.addImage("posts/first.png");
         postRepository.save(post);
         postImageService.addImage(post.getId(), "posts/second.png");

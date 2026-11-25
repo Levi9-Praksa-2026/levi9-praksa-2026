@@ -33,7 +33,7 @@ class PostImageQueryTest {
     private final PostQueryService service =
             new PostQueryService(posts, mock(CommentRepository.class), imageStorage, Clock.systemUTC());
 
-    private final Post post = withId(new Post("Hello", 1L, "luka", 7L), 3L);
+    private final Post post = withId(new Post("Hello", 1L, "luka", 7L, "java"), 3L);
     private final PostImage first = withId(post.addImage("posts/a.png"), 10L);
     private final PostImage second = withId(post.addImage("posts/b.jpg"), 11L);
 
@@ -48,7 +48,7 @@ class PostImageQueryTest {
 
     @Test
     void postResponse_withoutImages_hasEmptyList() {
-        PostDTO response = PostMapper.toResponse(withId(new Post("Plain", 1L, "luka", 7L), 4L));
+        PostDTO response = PostMapper.toResponse(withId(new Post("Plain", 1L, "luka", 7L, "java"), 4L));
 
         assertThat(response.images()).isEmpty();
     }
