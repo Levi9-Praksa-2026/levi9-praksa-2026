@@ -66,10 +66,10 @@ export interface CreatePostRequest {
   communityId: number
 }
 
-/** `PATCH /api/posts/{id}`: the author only. */
+/** `PATCH /api/posts/{id}` (`EditPostDTO.java`): the author only. Both fields every time; null content empties it. */
 export interface UpdatePostRequest {
-  title?: string
-  content?: string
+  title: string
+  content: string | null
 }
 
 /** `POST /api/posts/{id}/comments` and `PATCH /api/comments/{id}` */

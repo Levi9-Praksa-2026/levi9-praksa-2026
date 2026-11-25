@@ -1,6 +1,6 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import type { PostListParams } from '@/shared/api/contracts/posts'
-import { getPost, listComments, listPosts } from '@/shared/api/posts'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { PostListParams, UpdatePostRequest } from '@/shared/api/contracts/posts'
+import { getPost, listComments, listPosts, removePost, updatePost } from '@/shared/api/posts'
 import { queryKeys } from '@/shared/api/queryKeys'
 
 /**
@@ -26,5 +26,29 @@ export function useComments(postId: number, page: number, size = 20) {
     queryKey: queryKeys.posts.comments(postId, page),
     queryFn: () => listComments(postId, { page, size }),
     placeholderData: keepPreviousData,
+  })
+}
+
+/** Saves a new title and content. The post page shows the answer at once; feeds load again when next shown. */
+export function useEditPost(postId: number) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (request: UpdatePostRequest) => updatePost(postId, request),
+    onSuccess: post => {
+      client.setQueryData(queryKeys.posts.detail(postId), post)
+      void client.invalidateQueries({ queryKey: ['posts', 'list'] })
+    },
+  })
+}
+
+/** Removes the post (soft). Its page and comments leave the cache; feeds load again without it. */
+export function useRemovePost(postId: number) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: () => removePost(postId),
+    onSuccess: () => {
+      client.removeQueries({ queryKey: queryKeys.posts.detail(postId) })
+      void client.invalidateQueries({ queryKey: ['posts', 'list'] })
+    },
   })
 }
