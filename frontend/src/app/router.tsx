@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 import { COMMUNITY_PATTERN, routes } from '@/shared/config/routes'
 import { HomePage } from '@/pages/home/HomePage'
+import { CommunitiesPage } from '@/pages/communities/CommunitiesPage'
 import { CommunityPage } from '@/pages/community/CommunityPage'
 import { ProfilePage } from '@/pages/profile/ProfilePage'
 import { AuthLayout } from '@/pages/auth/AuthLayout'
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <HomePage /> },
           { path: routes.profile, element: <ProfilePage /> },
+          { path: routes.communities, element: <CommunitiesPage /> },
           { path: COMMUNITY_PATTERN, element: <CommunityPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],

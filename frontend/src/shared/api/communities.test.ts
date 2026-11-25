@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from './errors'
 import { mockSignInAs, resetMockDb } from './mock/db'
 import { setMockLatency } from './mock/server'
@@ -13,6 +13,26 @@ import {
   updateCommunityDescription,
 } from './communities'
 
+const fetchMock = vi.fn<typeof fetch>()
+
+function json(status: number, body: unknown): Response {
+  const type = status >= 400 ? 'application/problem+json' : 'application/json'
+  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': type } })
+}
+
+const examplePage = {
+  content: [{ name: 'backend', memberCount: 7 }],
+  page: 0,
+  size: 20,
+  totalElements: 1,
+  totalPages: 1,
+}
+
+/** The URL of the last request the list function made. */
+function lastUrl(): string {
+  return fetchMock.mock.calls.at(-1)?.[0] as string
+}
+
 async function errorOf(call: Promise<unknown>): Promise<ApiError> {
   const error = await call.then(() => undefined, (e: unknown) => e)
   expect(error).toBeInstanceOf(ApiError)
@@ -24,29 +44,42 @@ beforeEach(() => {
   resetMockDb()
 })
 
+describe('community list (real API)', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', fetchMock)
+    fetchMock.mockImplementation(async () => json(200, examplePage))
+  })
+
+  afterEach(() => {
+    fetchMock.mockReset()
+    vi.unstubAllGlobals()
+  })
+
+  it('sends every filter and returns the page as the backend gives it', async () => {
+    expect(await listCommunities({ name: 'back', sort: 'top', page: 0, size: 20 })).toEqual(examplePage)
+    expect(lastUrl()).toBe('/api/communities?sort=top&name=back&page=0&size=20')
+  })
+
+  it('uses the backend defaults when no filters are given', async () => {
+    await listCommunities()
+    expect(lastUrl()).toBe('/api/communities?sort=new')
+  })
+
+  it('sends inactive only when the admin list is asked for', async () => {
+    await listCommunities({ inactive: true, name: 'retro' })
+    expect(lastUrl()).toBe('/api/communities?sort=new&name=retro&inactive=true')
+
+    await listCommunities({ inactive: false })
+    expect(lastUrl()).toBe('/api/communities?sort=new')
+  })
+
+  it('turns a 403 from the admin handler into an ApiError', async () => {
+    fetchMock.mockResolvedValue(json(403, { title: 'Forbidden', detail: 'Admins only' }))
+    expect((await errorOf(listCommunities({ inactive: true }))).status).toBe(403)
+  })
+})
+
 describe('reading communities', () => {
-  it('lists active communities only, with member counts', async () => {
-    const page = await listCommunities({ size: 100 })
-    expect(page.content.map(c => c.name)).not.toContain('retro')
-    expect(page.totalElements).toBe(7)
-    expect(page.content.every(c => c.memberCount > 0)).toBe(true)
-  })
-
-  it('sorts top by members and filters by name', async () => {
-    const top = await listCommunities({ sort: 'top', size: 100 })
-    const counts = top.content.map(c => c.memberCount)
-    expect(counts).toEqual([...counts].sort((a, b) => b - a))
-    const named = await listCommunities({ name: 'END' })
-    expect(named.content.map(c => c.name).sort()).toEqual(['backend', 'frontend'])
-  })
-
-  it('lists my communities, and needs a login for that', async () => {
-    const mine = await listCommunities({ member: 'me' })
-    expect(mine.content.map(c => c.name).sort()).toEqual(['backend', 'frontend', 'random'])
-    mockSignInAs(null)
-    expect((await errorOf(listCommunities({ member: 'me' }))).status).toBe(401)
-  })
-
   it('finds a community in any case, and 404s a shut-down one', async () => {
     expect((await getCommunity('FrontEnd')).name).toBe('frontend')
     const error = await errorOf(getCommunity('retro'))
@@ -88,11 +121,10 @@ describe('admin', () => {
     expect((await errorOf(createCommunity({ name: 'l/space name' }))).status).toBe(400)
   })
 
-  it('shuts down, lists inactive, reactivates and edits the description', async () => {
+  it('shuts down, reactivates and edits the description', async () => {
     mockSignInAs('admin')
     await deactivateCommunity('food')
-    const inactive = await listCommunities({ status: 'inactive' })
-    expect(inactive.content.map(c => c.name).sort()).toEqual(['food', 'retro'])
+    expect((await errorOf(getCommunity('food'))).status).toBe(404)
     await reactivateCommunity('retro')
     await updateCommunityDescription('retro', { description: 'Back again.' })
     expect((await getCommunity('retro')).description).toBe('Back again.')
