@@ -42,7 +42,7 @@ export function Hero({ kicker, title, lead, places, focus, globeLabel, post, reg
             <ButtonRow primary={register} secondary={login} arrow size="hero" className="mt-8"
               primaryClassName="shadow-[0_14px_30px_-12px_rgb(43_63_160/0.7)] hover:shadow-[0_20px_38px_-14px_rgb(43_63_160/0.8)]" />
           </div>
-          <div className="hero__media relative isolate col-span-full aspect-square w-full max-w-[560px] min-w-0 justify-self-center overflow-clip max-lg:mt-8 lg:col-span-6 lg:col-start-7">
+          <div className="hero__media relative isolate col-span-full aspect-square w-full max-w-[640px] min-w-0 justify-self-center overflow-clip max-lg:mt-8 lg:col-span-7 lg:col-start-6">
             <Suspense fallback={<div className="og" role="img" aria-label={globeLabel} />}>
               <OfficeGlobe places={places} focus={focus} label={globeLabel} />
             </Suspense>

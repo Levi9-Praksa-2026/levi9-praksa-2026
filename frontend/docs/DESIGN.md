@@ -15,7 +15,10 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 
 | Decision | Value | Why |
 |---|---|---|
-| Hero sizing | At least one viewport tall, growing with content; natural grid rows stack below 1024px; the globe uses a square frame capped at 560px with clipped canvas and labels | Keeps the buttons in the document flow on tablets and short windows, and gives the globe stable proportions during resizing |
+| Closing footer | Content-sized with 48px vertical padding below 640px and 64px above; natural rows | Keeps the space below the final Join now button bounded instead of stretching to fill a viewport |
+| Join anywhere band | Content-sized with 48px vertical padding below 640px and 64px above | Avoids empty viewport space above the heading and below the action |
+| Globe camera fit | Fit the full atmosphere (1.16 globe radii) to the narrower field of view with a 4% margin, without a fixed minimum camera distance | Lets the globe fill its frame while retaining responsive framing |
+| Hero sizing | Height follows content and section padding; natural grid rows stack below 1024px; the globe uses a square frame capped at 640px across seven desktop columns with clipped canvas and labels | Keeps the buttons in the document flow on tablets and short windows, and gives the globe stable proportions during resizing |
 | Offices slideshow pause | A third round button after the two arrows, same look; pause and play icons | Anything that moves on its own needs a way to stop it (WCAG 2.2.2); placed where the other controls already are |
 
 ## Sign-in and sign-up (2026-11-24)

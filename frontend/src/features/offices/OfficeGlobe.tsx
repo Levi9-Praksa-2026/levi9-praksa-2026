@@ -128,7 +128,7 @@ export function OfficeGlobe({ places, focus, label, className }: OfficeGlobeProp
     scene.add(sun)
 
     const camera = new PerspectiveCamera(32, 1, 1, 2000)
-    let distanceAlt = 3.9 // camera altitude in globe radii, fitted to the host on resize
+    let distanceAlt = 3.25 // camera altitude in globe radii, fitted to the host on resize
 
     function aim(lngOffset: number, latOffset: number) {
       const { x, y, z } = globe.getCoords(focus.lat - 10 + latOffset, focus.lng + lngOffset, distanceAlt)
@@ -146,10 +146,10 @@ export function OfficeGlobe({ places, focus, label, className }: OfficeGlobeProp
       renderer.setSize(w, h, false)
       labels.setSize(w, h)
       camera.aspect = w / h
-      // Fit the sphere and atmosphere to the narrower field of view, with some breathing room.
+      // Fit the sphere and atmosphere to the narrower field of view, leaving room for the full atmosphere glow.
       const verticalHalfFov = camera.fov * Math.PI / 360
       const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * camera.aspect)
-      distanceAlt = Math.max(3.9, 1.16 * 1.08 / Math.sin(Math.min(verticalHalfFov, horizontalHalfFov)) - 1)
+      distanceAlt = 1.16 * 1.04 / Math.sin(Math.min(verticalHalfFov, horizontalHalfFov)) - 1
       camera.updateProjectionMatrix()
     }
 

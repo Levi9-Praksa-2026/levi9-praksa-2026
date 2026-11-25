@@ -10,7 +10,7 @@ export interface HeroProps {
 }
 
 /**
- * The hero section: at least the first screen, growing with its content, labelled by its h1 (`<HeroTitle>` takes the id). Runs
+ * The hero section: sized by its content, labelled by its h1 (`<HeroTitle>` takes the id). Runs
  * the entrance and gives its phase to the title. The welcome page's split hero builds on it
  * (`sections/Hero.tsx`).
  */
@@ -23,7 +23,7 @@ export function Hero({ enter = true, children }: HeroProps) {
       <section
         ref={ref}
         className={cn(
-          'hero relative isolate min-h-svh pt-[calc(var(--nav)+var(--photo,0px)+var(--hgap))] pb-[calc(var(--hpadb)+var(--bar))]',
+          'hero relative isolate pt-[calc(var(--nav)+var(--photo,0px)+var(--hgap))] pb-[calc(var(--hpadb)+var(--bar))]',
           phaseClass[phase],
         )}
         data-enter={enter ? '' : 'off'}
