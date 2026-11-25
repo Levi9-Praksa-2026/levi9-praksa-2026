@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router'
-import { ChevronDown, Compass, Home, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react'
+import { ChevronDown, Compass, Home, X } from 'lucide-react'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { CommunityResponse } from '@/shared/api/contracts/communities'
 import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
@@ -45,22 +45,21 @@ export function Sidebar({ id, variant, showMyCommunities, communities, onToggle 
 
   return (
     <nav id={id} aria-label="Forum" className="flex h-full flex-col overflow-y-auto">
-      <div className={cn('flex items-center px-3 pt-3', rail ? 'justify-center' : 'justify-end')}>
-        <button
-          type="button"
-          className="grid size-10 cursor-pointer place-items-center rounded-btn text-muted hover:bg-surface hover:text-ink"
-          aria-label={variant === 'drawer' ? 'Close menu' : rail ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-expanded={variant === 'drawer' ? true : !rail}
-          aria-controls={variant === 'drawer' ? undefined : id}
-          onClick={onToggle}
-        >
-          {variant === 'drawer' ? <X className="size-5" aria-hidden="true" />
-            : rail ? <PanelLeftOpen className="size-5" aria-hidden="true" />
-            : <PanelLeftClose className="size-5" aria-hidden="true" />}
-        </button>
-      </div>
+      {variant === 'drawer' && (
+        <div className="flex items-center justify-end px-3 pt-3">
+          <button
+            type="button"
+            className="grid size-10 cursor-pointer place-items-center rounded-btn text-muted hover:bg-surface hover:text-ink"
+            aria-label="Close menu"
+            aria-expanded={true}
+            onClick={onToggle}
+          >
+            <X className="size-5" aria-hidden="true" />
+          </button>
+        </div>
+      )}
 
-      <div className="flex flex-col gap-0.5 px-3 pt-1">
+      <div className={cn('flex flex-col gap-0.5 px-3', variant === 'drawer' ? 'pt-1' : 'pt-3')}>
         <SidebarLink to={routes.home} end rail={rail} label="Home" icon={<Home className="size-5 flex-none" aria-hidden="true" />} />
         <SidebarLink to={routes.communities} rail={rail} label="Communities" icon={<Compass className="size-5 flex-none" aria-hidden="true" />} />
       </div>
