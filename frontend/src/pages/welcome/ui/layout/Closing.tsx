@@ -5,7 +5,7 @@ import { AppLink } from '@/shared/ui/Link'
 import type { ActionItem, LinkItem } from '@/shared/ui/types'
 import { Brand, type BrandProps } from '@/shared/ui/Brand'
 import { SectionHead } from '@/pages/welcome/ui/Section'
-import { grid12, screenSection, screenWrap } from '@/pages/welcome/ui/layout/screen'
+import { grid12 } from '@/pages/welcome/ui/layout/screen'
 
 export interface FooterColumn {
   title: string
@@ -36,14 +36,14 @@ const footerLink =
   'max-sm:inline-flex max-sm:min-h-11 max-sm:min-w-11 max-sm:items-center'
 
 /**
- * The page's last screen on the inverse ground: row 1 the closing ask with its full-width button,
+ * The content-sized footer on the inverse ground: row 1 the closing ask with its full-width button,
  * row 2 the footer (name and lede, two link columns, the legal line).
  */
 export function Closing({ id = 'contact', title, line, primary, brand, lede, columns, legal, socials }: ClosingProps) {
   const headingId = `${id}-h`
   return (
-    <footer id={id} className={cn(screenSection, 'ground-inverse')} aria-labelledby={headingId}>
-      <div className={cn(screenWrap, 'grid grid-rows-[minmax(0,1fr)_auto] gap-y-16 max-sm:gap-y-12')}>
+    <footer id={id} className="ground-inverse relative py-12 sm:py-16" aria-labelledby={headingId}>
+      <div className="wrap relative z-[1] grid gap-y-12 sm:gap-y-16">
         <div className="flex min-h-0 flex-col gap-8">
           <SectionHead id={headingId} title={title} lead={line} flush className="[&_h2]:max-w-[20ch]" />
           <Button href={primary.href} onClick={primary.onClick} arrow size="xl">{primary.label}</Button>

@@ -15,6 +15,10 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 
 | Decision | Value | Why |
 |---|---|---|
+| Closing footer | Content-sized with 48px vertical padding below 640px and 64px above; natural rows | Keeps the space below the final Join now button bounded instead of stretching to fill a viewport |
+| Join anywhere band | Content-sized with 48px vertical padding below 640px and 64px above | Avoids empty viewport space above the heading and below the action |
+| Globe camera fit | Fit the full atmosphere (1.16 globe radii) to the narrower field of view with a 4% margin, without a fixed minimum camera distance | Lets the globe fill its frame while retaining responsive framing |
+| Hero sizing | Height follows content and section padding; natural grid rows stack below 1024px; the globe uses a square frame capped at 640px across seven desktop columns with clipped canvas and labels | Keeps the buttons in the document flow on tablets and short windows, and gives the globe stable proportions during resizing |
 | Offices slideshow pause | A third round button after the two arrows, same look; pause and play icons | Anything that moves on its own needs a way to stop it (WCAG 2.2.2); placed where the other controls already are |
 
 ## Sign-in and sign-up (2026-11-24)
@@ -35,7 +39,7 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 |---|---|---|
 | Page background | `bg-canvas`, `#f8f9fd` | A white with a whisper of the brand blue, lighter than `surface`, so the white cards and bars still stand out |
 | Cards and bars | white (`bg-bg`) with a `border-line` hairline | Content sits on white; the frame stays quiet |
-| Top bar height | `h-app-bar`, 56px on every width | Compared with the welcome page's 72px: the forum is read for long stretches and vertical space is the feed's. 56 matches the welcome page's phone header |
+| Top bar height | `h-app-bar`: 104px below 640px (56px controls row, 40px search, 8px bottom spacing); 56px from 640px | Phone search gets the full width below the controls so its placeholder and queries stay readable; the shared token also offsets page content |
 | Sidebar | `w-sidebar` 272px, collapses to a `w-rail` 64px icon rail on desktop (remembered per browser); a drawer over the page under 1024px | Room for community names, and a way to give the page more width |
 | Page column | `max-w-feed`, 720px, centred in the space beside the sidebar | A readable line length for posts and comments |
 | Search box | `rounded-btn` (a pill on the forum), 40px tall, up to 560px wide, line border, accent ring on focus. From 1024px it is centred over the page column (it follows the sidebar when it collapses), with the brand and the account pinned to the bar's edges | The same radius as the buttons; centred on the content it searches, not on the window |

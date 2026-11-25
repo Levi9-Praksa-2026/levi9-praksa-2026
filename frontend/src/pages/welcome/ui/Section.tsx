@@ -8,6 +8,8 @@ export interface SectionProps {
   id: string
   /** How many screens tall (1 or 2). */
   screens?: Screens
+  /** Fit the content instead of reserving whole screens. */
+  contentSized?: boolean
   /** The ground band: base (the page), surface (the tint) or brand (Levi9 blue). The colours flip with it (theme.css). */
   ground?: Ground
   className?: string
@@ -24,10 +26,10 @@ const groundClass: Record<Ground, string | undefined> = {
 }
 
 /** One screen-tall section of the page with its centred column. */
-export function Section({ id, screens, ground = 'base', className, wrapClassName, style, children }: SectionProps) {
+export function Section({ id, screens, contentSized = false, ground = 'base', className, wrapClassName, style, children }: SectionProps) {
   return (
-    <section id={id} className={cn(screenSection, groundClass[ground], className)} style={cssVars({ '--h': screens }, style)}>
-      <div className={cn(screenWrap, 'flex flex-col', wrapClassName)}>{children}</div>
+    <section id={id} className={cn(contentSized ? 'relative pt-padt pb-[calc(var(--padb)+var(--bar))]' : screenSection, groundClass[ground], className)} style={cssVars({ '--h': screens }, style)}>
+      <div className={cn(contentSized ? 'wrap relative z-[1]' : screenWrap, 'flex flex-col', wrapClassName)}>{children}</div>
     </section>
   )
 }

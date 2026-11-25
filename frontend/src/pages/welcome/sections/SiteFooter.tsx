@@ -13,7 +13,7 @@ export interface SiteFooterProps {
   legal: string
 }
 
-/** The last screen on the brand-blue footer: one ask set large with its button, then the links. */
+/** The content-sized brand-blue footer: one ask set large with its button, then the links. */
 export function SiteFooter({ name, lede, title, line, register, columns, legal }: SiteFooterProps) {
   return (
     <Closing
