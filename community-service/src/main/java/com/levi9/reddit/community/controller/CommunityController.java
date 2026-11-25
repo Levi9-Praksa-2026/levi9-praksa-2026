@@ -113,6 +113,7 @@ public class CommunityController {
     }
 
     @PatchMapping("/{name}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Edit the description of a community (ADMIN); the name never changes")
     public void updateDescription(

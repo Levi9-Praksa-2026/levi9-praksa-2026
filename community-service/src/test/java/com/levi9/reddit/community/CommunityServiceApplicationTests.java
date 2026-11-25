@@ -242,7 +242,7 @@ class CommunityServiceApplicationTests {
                         .content("""
                                 {"description":"New description"}
                                 """))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         entityManager.flush();
         assertThat(communityRepository.findByName("backend").orElseThrow().getDescription())
