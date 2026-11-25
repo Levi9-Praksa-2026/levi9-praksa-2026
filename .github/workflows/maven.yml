@@ -1,10 +1,38 @@
-name: Java CI with Maven
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Backend build and tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ "main", "develop" ]
+    paths:
+      - 'auth-service/**'
+      - 'community-service/**'
+      - 'gateway/**'
+      - 'post-service/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - 'mvnw'
+      - 'mvnw.cmd'
+      - '.github/workflows/maven.yml'
   pull_request:
-    branches: [main, develop]
+    branches: [ "main", "develop" ]
+    paths:
+      - 'auth-service/**'
+      - 'community-service/**'
+      - 'gateway/**'
+      - 'post-service/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - 'mvnw'
+      - 'mvnw.cmd'
+      - '.github/workflows/maven.yml'
   workflow_dispatch:
 
 concurrency:
