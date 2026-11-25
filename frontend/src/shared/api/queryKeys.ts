@@ -1,4 +1,5 @@
 import type { CommunityListParams } from './contracts/communities'
+import type { PostListParams } from './contracts/posts'
 
 /**
  * Every TanStack Query key in one place. A key names a piece of server data, and the cache stores one
@@ -17,5 +18,10 @@ export const queryKeys = {
     list: (filters: CommunityListParams) => ['communities', 'list', filters] as const,
     /** Names are unique ignoring case, so `Frontend` and `frontend` share one entry. */
     detail: (name: string) => ['communities', 'detail', name.toLowerCase()] as const,
+  },
+  posts: {
+    all: ['posts'] as const,
+    /** One feed page: the community, search and page are all part of the key. */
+    list: (params: PostListParams) => ['posts', 'list', params] as const,
   },
 }
