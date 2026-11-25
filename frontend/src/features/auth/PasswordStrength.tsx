@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import { cn } from '@/shared/lib/cn'
 import { checkPassword } from './password'
-import { estimatePassword, STRENGTH_LABELS } from './passwordStrength'
+import { estimatePassword, STRENGTH_LABELS } from './password-strength'
 
 export default function PasswordStrength({ id, password, userInputs = [] }: {
   id: string

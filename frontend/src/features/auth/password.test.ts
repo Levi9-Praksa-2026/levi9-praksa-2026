@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { checkPassword, utf8Bytes } from './password'
-import { estimatePassword } from './passwordStrength'
+import { estimatePassword } from './password-strength'
 
 describe('checkPassword', () => {
   it('keeps acceptance independent of the advisory strength', () => {
