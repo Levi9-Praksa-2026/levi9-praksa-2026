@@ -95,7 +95,7 @@ describe('writing posts', () => {
     expect(await statusOf(updatePost(1, { title: 'Mine now' }))).toBe(403)
     const edited = await updatePost(3, { title: 'Edited' })
     expect(edited.title).toBe('Edited')
-    expect(edited.updatedAt >= edited.createdAt).toBe(true)
+    expect(edited.updatedAt! >= edited.createdAt).toBe(true)
     expect(await statusOf(removePost(1))).toBe(403)
     mockSignInAs('admin')
     await removePost(1)

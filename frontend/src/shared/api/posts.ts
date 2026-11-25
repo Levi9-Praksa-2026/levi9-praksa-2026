@@ -75,13 +75,13 @@ function toPost(p: PostRow): PostResponse {
     authorId: p.authorId,
     authorUsername: p.authorUsername,
     communityId: p.communityId,
-    communityName: db.communities.find(c => c.id === p.communityId)?.name ?? '',
+    communityName: db.communities.find(c => c.id === p.communityId)?.name ?? null,
     score: p.score,
     commentCount: p.commentCount,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
+    images: p.imageUrls.map((url, index) => ({ id: index + 1, url })),
     myVote: me ? (db.postVotes.get(voteKey(p.id, me.id)) ?? null) : null,
-    imageUrls: p.imageUrls,
   }
 }
 
