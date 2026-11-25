@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { useCallback, useEffect, useRef } from 'react'
+import { useNavigationType, useSearchParams } from 'react-router'
 import { Search } from 'lucide-react'
 import { CommunityListItem } from '@/features/communities/CommunityListItem'
 import { useCommunityDirectory } from '@/features/communities/hooks'
@@ -7,7 +7,7 @@ import { useCurrentUser } from '@/features/users/useCurrentUser'
 import type { CommunityListParams } from '@/shared/api/contracts/communities'
 import { isApiError } from '@/shared/api/errors'
 import { cn } from '@/shared/lib/cn'
-import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
+import { useDebouncedState } from '@/shared/hooks/useDebouncedValue'
 import { Pagination } from '@/shared/ui/Pagination'
 import { Select, type SelectOption } from '@/shared/ui/Select'
 import { TextField } from '@/shared/ui/TextField'
@@ -40,22 +40,44 @@ export function CommunitiesPage() {
   const sort = searchParams.get('sort') === 'top' ? 'top' : 'new'
   const page = pageFromParams(searchParams)
 
-  const [text, setText] = useState(searchParams.get('q') ?? '')
-  const debouncedName = useDebouncedValue(text.trim(), 300)
+  const urlName = searchParams.get('q') ?? ''
+  const navigationType = useNavigationType()
+  const { value: text, debounced: debouncedName, setValue: setText, jump } = useDebouncedState(urlName, 300)
+  const queryName = debouncedName.trim()
 
-  // only react to a real change, so a shared `?page=2` URL keeps its page on the first render
-  const lastName = useRef(debouncedName)
+  // Back/forward makes the URL the source of truth: reset the input *and* the query behind the
+  // request at once, instead of waiting out the typing debounce or writing the old query back.
+  const lastUrlName = useRef(urlName)
+  const skipNextWrite = useRef(false)
   useEffect(() => {
-    if (debouncedName === lastName.current) return
-    lastName.current = debouncedName
+    if (navigationType !== 'POP') {
+      // our own query writes are PUSHes: remember where they left the URL
+      lastUrlName.current = urlName
+      skipNextWrite.current = false
+      return
+    }
+    if (urlName === lastUrlName.current) return
+    lastUrlName.current = urlName
+    skipNextWrite.current = true
+    jump(urlName)
+  }, [navigationType, urlName, jump])
+
+  // Typing writes one history entry per settled query, so Back steps between searches, not letters.
+  // A shared `?page=2` URL keeps its page because nothing is written on the first render.
+  useEffect(() => {
+    if (skipNextWrite.current) {
+      skipNextWrite.current = false
+      return
+    }
+    if (queryName === urlName) return
     setSearchParams(prev => {
       const next = new URLSearchParams(prev)
-      if (debouncedName) next.set('q', debouncedName)
+      if (queryName) next.set('q', queryName)
       else next.delete('q')
       next.delete('page')
       return next
     })
-  }, [debouncedName, setSearchParams])
+  }, [queryName, urlName, setSearchParams])
 
   const setPage = useCallback((next: number) => {
     setSearchParams(prev => {
@@ -87,7 +109,7 @@ export function CommunitiesPage() {
   }
 
   const filters: CommunityListParams = {
-    name: debouncedName || undefined,
+    name: queryName || undefined,
     sort,
     page,
     size: PAGE_SIZE,
