@@ -5,6 +5,7 @@ import type { PostImage, PostResponse } from '@/shared/api/contracts/posts'
 import { routes } from '@/shared/config/routes'
 import { cn } from '@/shared/lib/cn'
 import { relativeTime } from '@/shared/lib/relativeTime'
+import { PostVote } from './PostVote'
 
 export interface PostCardProps {
   post: PostResponse
@@ -14,7 +15,7 @@ export interface PostCardProps {
 }
 
 /**
- * One post in a feed: where and who from, title, a short preview, its images, then score and comments.
+ * One post in a feed: where and who from, title, a short preview, its images, then votes and comments.
  * The title and the comment count are plain text until a post has its own page.
  */
 export function PostCard({ post, hideCommunity = false, className }: PostCardProps) {
@@ -54,10 +55,8 @@ export function PostCard({ post, hideCommunity = false, className }: PostCardPro
 
       {post.images.length > 0 && <PostImages images={post.images} />}
 
-      <footer className="flex items-center gap-4 text-label text-muted">
-        <span className="font-medium text-ink">
-          {post.score} {post.score === 1 || post.score === -1 ? 'point' : 'points'}
-        </span>
+      <footer className="flex flex-wrap items-center gap-x-4 gap-y-1 text-label text-muted">
+        <PostVote post={post} />
         <span className="flex items-center gap-1.5">
           <MessageSquare className="size-4" aria-hidden="true" />
           {post.commentCount} {post.commentCount === 1 ? 'comment' : 'comments'}

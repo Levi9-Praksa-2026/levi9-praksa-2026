@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import type { PostResponse } from '@/shared/api/contracts/posts'
@@ -21,9 +22,11 @@ const post: PostResponse = {
 
 function render(overrides: Partial<PostResponse> = {}, hideCommunity = false) {
   return renderToStaticMarkup(
-    <MemoryRouter>
-      <PostCard post={{ ...post, ...overrides }} hideCommunity={hideCommunity} />
-    </MemoryRouter>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MemoryRouter>
+        <PostCard post={{ ...post, ...overrides }} hideCommunity={hideCommunity} />
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 }
 
@@ -34,7 +37,7 @@ describe('PostCard', () => {
     expect(html).toContain('u/ana')
     expect(html).toContain('Spring Boot 4 upgrade notes')
     expect(html).toContain('What broke for us.')
-    expect(html).toContain('12 points')
+    expect(html).toContain('aria-label="12 points"')
     expect(html).toContain('1 comment<')
     expect(html).toContain('dateTime="2026-11-25T09:00:00Z"')
     expect(html).not.toContain('(edited)')
