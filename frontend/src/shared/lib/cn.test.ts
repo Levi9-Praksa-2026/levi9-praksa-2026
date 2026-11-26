@@ -6,6 +6,8 @@ describe('cn', () => {
     expect(cn('text-h2', 'text-ink')).toBe('text-h2 text-ink')
     expect(cn('text-label', 'text-p-muted')).toBe('text-label text-p-muted')
     expect(cn('text-ui', 'text-white')).toBe('text-ui text-white')
+    expect(cn('text-small', 'text-danger')).toBe('text-small text-danger')
+    expect(cn('text-body', 'text-danger-ink')).toBe('text-body text-danger-ink')
   })
 
   it('lets the later class win inside one group', () => {
