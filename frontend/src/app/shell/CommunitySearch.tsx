@@ -10,8 +10,9 @@ const members = (n: number) => `${n} member${n === 1 ? '' : 's'}`
 
 /**
  * The top bar's search: a combobox over community names. Typing lists matches after a short pause;
- * arrow keys move through them, Enter opens one, Escape closes the list (or clears the box), and a
- * screen reader hears how many were found.
+ * arrow keys move through them, clicking an option opens that community, Enter goes to the directory
+ * filtered by the typed name, Escape closes the list (or clears the box), and a screen reader hears
+ * how many were found.
  */
 export function CommunitySearch({ className }: { className?: string }) {
   const navigate = useNavigate()
@@ -35,12 +36,23 @@ export function CommunitySearch({ className }: { className?: string }) {
     }
   }, [active, activeResult])
 
-  function go(name: string) {
+  function reset() {
     setQuery('')
     setOpen(false)
     setActive(-1)
     inputRef.current?.blur()
+  }
+
+  function go(name: string) {
+    reset()
     navigate(routes.community(name))
+  }
+
+  /** Enter is a search, not a pick: it shows every community matching the whole typed name. */
+  function explore() {
+    const target = routes.communitiesSearch(query)
+    reset()
+    navigate(target)
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -51,11 +63,8 @@ export function CommunitySearch({ className }: { className?: string }) {
       const step = e.key === 'ArrowDown' ? 1 : -1
       setActive(a => (a + step + results.length) % results.length)
     } else if (e.key === 'Enter') {
-      const pick = activeResult ?? results[0]
-      if (showList && pick) {
-        e.preventDefault()
-        go(pick.name)
-      }
+      e.preventDefault()
+      explore()
     } else if (e.key === 'Escape') {
       if (showList) setOpen(false)
       else setQuery('')
@@ -65,7 +74,7 @@ export function CommunitySearch({ className }: { className?: string }) {
 
   // what a screen reader hears once a search has settled
   const found = results.length === 1 ? '1 community found' : `${results.length} communities found`
-  const status = !hasQuery || loading ? '' : error ? 'Search failed' : results.length ? found : 'No communities found'
+  const status = !hasQuery || loading ? '' : error ? 'Search failed' : `${results.length ? found : 'No communities found'}. Press Enter to see all results`
   const message = loading ? (results.length ? null : 'Searching…') : error ? 'Search failed. Try again in a moment.' : results.length ? null : 'No communities found'
 
   return (
@@ -90,6 +99,7 @@ export function CommunitySearch({ className }: { className?: string }) {
           autoComplete="off"
           spellCheck={false}
           placeholder="Search communities"
+          maxLength={50}
           value={query}
           onChange={e => {
             setQuery(e.target.value)
