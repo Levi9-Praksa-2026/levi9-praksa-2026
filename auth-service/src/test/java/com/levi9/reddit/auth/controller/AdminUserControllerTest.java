@@ -6,6 +6,12 @@ import com.levi9.reddit.auth.exception.ForbiddenException;
 import com.levi9.reddit.auth.exception.NotFoundException;
 import com.levi9.reddit.auth.config.UserApiSecurityConfig;
 import com.levi9.reddit.auth.service.UserBanService;
+import com.levi9.reddit.auth.service.UserDirectoryService;
+import com.levi9.reddit.auth.dto.AdminUserDTO;
+import com.levi9.reddit.auth.dto.PageDTO;
+import com.levi9.reddit.auth.entity.UserRole;
+import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -18,6 +24,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -41,7 +49,45 @@ class AdminUserControllerTest {
     private UserBanService bans;
 
     @MockitoBean
+    private UserDirectoryService directory;
+
+    @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @Test
+    void adminReadsPaginatedDirectoryWithoutCredentials() throws Exception {
+        given(directory.list("reader", "banned", 1, 5)).willReturn(new PageDTO<>(List.of(
+                new AdminUserDTO(42L, "reader", "reader@example.test", "First", "Last", UserRole.USER,
+                        true, false, "Spam", Instant.EPOCH, Instant.EPOCH)), 1, 5, 6, 2));
+        mvc.perform(get("/api/admin/users").with(admin()).param("q", "reader").param("status", "banned")
+                        .param("page", "1").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].username").value("reader"))
+                .andExpect(jsonPath("$.content[0].banned").value(true))
+                .andExpect(jsonPath("$.content[0].passwordHash").doesNotExist())
+                .andExpect(jsonPath("$.content[0].passwordChangedAt").doesNotExist())
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.totalPages").value(2));
+    }
+
+    @Test
+    void directoryIsAdminOnly() throws Exception {
+        mvc.perform(get("/api/admin/users")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/users").with(user())).andExpect(status().isForbidden());
+        verifyNoInteractions(directory);
+    }
+
+    @Test
+    void directoryRejectsInvalidFiltersAndPaging() throws Exception {
+        for (String key : List.of("status", "page", "size")) {
+            mvc.perform(get("/api/admin/users").with(admin()).param(key, "invalid"))
+                    .andExpect(status().isBadRequest());
+        }
+        mvc.perform(get("/api/admin/users").with(admin()).param("page", "-1")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/admin/users").with(admin()).param("size", "101")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/admin/users").with(admin()).param("q", "x".repeat(255))).andExpect(status().isBadRequest());
+        verifyNoInteractions(directory);
+    }
 
     @Test
     void adminBansUser() throws Exception {

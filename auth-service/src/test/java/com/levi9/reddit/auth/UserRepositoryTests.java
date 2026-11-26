@@ -2,6 +2,8 @@ package com.levi9.reddit.auth;
 
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.repository.UserRepository;
+import com.levi9.reddit.auth.service.UserDirectoryService;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,9 +31,46 @@ class UserRepositoryTests {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private UserDirectoryService directory;
+
     @BeforeEach
     void cleanTables() {
         jdbc.execute("TRUNCATE oauth2_authorization, users RESTART IDENTITY CASCADE");
+    }
+
+    @Test
+    void directoryPaginatesAllStatesWithAStableTieBreaker() {
+        User admin = user("admin", "admin@example.test"); admin.grantAdmin(); admin = users.save(admin);
+        User active = users.save(user("active", "active@example.test"));
+        User banned = user("banned", "banned@example.test"); banned.ban(admin.getId(), "Spam", Instant.now()); users.save(banned);
+        User deleted = user("deleted", "deleted@example.test"); deleted.delete(); users.save(deleted);
+        jdbc.execute("UPDATE users SET created_at = '2026-01-01T00:00:00Z'::timestamptz");
+
+        var first = directory.list(null, null, 0, 2);
+        var second = directory.list(null, null, 1, 2);
+        assertThat(first.totalElements()).isEqualTo(4);
+        assertThat(first.totalPages()).isEqualTo(2);
+        assertThat(first.content()).extracting(u -> u.username()).containsExactly("deleted", "banned");
+        assertThat(second.content()).extracting(u -> u.username()).containsExactly("active", "admin");
+        assertThat(first.content().get(1).banReason()).isEqualTo("Spam");
+        assertThat(directory.list(null, "active", 0, 10).totalElements()).isEqualTo(2);
+        assertThat(directory.list(null, "banned", 0, 10).content()).extracting(u -> u.username()).containsExactly("banned");
+        assertThat(directory.list(null, "deleted", 0, 10).content()).extracting(u -> u.username()).containsExactly("deleted");
+    }
+
+    @Test
+    void directorySearchIsCaseInsensitiveAndTreatsWildcardsLiterally() {
+        users.save(user("alpha_one", "one@example.test"));
+        users.save(user("alphaXone", "two@example.test"));
+        users.save(new User("special", "percent%tag@example.test", "hash", "Alexandra", "Petrovic"));
+
+        assertThat(directory.list(" ALPHA_ONE ", null, 0, 10).content()).extracting(u -> u.username()).containsExactly("alpha_one");
+        assertThat(directory.list("%", null, 0, 10).content()).extracting(u -> u.username()).containsExactly("special");
+        assertThat(directory.list("ALEXANDRA", null, 0, 10).totalElements()).isEqualTo(1);
+        assertThat(directory.list("petrovic", null, 0, 10).totalElements()).isEqualTo(1);
+        assertThat(directory.list("two@example", null, 0, 10).content()).extracting(u -> u.username()).containsExactly("alphaXone");
+        assertThat(directory.list("missing", null, 0, 10).totalElements()).isZero();
     }
 
     @Test

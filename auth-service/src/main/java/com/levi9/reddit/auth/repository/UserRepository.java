@@ -3,6 +3,8 @@ package com.levi9.reddit.auth.repository;
 import com.levi9.reddit.auth.entity.User;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +18,20 @@ import org.springframework.data.repository.query.Param;
  * decides what a deleted or banned user gets.
  */
 public interface UserRepository extends JpaRepository<User, Long> {
+
+    /** All accounts, including deleted ones; filters and paging are applied in the database. */
+    @Query("""
+            select u from User u
+            where (:pattern is null or lower(u.username) like :pattern escape '!'
+                or lower(u.email) like :pattern escape '!'
+                or lower(u.firstName) like :pattern escape '!'
+                or lower(u.lastName) like :pattern escape '!')
+            and (:status is null
+                or (:status = 'active' and u.deleted = false and u.banned = false)
+                or (:status = 'banned' and u.deleted = false and u.banned = true)
+                or (:status = 'deleted' and u.deleted = true))
+            """)
+    Page<User> findForAdmin(@Param("pattern") String pattern, @Param("status") String status, Pageable pageable);
 
     /** Locks the row until the transaction ends ({@code select ... for update}). Use it before changing a user. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
