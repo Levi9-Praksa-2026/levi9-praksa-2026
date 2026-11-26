@@ -18,6 +18,7 @@ data "aws_iam_policy_document" "ecs_tasks_trust" {
 resource "aws_iam_role" "ecs_execution" {
   name               = "${local.name}-ecs-execution"
   assume_role_policy = data.aws_iam_policy_document.ecs_tasks_trust.json
+  tags               = { Owner = local.owners.ecs }
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_execution" {
@@ -48,6 +49,7 @@ resource "aws_iam_role" "ecs_task" {
 
   name               = "${local.name}-${each.key}-task"
   assume_role_policy = data.aws_iam_policy_document.ecs_tasks_trust.json
+  tags               = { Owner = local.owners.ecs }
 }
 
 data "aws_iam_policy_document" "post_media" {
