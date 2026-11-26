@@ -41,6 +41,39 @@ class CommunityServiceTest {
     private CommunityService service;
 
     @Test
+    void adminWithoutStatusIncludesBothStatesWithGlobalSortingAndPaging() {
+        Community active = new Community("frontend", 42L);
+        Community inactive = new Community("retired", 42L);
+        inactive.deactivate();
+        when(communities.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(active, inactive)));
+
+        var result = service.findAdminCommunities(null, CommunitySort.TOP, null, 2, 10);
+
+        assertThat(result.content()).extracting(c -> c.active()).containsExactly(true, false);
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(communities).findAll(pageable.capture());
+        assertThat(pageable.getValue()).isEqualTo(PageRequest.of(2, 10,
+                Sort.by(Sort.Order.desc("memberCount"), Sort.Order.desc("id"))));
+    }
+
+    @Test
+    void adminNameSearchDoesNotApplyAStatusPredicate() {
+        when(communities.findByNameContainingIgnoreCase(eq("front"), any())).thenReturn(page(new Community("frontend", 42L)));
+        service.findAdminCommunities(null, CommunitySort.NEW, " front ", 0, 10);
+        verify(communities).findByNameContainingIgnoreCase(eq("front"), any());
+    }
+
+    @Test
+    void adminCanRestrictEitherState() {
+        when(communities.findByActiveTrue(any())).thenReturn(page(new Community("frontend", 42L)));
+        when(communities.findByActiveFalseAndNameContainingIgnoreCase(eq("old"), any())).thenReturn(page(new Community("old", 42L)));
+        service.findAdminCommunities(true, CommunitySort.NEW, null, 0, 10);
+        service.findAdminCommunities(false, CommunitySort.NEW, "old", 0, 10);
+        verify(communities).findByActiveTrue(any());
+        verify(communities).findByActiveFalseAndNameContainingIgnoreCase(eq("old"), any());
+    }
+
+    @Test
     void findCommunities_mapsOnlyNameAndMemberCountAndSortsByNewest() {
         Community community = new Community("backend", 42L);
         community.updateMemberCount(7);
