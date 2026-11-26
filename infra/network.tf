@@ -8,3 +8,11 @@ data "aws_vpc" "default" {
 data "aws_ec2_managed_prefix_list" "cloudfront" {
   name = "com.amazonaws.global.cloudfront.origin-facing"
 }
+
+# Subnets of the default VPC, used by the ALB and the RDS subnet group.
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
