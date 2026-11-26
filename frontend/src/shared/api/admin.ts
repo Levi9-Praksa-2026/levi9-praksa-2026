@@ -2,6 +2,26 @@ import type { PageResponse } from './contracts/common'
 import type { CommunityDetailResponse, CommunitySort, CreateCommunityRequest } from './contracts/communities'
 import { http } from './http'
 
+export interface AdminUser {
+  id: number
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  role: 'USER' | 'ADMIN'
+  banned: boolean
+  deleted: boolean
+  banReason: string | null
+  bannedAt: string | null
+  createdAt: string
+}
+export interface AdminUserFilters {
+  q?: string
+  status?: 'active' | 'banned' | 'deleted'
+  page?: number
+  size?: number
+}
+
 export interface AdminCommunity {
   name: string
   memberCount: number
@@ -40,6 +60,7 @@ const banPath = (username: string) => `/api/admin/users/${encodeURIComponent(use
 
 /** Admin writes use the gateway session and CSRF handling, never the mock session. */
 export const adminApi = {
+  users: (filters: AdminUserFilters) => http<PageResponse<AdminUser>>('/api/admin/users', { query: { ...filters } }),
   communities: ({ status, ...filters }: AdminCommunityFilters) => http<PageResponse<AdminCommunity>>('/api/communities', {
     query: { ...filters, inactive: status === 'active' ? 'false' : status === 'inactive' ? 'true' : 'all' },
   }),

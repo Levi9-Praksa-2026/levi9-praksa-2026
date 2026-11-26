@@ -1,4 +1,4 @@
-import type { AdminCommunityFilters } from './admin'
+import type { AdminCommunityFilters, AdminUserFilters } from './admin'
 import type { CommunityListParams } from './contracts/communities'
 
 /**
@@ -10,6 +10,8 @@ export const queryKeys = {
   /** Who is logged in. */
   me: ['me'] as const,
   admin: {
+    users: ['admin', 'users'] as const,
+    userList: (filters: AdminUserFilters) => ['admin', 'users', filters] as const,
     posts: ['admin', 'posts'] as const,
     postList: (q: string, page: number) => ['admin', 'posts', { q, page }] as const,
     comments: (postId: number, page: number) => ['admin', 'comments', postId, page] as const,

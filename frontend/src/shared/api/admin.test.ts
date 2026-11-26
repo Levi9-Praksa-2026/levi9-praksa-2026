@@ -13,6 +13,15 @@ function request() {
 }
 
 describe('admin gateway contracts', () => {
+  it('requests the paginated user directory with search and status filters', async () => {
+    const result = { content: [{ id: 7, username: 'reader', banned: true }], page: 1, size: 5, totalPages: 2, totalElements: 6 };
+    fetchMock.mockResolvedValueOnce(Response.json(result));
+    expect(await adminApi.users({ q: 'name@example.test', status: 'banned', page: 1, size: 5 })).toEqual(result);
+    const url = new URL(String(request().path), 'http://localhost');
+    expect(url.pathname).toBe('/api/admin/users');
+    expect(Object.fromEntries(url.searchParams)).toEqual({ q: 'name@example.test', status: 'banned', page: '1', size: '5' });
+  })
+
   it('uses the shared community endpoint for all, active and inactive admin views', async () => {
     for (const status of [undefined, 'active', 'inactive'] as const) {
       fetchMock.mockResolvedValueOnce(Response.json({ content: [], totalElements: 0 }));
