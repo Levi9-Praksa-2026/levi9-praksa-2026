@@ -114,7 +114,7 @@ export function AdminUsersPage() {
               <div className="flex flex-wrap gap-2">
                 <Button variant="secondary" aria-label={`View details for u/${user.username}`} onClick={() => setDetails(user)}>Details</Button>
                 {!user.deleted && <Button variant="secondary" aria-label={`Edit u/${user.username}`} onClick={() => { setMessage(''); setEditing({ user, returnToDetails: false }) }}><Pencil className="size-4" aria-hidden="true" />Edit user</Button>}
-                {!user.deleted && user.role !== 'ADMIN' && <Button variant="secondary" aria-label={`${user.banned ? 'Unban' : 'Ban'} u/${user.username}`} onClick={() => { mutation.reset(); setMessage(''); setTarget(user) }}>{user.banned ? 'Unban user' : 'Ban user'}</Button>}
+                {!user.deleted && user.role !== 'ADMIN' && <Button variant={user.banned ? 'secondary' : 'danger-outline'} aria-label={`${user.banned ? 'Unban' : 'Ban'} u/${user.username}`} onClick={() => { mutation.reset(); setMessage(''); setTarget(user) }}>{user.banned ? 'Unban user' : 'Ban user'}</Button>}
               </div>
             </div>
           </li>)}
@@ -179,7 +179,7 @@ function BanUserDialog({ user, pending, error, onClose, onConfirm }: { user: Adm
         </fieldset>
         <TextArea label="Reason for ban" name="reason" value={reason} onChange={event => setReason(event.target.value)} rows={4} className="sm:[&>textarea]:min-h-48" disabled={pending} required maxLength={500} hint="Edit the selected reason or write your own. Up to 500 characters; shown to the user when they try to log in." />
       </div>
-      <div className="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:justify-end"><Button variant="secondary" disabled={pending} onClick={onClose}>Cancel</Button><Button type="submit" disabled={pending}>{pending ? 'Saving…' : 'Ban user'}</Button></div>
+      <div className="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:justify-end"><Button variant="secondary" disabled={pending} onClick={onClose}>Cancel</Button><Button type="submit" variant="danger" disabled={pending}>{pending ? 'Saving…' : 'Ban user'}</Button></div>
     </form>
   </Modal>
 }

@@ -12,7 +12,7 @@ All admin reads and writes use the gateway session and the shared HTTP/CSRF wrap
 | `/admin` | Active/inactive community totals, top five communities, navigation | `GET /api/communities` with `sort=top`; `inactive=true` selects inactive communities |
 | `/admin/communities` | Search, sort, paginate; create; edit description; confirm shutdown/reactivation | `GET /api/communities?inactive=true|false|all`, `POST /api/communities`, `GET/PATCH/DELETE /api/communities/{name}`, `POST /api/communities/{name}/reactivate` |
 | `/admin/users` | Create user or admin accounts; search and paginate all accounts; filter Active/Banned/Deleted and All/Users/Admins; review formatted details; edit profiles from the list or details; ban with preset or custom reason; unban | `GET /api/admin/users?q=&status=&role=&page=&size=`, `POST /api/admin/users`, `PATCH /api/admin/users/{username}`, `POST/DELETE /api/admin/users/{username}/ban` |
-| `/admin/posts` | Search/paginate posts, read full content and images, review paginated comments, confirm post removal, navigate to author moderation | `GET /api/posts`, `GET /api/posts/{id}/comments`, `DELETE /api/posts/{id}` |
+| `/admin/posts` | Search/paginate posts, confirm post removal, navigate to author moderation | `GET /api/posts`, `GET /api/posts/{id}/comments`, `DELETE /api/posts/{id}` |
 
 Names cannot be changed. Shutdown and post removal are soft operations. Communities can be reactivated;
 there is no post-restoration endpoint. Bans require a nonblank reason of at most 500 characters, forbid
@@ -28,8 +28,7 @@ Current controllers take precedence where the older endpoint PDF differs (ban na
 parameter, and supported sorts).
 
 The requirements assign admins removal of any post or comment. Post removal exists. Comment reads
-exist, but there is no comment-removal controller on develop. Comment review therefore explains that
-removal is unavailable and offers author moderation; it does not simulate successful removal.
+exist, but there is no comment-removal controller on develop. The post-card review button and modal are removed pending future card navigation; comment review is not currently exposed in the admin UI.
 
 The Create user dialog uses the existing registration rules and password fields. `POST /api/admin/users` is admin-only, reuses registration validation and BCrypt hashing, and creates the selected USER or ADMIN role without changing the administrator's session. The dialog defaults to User, and omission of the role in an older client request also defaults to USER. Public signup always creates USER accounts and has no role-selection field. Password confirmation is checked only in the client. On success, the directory returns to its first unfiltered page and refreshes; on failure, entered values are retained. No email or invitation is sent.
 

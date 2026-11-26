@@ -88,7 +88,7 @@ export function AdminCommunitiesPage() {
               </div>
               <div className="flex flex-wrap gap-2 max-sm:w-full">
                 {community.active && <Button variant="secondary" onClick={() => { setMessage(''); setEditor({ name: community.name }) }}>Edit details</Button>}
-                <Button variant="secondary" onClick={() => { changeStatus.reset(); setTarget({ name: community.name, inactive: !community.active }) }}>{community.active ? 'Shut down' : 'Reactivate'}</Button>
+                <Button variant={community.active ? 'danger-outline' : 'secondary'} onClick={() => { changeStatus.reset(); setTarget({ name: community.name, inactive: !community.active }) }}>{community.active ? 'Shut down' : 'Reactivate'}</Button>
               </div>
             </li>)}
           </ul>}
@@ -98,7 +98,7 @@ export function AdminCommunitiesPage() {
       </>
     )}
     {editor && <CommunityEditor name={editor.name} onClose={() => setEditor(null)} onSaved={name => { setEditor(null); setMessage(`l/${name} saved.`); void client.invalidateQueries({ queryKey: queryKeys.communities.all }); void client.invalidateQueries({ queryKey: ['admin', 'community'] }) }} />}
-    {target && <ConfirmAction title={`${target.inactive ? 'Reactivate' : 'Shut down'} l/${target.name}?`} label={target.inactive ? 'Reactivate community' : 'Shut down community'} pending={changeStatus.isPending} error={changeStatus.error} onClose={() => setTarget(null)} onConfirm={() => changeStatus.mutate(target)}>
+    {target && <ConfirmAction destructive={!target.inactive} title={`${target.inactive ? 'Reactivate' : 'Shut down'} l/${target.name}?`} label={target.inactive ? 'Reactivate community' : 'Shut down community'} pending={changeStatus.isPending} error={changeStatus.error} onClose={() => setTarget(null)} onConfirm={() => changeStatus.mutate(target)}>
       {target.inactive ? 'This community will become visible in the directory and accept members and new posts again.' : 'This hides the community from the directory and prevents new posts. Its data is kept, and you can reactivate it later.'}
     </ConfirmAction>}
   </section>
