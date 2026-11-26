@@ -1,5 +1,9 @@
 server:
   port: 8080
+  tomcat:
+    # Same as auth-service: redirects of our own (the end of login, "/") keep a relative Location, so the browser stays
+    # on the public origin instead of a URL built from what the ALB sends (http://, possibly the ALB's own name).
+    use-relative-redirects: true
   servlet:
     session:
       # The browser's only credential. Not readable by scripts, not sent on cross-site requests, only sent over
