@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
-import { Plus, Search, ShieldCheck, UserRound } from 'lucide-react'
+import { Ban, CircleCheck, Layers, Plus, Search, ShieldCheck, UserRound, UserRoundX } from 'lucide-react'
 import { UserAvatar } from '@/features/users/UserAvatar'
 import { adminApi, type AdminUser, type AdminUserFilters } from '@/shared/api/admin'
 import { queryKeys } from '@/shared/api/queryKeys'
@@ -32,8 +32,10 @@ export function AdminUsersPage() {
   const rawPage = Number(params.get('page') ?? 0)
   const page = Number.isSafeInteger(rawPage) && rawPage >= 0 ? rawPage : 0
   const status = params.get('status')
+  const role = params.get('role')
   const filters: AdminUserFilters = {
     q: q || undefined,
+    role: role === 'USER' || role === 'ADMIN' ? role : undefined,
     status: status === 'active' || status === 'banned' || status === 'deleted' ? status : undefined,
     page,
     size: PAGE_SIZE,
@@ -73,13 +75,22 @@ export function AdminUsersPage() {
         <TextField label="Search users" name="q" defaultValue={q} maxLength={254} placeholder="Username, name, or email" className="flex-1" />
         <Button type="submit" variant="secondary"><Search className="size-4" aria-hidden="true" />Search</Button>
       </form>
-      <SegmentedControl label="Account status" value={filters.status ?? 'all'} options={[
-        { value: 'all', label: 'All' }, { value: 'active', label: 'Active' },
-        { value: 'banned', label: 'Banned' }, { value: 'deleted', label: 'Deleted' },
+      <div className="flex flex-wrap items-end justify-between gap-4">
+      <SegmentedControl label="Account status" wrapOnMobile value={filters.status ?? 'all'} options={[
+        { value: 'all', label: 'All', icon: <Layers className="size-4" aria-hidden="true" /> },
+        { value: 'active', label: 'Active', icon: <CircleCheck className="size-4" aria-hidden="true" /> },
+        { value: 'banned', label: 'Banned', icon: <Ban className="size-4" aria-hidden="true" /> },
+        { value: 'deleted', label: 'Deleted', icon: <UserRoundX className="size-4" aria-hidden="true" /> },
       ]} onChange={value => update('status', value === 'all' ? '' : value)} />
+      <SegmentedControl label="Role" value={filters.role ?? 'all'} options={[
+        { value: 'all', label: 'All' },
+        { value: 'USER', label: 'Users', icon: <UserRound className="size-4" aria-hidden="true" /> },
+        { value: 'ADMIN', label: 'Admins', icon: <ShieldCheck className="size-4" aria-hidden="true" /> },
+      ]} onChange={value => update('role', value === 'all' ? '' : value)} />
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-2 text-small text-muted">
         <p role="status">{list.isPending ? 'Loading users…' : list.isError ? 'Results unavailable' : `${list.data?.totalElements.toLocaleString() ?? 0} ${list.data?.totalElements === 1 ? 'user' : 'users'}`}</p>
-        {(q || filters.status) && <button type="button" onClick={() => setParams({})} className="cursor-pointer rounded-btn px-2 py-1 font-medium text-accent hover:bg-surface">Clear filters</button>}
+        {(q || filters.status || filters.role) && <button type="button" onClick={() => setParams({})} className="cursor-pointer rounded-btn px-2 py-1 font-medium text-accent hover:bg-surface">Clear filters</button>}
       </div>
     </div>
     {list.isPending ? <Notice tone="info">Loading users…</Notice> : list.isError ? <Notice tone="error">{adminError(list.error)} <button type="button" className="cursor-pointer underline" onClick={() => void list.refetch()}>Try again</button></Notice> : <>

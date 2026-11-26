@@ -3,24 +3,26 @@ import { useMutation } from '@tanstack/react-query'
 import { PasswordField, PasswordRules } from '@/features/auth/PasswordField'
 import { checkPassword } from '@/features/auth/password'
 import { isEmail } from '@/features/auth/messages'
-import { adminApi } from '@/shared/api/admin'
-import { EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_PATTERN, type RegisterRequest } from '@/shared/api/contracts/auth'
+import { ShieldCheck, UserRound } from 'lucide-react'
+import { adminApi, type AdminCreateUserRequest } from '@/shared/api/admin'
+import { EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_PATTERN } from '@/shared/api/contracts/auth'
 import type { UserProfileResponse } from '@/shared/api/contracts/users'
 import { isApiError } from '@/shared/api/errors'
 import { Button } from '@/shared/ui/Button'
 import { Modal } from '@/shared/ui/Modal'
 import { Notice } from '@/shared/ui/Notice'
 import { TextField } from '@/shared/ui/TextField'
+import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { adminError } from './errors'
 
-type Form = RegisterRequest & { confirmPassword: string }
+type Form = AdminCreateUserRequest & { confirmPassword: string }
 type Errors = Partial<Record<keyof Form, string>>
 const FIELDS: readonly (keyof Form)[] = ['email', 'username', 'firstName', 'lastName', 'password', 'confirmPassword']
 
 export function CreateUserDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (user: UserProfileResponse) => void }) {
   const id = useId()
   const formRef = useRef<HTMLFormElement>(null)
-  const [form, setForm] = useState<Form>({ email: '', username: '', firstName: '', lastName: '', password: '', confirmPassword: '' })
+  const [form, setForm] = useState<Form>({ email: '', username: '', firstName: '', lastName: '', password: '', confirmPassword: '', role: 'USER' })
   const [errors, setErrors] = useState<Errors>({})
   function focusFirst(found: Errors) {
     const first = FIELDS.find(field => found[field])
@@ -69,6 +71,13 @@ export function CreateUserDialog({ onClose, onCreated }: { onClose: () => void; 
       <p className="text-small text-muted">Create an account for a colleague.</p>
       {create.isError && !Object.values(errors).some(Boolean) && <Notice tone="error">{adminError(create.error)}</Notice>}
       <fieldset disabled={create.isPending} className="grid min-w-0 gap-4 sm:grid-cols-2">
+        <div className="grid gap-2 sm:col-span-2">
+          <SegmentedControl label="Role" value={form.role} options={[
+            { value: 'USER', label: 'User', icon: <UserRound className="size-4" aria-hidden="true" /> },
+            { value: 'ADMIN', label: 'Admin', icon: <ShieldCheck className="size-4" aria-hidden="true" /> },
+          ]} onChange={role => setForm(previous => ({ ...previous, role }))} />
+          <p className="text-label text-muted">{form.role === 'ADMIN' ? 'Admins can manage communities, moderate users, and remove posts.' : 'Users can join communities, publish posts, and take part in discussions.'}</p>
+        </div>
         <TextField label="Email" name="email" type="email" autoComplete="off" value={form.email} onChange={event => set('email', event.target.value)} maxLength={EMAIL_MAX_LENGTH} error={errors.email} />
         <TextField label="Username" name="username" autoComplete="off" autoCapitalize="none" spellCheck={false} value={form.username} onChange={event => set('username', event.target.value)} maxLength={30} hint="3 to 30 letters, digits or underscores." error={errors.username} />
         <TextField label="First name" name="firstName" value={form.firstName} onChange={event => set('firstName', event.target.value)} maxLength={NAME_MAX_LENGTH} error={errors.firstName} />

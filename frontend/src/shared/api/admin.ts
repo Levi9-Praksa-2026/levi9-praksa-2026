@@ -5,7 +5,7 @@ import type { CommunityDetailResponse, CommunitySort, CreateCommunityRequest } f
 import { http } from './http'
 
 export interface AdminCreateUserRequest extends RegisterRequest {
-  role?: 'USER' | 'ADMIN'
+  role: 'USER' | 'ADMIN'
 }
 
 export interface AdminUpdateUserRequest {

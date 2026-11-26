@@ -2,16 +2,18 @@ import { useId, type ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
 
 /** Native radio semantics provide arrow-key selection, one tab stop and a visible focus ring. */
-export function SegmentedControl<T extends string>({ label, value, options, onChange }: {
+export function SegmentedControl<T extends string>({ label, value, options, onChange, wrapOnMobile = false }: {
   label: string
   value: T
   options: readonly { value: T; label: string; icon?: ReactNode }[]
   onChange: (value: T) => void
+  /** Keep longer icon-labelled groups readable on narrow screens. */
+  wrapOnMobile?: boolean
 }) {
   const name = useId()
   return <fieldset className="min-w-0 max-sm:w-full">
     <legend className="mb-2 text-label font-medium text-muted">{label}</legend>
-    <div className="flex rounded-btn border border-line bg-surface p-1">
+    <div className={cn('border border-line bg-surface p-1', wrapOnMobile ? 'grid grid-cols-2 rounded-lg sm:flex sm:rounded-btn' : 'flex rounded-btn')}>
       {options.map(option => <label key={option.value} className="relative min-w-0 flex-auto cursor-pointer">
         <input type="radio" name={name} value={option.value} checked={option.value === value} onChange={() => onChange(option.value)} className="peer sr-only" />
         <span className={cn(
