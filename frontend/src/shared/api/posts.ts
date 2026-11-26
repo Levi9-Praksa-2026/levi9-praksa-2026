@@ -9,20 +9,21 @@ import type {
   UpdatePostRequest,
 } from './contracts/posts'
 import { ApiError } from './errors'
+import { http } from './http'
 import { db, voteKey, type CommentRow, type PostRow, type UserRow } from './mock/db'
-import { fileUrl, invalid, notBlank, optionalUser, requireUser } from './mock/guards'
-import { containsIgnoreCase, handle, newestFirst, page } from './mock/server'
+import { invalid, notBlank, optionalUser, requireUser } from './mock/guards'
+import { handle, newestFirst } from './mock/server'
 
 /*
-  post-service, /api/posts/** and /api/comments/**. Mocked: every function answers from the
-  in-memory data with the service's rules (docs/data-model.md, the endpoints doc). Replace each body
-  with a request when the backend is up; the signatures stay.
+  post-service, /api/posts/** and /api/comments/**. The reads (`listPosts`, `getPost`, `listComments`), creating,
+  editing and removing a post are real requests. Post votes have no endpoint yet, so `votePost` and `unvotePost` send nothing.
+  Everything else is still mocked: it
+  answers from the in-memory data with the service's rules (docs/data-model.md, the endpoints doc).
+  Replace each body with a request when the backend is up; the signatures stay.
 */
 
-// Not fixed by the backend yet (no create-post DTO exists): the search limit, and a generous body.
-const TITLE_MAX = 300
+// The mocked comments' length limit, as post-service's PostLimits.CONTENT_MAX.
 const CONTENT_MAX = 40_000
-const IMAGES_MAX = 3
 
 function livePost(id: number): PostRow {
   const post = db.posts.find(p => p.id === id && !p.removedAt)
@@ -75,13 +76,13 @@ function toPost(p: PostRow): PostResponse {
     authorId: p.authorId,
     authorUsername: p.authorUsername,
     communityId: p.communityId,
-    communityName: db.communities.find(c => c.id === p.communityId)?.name ?? '',
+    communityName: db.communities.find(c => c.id === p.communityId)?.name ?? null,
     score: p.score,
     commentCount: p.commentCount,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
+    images: p.imageUrls.map((url, index) => ({ id: index + 1, url })),
     myVote: me ? (db.postVotes.get(voteKey(p.id, me.id)) ?? null) : null,
-    imageUrls: p.imageUrls,
   }
 }
 
@@ -105,17 +106,8 @@ const now = () => new Date().toISOString()
 // ---------------------------------------------------------------- posts
 
 /** `GET /api/posts?communityId=&q=&page=&size=`: latest first. No filter is the main page; `q` searches titles. */
-export function listPosts(params: PostListParams = {}): Promise<PageResponse<PostResponse>> {
-  return handle(() => {
-    const { communityId, q } = params
-    if (q !== undefined && q.length > TITLE_MAX) throw invalid('q', `size must be between 0 and ${TITLE_MAX}`)
-    const rows = db.posts
-      .filter(p => !p.removedAt)
-      .filter(p => communityId === undefined || p.communityId === communityId)
-      .filter(p => !q || containsIgnoreCase(p.title, q))
-      .sort(newestFirst)
-    return page(rows.map(toPost), params)
-  })
+export function listPosts({ communityId, q, page, size }: PostListParams = {}): Promise<PageResponse<PostResponse>> {
+  return http<PageResponse<PostResponse>>('/api/posts', { query: { communityId, q, page, size } })
 }
 
 /** `GET /api/posts/top?period=ALL|WEEK`: the 10 highest scores; WEEK only counts posts created in the last 7 days. */
@@ -132,91 +124,56 @@ export function getTopPosts(period: TopPeriod = 'ALL'): Promise<PostResponse[]> 
 
 /** `GET /api/posts/{id}`: 404 if it does not exist or was removed. */
 export function getPost(id: number): Promise<PostResponse> {
-  return handle(() => toPost(livePost(id)))
+  return http<PostResponse>(`/api/posts/${id}`)
 }
 
-/** `POST /api/posts` (multipart: the JSON part and up to 3 images). Members only; 201 with the post. */
+/**
+ * `POST /api/posts`: multipart, a JSON part named `post` and up to 3 `images` (JPEG or PNG, 5 MB each). Members of
+ * the community only; 201 with the post. 403 `NOT_COMMUNITY_MEMBER`, 422 when the community is shut down or an image
+ * is refused, 413 when a file is too large for the server to read.
+ */
 export function createPost(request: CreatePostRequest, images: readonly File[] = []): Promise<PostResponse> {
-  return handle(() => {
-    const me = requireUser()
-    const title = notBlank('title', request.title, TITLE_MAX)
-    const content = notBlank('content', request.content, CONTENT_MAX)
-    if (images.length > IMAGES_MAX) throw invalid('images', `at most ${IMAGES_MAX} images`)
-    requireMember(me, request.communityId)
-    const at = now()
-    const row: PostRow = {
-      id: db.nextId.post++,
-      title,
-      content,
-      authorId: me.id,
-      authorUsername: me.username,
-      communityId: request.communityId,
-      score: 0,
-      commentCount: 0,
-      imageUrls: images.map(fileUrl),
-      createdAt: at,
-      updatedAt: at,
-      removedAt: null,
-      removedBy: null,
-    }
-    db.posts.push(row)
-    return toPost(row)
-  })
+  const form = new FormData()
+  // The JSON part needs its own content type, or post-service can't read it as the request object.
+  form.append('post', new Blob([JSON.stringify(request)], { type: 'application/json' }))
+  for (const image of images) form.append('images', image, image.name)
+  return http<PostResponse>('/api/posts', { method: 'POST', body: form })
 }
 
-/** `PATCH /api/posts/{id}`: title and content, the author only. 404 if removed. */
+/**
+ * `PATCH /api/posts/{id}`: a new title and content, the author only (an admin too is refused, 403). 404 if it
+ * was removed meanwhile.
+ */
 export function updatePost(id: number, request: UpdatePostRequest): Promise<PostResponse> {
-  return handle(() => {
-    const me = requireUser()
-    const post = livePost(id)
-    requireAuthor(me, post.authorId)
-    if (request.title === undefined && request.content === undefined) throw invalid('title', 'give a title or content')
-    if (request.title !== undefined) post.title = notBlank('title', request.title, TITLE_MAX)
-    if (request.content !== undefined) post.content = notBlank('content', request.content, CONTENT_MAX)
-    post.updatedAt = now()
-    return toPost(post)
-  })
+  return http<PostResponse>(`/api/posts/${id}`, { method: 'PATCH', body: request })
 }
 
-/** `DELETE /api/posts/{id}`: the author or an admin. Soft: the post disappears from every read. */
+/**
+ * `DELETE /api/posts/{id}`: the author or an admin; 204, also when it was already removed. Soft: the row stays,
+ * the post disappears from every read.
+ */
 export function removePost(id: number): Promise<void> {
-  return handle(() => {
-    const me = requireUser()
-    const post = livePost(id)
-    requireAuthorOrAdmin(me, post.authorId)
-    post.removedAt = now()
-    post.removedBy = me.id
-  })
+  return http<void>(`/api/posts/${id}`, { method: 'DELETE' })
 }
 
-/** `PUT /api/posts/{id}/vote`: cast or change your vote. Any logged-in user; 422 on your own post. */
-export function votePost(id: number, value: VoteValue): Promise<void> {
-  return handle(() => {
-    const me = requireUser()
-    checkVote(value)
-    const post = livePost(id)
-    if (post.authorId === me.id) throw new ApiError({ status: 422, title: 'Unprocessable Entity', detail: 'You cannot vote on your own post' })
-    castVote(db.postVotes, post, me.id, value)
-  })
+/**
+ * `PUT /api/posts/{id}/vote`: cast or change your vote; 422 on your own post. post-service has the vote
+ * tables but no endpoint yet, so this sends nothing and a vote lasts until the page reloads.
+ */
+export function votePost(_id: number, _value: VoteValue): Promise<void> {
+  return Promise.resolve()
 }
 
-/** `DELETE /api/posts/{id}/vote`: take your vote back. Harmless when there is none. */
-export function unvotePost(id: number): Promise<void> {
-  return handle(() => {
-    const me = requireUser()
-    castVote(db.postVotes, livePost(id), me.id, null)
-  })
+/** `DELETE /api/posts/{id}/vote`: take your vote back. No endpoint yet, see `votePost`. */
+export function unvotePost(_id: number): Promise<void> {
+  return Promise.resolve()
 }
 
 // ---------------------------------------------------------------- comments
 
 /** `GET /api/posts/{id}/comments?page=&size=`: newest first, flat. 404 if the post is gone. */
-export function listComments(postId: number, params: PageParams = {}): Promise<PageResponse<CommentResponse>> {
-  return handle(() => {
-    livePost(postId)
-    const rows = db.comments.filter(c => c.postId === postId && !c.removedAt).sort(newestFirst)
-    return page(rows.map(toComment), params)
-  })
+export function listComments(postId: number, { page, size }: PageParams = {}): Promise<PageResponse<CommentResponse>> {
+  return http<PageResponse<CommentResponse>>(`/api/posts/${postId}/comments`, { query: { page, size } })
 }
 
 /** `POST /api/posts/{id}/comments`: members of the post's community only; 201 with the comment. */

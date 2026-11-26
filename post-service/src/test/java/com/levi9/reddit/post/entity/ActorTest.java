@@ -9,7 +9,7 @@ class ActorTest {
 
     @Test
     void isAuthorOf_comparesIdWithPostAuthor() {
-        Post post = new Post("Title", 5L, "marko", 1L);
+        Post post = new Post("Title", 5L, "marko", 1L, "java");
 
         assertThat(new Actor(5, "marko", false).isAuthorOf(post)).isTrue();
         assertThat(new Actor(6, "ana", false).isAuthorOf(post)).isFalse();

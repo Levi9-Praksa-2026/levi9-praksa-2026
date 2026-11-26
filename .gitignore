@@ -44,6 +44,8 @@ npm-debug.log*
 *.tfvars
 !*.tfvars.example
 
+*.pem
+
 # IDE / OS
 .idea/
 *.iml

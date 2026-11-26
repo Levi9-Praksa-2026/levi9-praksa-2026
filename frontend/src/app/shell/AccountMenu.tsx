@@ -1,10 +1,12 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { Link } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, Loader2, LogOut } from 'lucide-react'
+import { ChevronDown, Loader2, LogOut, User } from 'lucide-react'
 import { logout } from '@/shared/api/auth'
 import type { MeResponse } from '@/shared/api/contracts/auth'
 import { isApiError } from '@/shared/api/errors'
 import { queryKeys } from '@/shared/api/queryKeys'
+import { routes } from '@/shared/config/routes'
 import { UserAvatar } from '@/features/users/UserAvatar'
 import { cn } from '@/shared/lib/cn'
 
@@ -80,6 +82,14 @@ export function AccountMenu({ user }: { user: MeResponse }) {
         )}
       >
         <p className="truncate px-4 pt-1 pb-2 text-label text-muted">Logged in as <span className="font-medium text-ink">{user.username}</span></p>
+        <Link
+          to={routes.profile}
+          onClick={() => setOpen(false)}
+          className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-small font-medium text-ink hover:bg-surface"
+        >
+          <User className="size-4 text-muted" aria-hidden="true" />
+          My profile
+        </Link>
         <button
           type="button"
           className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-small font-medium text-ink hover:bg-surface disabled:cursor-default disabled:opacity-60"

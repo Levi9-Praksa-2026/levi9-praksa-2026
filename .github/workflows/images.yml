@@ -1,0 +1,99 @@
+name: Service images
+
+# Builds the four backend images and pushes them to ECR as levddit/<service>:<commit SHA>.
+# Runs on main only. It never deploys: ECS picks an image tag separately.
+# All four are built on every run, so one SHA names a complete release of the backend.
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'auth-service/**'
+      - 'community-service/**'
+      - 'gateway/**'
+      - 'post-service/**'
+      - 'pom.xml'
+      - '.github/workflows/images.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false    # never stop a push half-way
+
+env:
+  AWS_REGION: eu-central-1
+
+jobs:
+  push:
+    # AWS refuses the push role on any other branch; this fails earlier with a clearer message.
+    if: github.ref == 'refs/heads/main'
+    name: ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      id-token: write    # lets the job ask GitHub for the OIDC token it trades for AWS credentials
+
+    strategy:
+      fail-fast: false   # one service failing doesn't cancel the other three
+      matrix:
+        service: [ gateway, auth-service, community-service, post-service ]
+
+    env:
+      REPOSITORY: levddit/${{ matrix.service }}
+
+    steps:
+      - name: Check the push role is configured
+        env:
+          ROLE_ARN: ${{ vars.AWS_ECR_PUSH_ROLE_ARN }}
+        run: |
+          if [ -z "$ROLE_ARN" ]; then
+            echo "::error::Repository variable AWS_ECR_PUSH_ROLE_ARN is not set. Use the Terraform output github_ecr_push_role_arn."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v5
+
+      - name: AWS credentials (ECR push role, main only)
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_ECR_PUSH_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Tags are immutable, so pushing the same SHA twice fails. A re-run skips images that already exist.
+      - name: Skip if this commit's image already exists
+        id: existing
+        run: |
+          if aws ecr describe-images --repository-name "$REPOSITORY" --image-ids imageTag="$GITHUB_SHA" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "$REPOSITORY:$GITHUB_SHA already exists, skipping." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        if: steps.existing.outputs.exists == 'false'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        if: steps.existing.outputs.exists == 'false'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          platforms: linux/amd64      # matches the ECS task definitions (X86_64)
+          push: true
+          tags: ${{ steps.ecr.outputs.registry }}/${{ env.REPOSITORY }}:${{ github.sha }}
+          # Without these, BuildKit pushes extra attestation manifests that count toward ECR's keep-10 limit.
+          provenance: false
+          sbom: false
+          # Layer cache in GitHub Actions, one per service: Maven dependencies aren't downloaded every run.
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+      - name: Summary
+        if: steps.existing.outputs.exists == 'false'
+        run: echo "Pushed \`$REPOSITORY:$GITHUB_SHA\`" >> "$GITHUB_STEP_SUMMARY"

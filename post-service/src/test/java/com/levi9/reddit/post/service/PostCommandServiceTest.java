@@ -65,7 +65,7 @@ class PostCommandServiceTest {
 
         @BeforeEach
         void memberOfActiveCommunity() {
-            when(communities.isActive(COMMUNITY)).thenReturn(true);
+            when(communities.findActiveName(COMMUNITY)).thenReturn(Optional.of("java"));
             when(communities.isMember(COMMUNITY, AUTHOR.id())).thenReturn(true);
             when(posts.save(any(Post.class))).thenAnswer(call -> call.getArgument(0));
         }
@@ -80,6 +80,7 @@ class PostCommandServiceTest {
             assertThat(post.getTitle()).isEqualTo("Hello");
             assertThat(post.getContent()).isEqualTo("Body");
             assertThat(post.getCommunityId()).isEqualTo(COMMUNITY);
+            assertThat(post.getCommunityName()).as("copied from community-service").isEqualTo("java");
             assertThat(post.getAuthorId()).isEqualTo(AUTHOR.id());
             assertThat(post.getAuthorUsername()).isEqualTo("marko");
             assertThat(post.getUpdatedAt()).as("a new post is not edited").isNull();
@@ -87,6 +88,7 @@ class PostCommandServiceTest {
 
             assertThat(response.title()).isEqualTo("Hello");
             assertThat(response.authorUsername()).isEqualTo("marko");
+            assertThat(response.communityName()).isEqualTo("java");
             assertThat(response.score()).isZero();
             assertThat(response.commentCount()).isZero();
         }
@@ -100,7 +102,7 @@ class PostCommandServiceTest {
 
         @Test
         void inactiveCommunity_isUnprocessableAndSavesNothing() {
-            when(communities.isActive(COMMUNITY)).thenReturn(false);
+            when(communities.findActiveName(COMMUNITY)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.create(request, List.of(), AUTHOR))
                     .isInstanceOf(CommunityUnavailableException.class);
@@ -125,7 +127,7 @@ class PostCommandServiceTest {
 
         @BeforeEach
         void memberOfActiveCommunityInsideATransaction() {
-            when(communities.isActive(COMMUNITY)).thenReturn(true);
+            when(communities.findActiveName(COMMUNITY)).thenReturn(Optional.of("java"));
             when(communities.isMember(COMMUNITY, AUTHOR.id())).thenReturn(true);
             when(posts.save(any(Post.class))).thenAnswer(call -> call.getArgument(0));
             // What @Transactional provides at runtime: a place to register the rollback clean-up.
@@ -223,7 +225,7 @@ class PostCommandServiceTest {
 
         @Test
         void unavailableCommunity_uploadsNothing() {
-            when(communities.isActive(COMMUNITY)).thenReturn(false);
+            when(communities.findActiveName(COMMUNITY)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.create(request, List.of(PNG), AUTHOR))
                     .isInstanceOf(CommunityUnavailableException.class);
@@ -234,7 +236,7 @@ class PostCommandServiceTest {
         /** Fail closed: when community-service can't answer, the post is refused, not accepted unchecked. */
         @Test
         void communityServiceDown_uploadsAndSavesNothing() {
-            when(communities.isActive(COMMUNITY))
+            when(communities.findActiveName(COMMUNITY))
                     .thenThrow(new CommunityServiceUnavailableException(new ConnectException("refused")));
 
             assertThatThrownBy(() -> service.create(request, List.of(PNG), AUTHOR))
@@ -252,7 +254,7 @@ class PostCommandServiceTest {
     @Nested
     class Edit {
         private final EditPostDTO request = new EditPostDTO("New title", "New body");
-        private final Post post = new Post("Old title", "Old body", AUTHOR.id(), AUTHOR.username(), COMMUNITY);
+        private final Post post = new Post("Old title", "Old body", AUTHOR.id(), AUTHOR.username(), COMMUNITY, "java");
 
         @BeforeEach
         void postExists() {
@@ -300,7 +302,7 @@ class PostCommandServiceTest {
 
     @Nested
     class Delete {
-        private final Post post = new Post("Title", "Body", AUTHOR.id(), AUTHOR.username(), COMMUNITY);
+        private final Post post = new Post("Title", "Body", AUTHOR.id(), AUTHOR.username(), COMMUNITY, "java");
 
         @BeforeEach
         void postExists() {

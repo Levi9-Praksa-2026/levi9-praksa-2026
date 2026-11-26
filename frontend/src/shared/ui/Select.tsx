@@ -15,6 +15,8 @@ export interface SelectProps<T extends string> {
   id?: string
   className?: string
   disabled?: boolean
+  /** `text`: a quiet trigger showing only the current value; the label stays for screen readers. */
+  variant?: 'field' | 'text'
 }
 
 /**
@@ -22,7 +24,7 @@ export interface SelectProps<T extends string> {
  * keeps focus semantics, arrow keys move through the options, Enter/Space picks one, Escape closes
  * it, and a click or focus outside closes it too.
  */
-export function Select<T extends string>({ label, value, options, onChange, id, className, disabled }: SelectProps<T>) {
+export function Select<T extends string>({ label, value, options, onChange, id, className, disabled, variant = 'field' }: SelectProps<T>) {
   const fallbackId = useId()
   const selectId = id ?? fallbackId
   const listId = `${selectId}-options`
@@ -99,27 +101,31 @@ export function Select<T extends string>({ label, value, options, onChange, id, 
   }
 
   const current = options.find(option => option.value === value)
+  const triggerClass = variant === 'text'
+    ? 'flex cursor-pointer items-center gap-1 rounded-sm py-1 text-small text-muted outline-none hover:text-ink focus-visible:text-ink'
+    : 'flex h-12 w-full cursor-pointer items-center justify-between gap-4 rounded-md border border-line-strong bg-bg px-3 text-left text-small text-ink outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50'
 
   return (
     <div
       ref={rootRef}
-      className={cn('relative flex flex-col gap-1.5', className)}
+      className={cn('relative flex flex-col gap-1.5', variant === 'text' && 'w-fit', className)}
       onBlur={event => {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
       }}
     >
-      <span id={`${selectId}-label`} className="text-small font-medium text-ink">{label}</span>
+      <span id={`${selectId}-label`} className={cn('text-small font-medium text-ink', variant === 'text' && 'sr-only')}>{label}</span>
       <button
         ref={triggerRef}
         type="button"
         disabled={disabled}
-        aria-labelledby={`${selectId}-label`}
+        aria-labelledby={variant === 'text' ? undefined : `${selectId}-label`}
+        aria-label={variant === 'text' ? `${label}: ${current?.label ?? ''}` : undefined}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => { if (open) setOpen(false); else openList() }}
         onKeyDown={onTriggerKeyDown}
-        className="flex h-12 w-full cursor-pointer items-center justify-between gap-4 rounded-md border border-line-strong bg-bg px-3 text-left text-small text-ink outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+        className={triggerClass}
       >
         <span className="truncate">{current?.label ?? ''}</span>
         <ChevronDown className={cn('ml-2 size-4 flex-none text-muted transition-transform', open && 'rotate-180')} aria-hidden="true" />
