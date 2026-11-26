@@ -48,13 +48,12 @@ public class PostCommandService {
     public PostDTO create(CreatePostDTO request, List<byte[]> images, Actor actor) {
         List<ImageUpload> uploads = ImageUpload.validate(images);
         long communityId = request.communityId();
-        if (!communities.isActive(communityId)) {
-            throw new CommunityUnavailableException(communityId);
-        }
+        String communityName = communities.findActiveName(communityId)
+                .orElseThrow(() -> new CommunityUnavailableException(communityId));
         if (!communities.isMember(communityId, actor.id())) {
             throw new NotCommunityMemberException(communityId);
         }
-        return newPosts.write(request, uploads, actor);
+        return newPosts.write(request, communityName, uploads, actor);
     }
 
     /**

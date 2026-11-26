@@ -13,15 +13,11 @@ export function useMyCommunities(userId: number | null) {
   })
 }
 
-/**
- * The search page's results, including the page metadata. `enabled` lets the page wait for `/api/me`
- * before asking for the admin-only inactive list.
- */
-export function useCommunityDirectory(filters: CommunityListParams, enabled = true) {
+/** The directory's results, including the page metadata. */
+export function useCommunityDirectory(filters: CommunityListParams) {
   return useQuery({
     queryKey: queryKeys.communities.list(filters),
     queryFn: () => listCommunities(filters),
-    enabled,
   })
 }
 

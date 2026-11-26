@@ -21,6 +21,7 @@ import java.net.ConnectException;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +66,7 @@ class PostCreateTransactionTest {
         reset(communities, posts);
         transactions.begun = 0;
         transactionDuringCheck.clear();
-        when(communities.isActive(anyLong())).thenAnswer(call -> recordCheck(true));
+        when(communities.findActiveName(anyLong())).thenAnswer(call -> recordCheck(Optional.of("java")));
         when(communities.isMember(anyLong(), anyLong())).thenAnswer(call -> recordCheck(true));
         when(posts.save(any(Post.class))).thenAnswer(call -> {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive())
@@ -85,7 +86,7 @@ class PostCreateTransactionTest {
 
     @Test
     void communityServiceDown_neverOpensATransaction() {
-        when(communities.isActive(anyLong()))
+        when(communities.findActiveName(anyLong()))
                 .thenThrow(new CommunityServiceUnavailableException(new ConnectException("refused")));
 
         assertThatThrownBy(() -> service.create(REQUEST, List.of(), AUTHOR))
@@ -95,7 +96,7 @@ class PostCreateTransactionTest {
         verify(posts, never()).save(any());
     }
 
-    private boolean recordCheck(boolean answer) {
+    private <T> T recordCheck(T answer) {
         transactionDuringCheck.add(TransactionSynchronizationManager.isActualTransactionActive());
         return answer;
     }

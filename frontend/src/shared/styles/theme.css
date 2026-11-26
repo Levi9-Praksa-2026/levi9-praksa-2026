@@ -208,7 +208,7 @@
   --app-bar: 56px;
   --sidebar: 272px;
   --rail: 64px;
-  --feed: 720px;
+  --feed: 768px;          /* the forum's center column: feed cards, community pages */
   --form: 400px;          /* the sign-in and sign-up column */
 
   --icon: 16px;         /* small icons: socials, menu chevrons, mono brand marks */

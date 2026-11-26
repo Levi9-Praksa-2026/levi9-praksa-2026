@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from './errors'
-import { mockSignInAs, resetMockDb } from './mock/db'
+import { db, mockSignInAs, resetMockDb } from './mock/db'
 import { setMockLatency } from './mock/server'
 import {
   createCommunity,
@@ -79,31 +79,51 @@ describe('community list (real API)', () => {
   })
 })
 
-describe('reading communities', () => {
-  it('finds a community in any case, and 404s a shut-down one', async () => {
-    expect((await getCommunity('FrontEnd')).name).toBe('frontend')
+describe('one community and joining (real API)', () => {
+  const detail = { id: 3, name: 'backend', description: null, memberCount: 7, createdAt: '2026-11-20T10:00:00Z' }
+
+  beforeEach(() => {
+    vi.stubGlobal('fetch', fetchMock)
+    vi.stubGlobal('document', { cookie: 'XSRF-TOKEN=gateway-token' })
+    fetchMock.mockImplementation(async () => json(200, detail))
+  })
+
+  afterEach(() => {
+    fetchMock.mockReset()
+    vi.unstubAllGlobals()
+  })
+
+  it('asks for one community by name and returns it as the backend gives it', async () => {
+    expect(await getCommunity('backend')).toEqual(detail)
+    expect(lastUrl()).toBe('/api/communities/backend')
+  })
+
+  it('turns a 404 for a missing or shut-down community into an ApiError', async () => {
+    fetchMock.mockImplementation(async () => json(404, { status: 404, errorType: 'COMMUNITY_NOT_FOUND' }))
     const error = await errorOf(getCommunity('retro'))
-    expect(error.status).toBe(404)
-    expect(error.errorType).toBe('COMMUNITY_NOT_FOUND')
+    expect([error.status, error.errorType]).toEqual([404, 'COMMUNITY_NOT_FOUND'])
+  })
+
+  it('joins with a PUT carrying the CSRF header', async () => {
+    fetchMock.mockImplementation(async () => new Response(null, { status: 204 }))
+    await joinCommunity('devops')
+    const [url, init] = fetchMock.mock.calls[0]!
+    expect([url, init?.method]).toEqual(['/api/communities/devops/members/me', 'PUT'])
+    expect(new Headers(init?.headers).get('X-XSRF-TOKEN')).toBe('gateway-token')
   })
 })
 
-describe('membership', () => {
-  it('joins and leaves, both harmless when repeated', async () => {
-    const before = await getCommunity('devops')
-    expect(before.joined).toBe(false)
-    await joinCommunity('devops')
-    await joinCommunity('devops')
-    const joined = await getCommunity('devops')
-    expect(joined).toMatchObject({ joined: true, memberCount: before.memberCount + 1 })
-    await leaveCommunity('devops')
-    await leaveCommunity('devops')
-    expect(await getCommunity('devops')).toMatchObject({ joined: false, memberCount: before.memberCount })
-  })
+/** A community as the mock holds it, for the mocked operations below (reads are real requests now). */
+const stored = (name: string) => db.communities.find(c => c.name === name)!
+const isMember = (name: string, userId: number) => db.members.some(m => m.communityId === stored(name).id && m.userId === userId)
 
-  it('shows joined as false when logged out', async () => {
-    mockSignInAs(null)
-    expect((await getCommunity('frontend')).joined).toBe(false)
+describe('leaving (mocked)', () => {
+  it('leaves, and leaving again is harmless', async () => {
+    const demo = db.users.find(u => u.username === 'demo_user')!
+    db.members.push({ communityId: stored('devops').id, userId: demo.id, joinedAt: new Date().toISOString() })
+    await leaveCommunity('devops')
+    await leaveCommunity('devops')
+    expect(isMember('devops', demo.id)).toBe(false)
   })
 })
 
@@ -124,9 +144,9 @@ describe('admin', () => {
   it('shuts down, reactivates and edits the description', async () => {
     mockSignInAs('admin')
     await deactivateCommunity('food')
-    expect((await errorOf(getCommunity('food'))).status).toBe(404)
+    expect(stored('food').isActive).toBe(false)
     await reactivateCommunity('retro')
     await updateCommunityDescription('retro', { description: 'Back again.' })
-    expect((await getCommunity('retro')).description).toBe('Back again.')
+    expect(stored('retro')).toMatchObject({ isActive: true, description: 'Back again.' })
   })
 })

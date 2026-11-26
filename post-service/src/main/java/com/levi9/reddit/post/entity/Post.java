@@ -47,6 +47,10 @@ public class Post {
     @Column(name = "community_id", nullable = false, updatable = false)
     private Long communityId;
 
+    /** Copied from community-service when the post is created; names never change. Null on older posts. */
+    @Column(name = "community_name", length = 50, updatable = false)
+    private String communityName;
+
     @Column(nullable = false)
     private int score;
 
@@ -69,17 +73,19 @@ public class Post {
     @OrderBy("id ASC")
     private List<PostImage> images = new ArrayList<>();
 
-    public Post(String title, Long authorId, String authorUsername, Long communityId) {
-        this(title, null, authorId, authorUsername, communityId);
+    public Post(String title, Long authorId, String authorUsername, Long communityId, String communityName) {
+        this(title, null, authorId, authorUsername, communityId, communityName);
     }
 
     /** A new post; {@code updatedAt} stays null until the author edits it. */
-    public Post(String title, String content, Long authorId, String authorUsername, Long communityId) {
+    public Post(String title, String content, Long authorId, String authorUsername, Long communityId,
+                String communityName) {
         this.content = content;
         this.title = Objects.requireNonNull(title, "title");
         this.authorId = Objects.requireNonNull(authorId, "authorId");
         this.authorUsername = Objects.requireNonNull(authorUsername, "authorUsername");
         this.communityId = Objects.requireNonNull(communityId, "communityId");
+        this.communityName = Objects.requireNonNull(communityName, "communityName");
     }
 
     public List<PostImage> getImages() {
