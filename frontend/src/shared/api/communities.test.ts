@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from './errors'
-import { db, mockSignInAs, resetMockDb } from './mock/db'
+import { mockSignInAs, resetMockDb } from './mock/db'
 import { setMockLatency } from './mock/server'
 import {
   createCommunity,
   deactivateCommunity,
   getCommunity,
+  getCommunityMembership,
   joinCommunity,
   leaveCommunity,
   listCommunities,
@@ -113,17 +114,29 @@ describe('one community and joining (real API)', () => {
   })
 })
 
-/** A community as the mock holds it, for the mocked operations below (reads are real requests now). */
-const stored = (name: string) => db.communities.find(c => c.name === name)!
-const isMember = (name: string, userId: number) => db.members.some(m => m.communityId === stored(name).id && m.userId === userId)
+describe('membership and leaving (real API)', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', fetchMock)
+    vi.stubGlobal('document', { cookie: 'XSRF-TOKEN=gateway-token' })
+    fetchMock.mockImplementation(async () => new Response(null, { status: 204 }))
+  })
 
-describe('leaving (mocked)', () => {
-  it('leaves, and leaving again is harmless', async () => {
-    const demo = db.users.find(u => u.username === 'demo_user')!
-    db.members.push({ communityId: stored('devops').id, userId: demo.id, joinedAt: new Date().toISOString() })
+  afterEach(() => {
+    fetchMock.mockReset()
+    vi.unstubAllGlobals()
+  })
+
+  it('asks for the caller\'s membership', async () => {
+    fetchMock.mockImplementation(async () => json(200, { joined: true }))
+    expect(await getCommunityMembership('backend')).toEqual({ joined: true })
+    expect(lastUrl()).toBe('/api/communities/backend/members/me')
+  })
+
+  it('leaves with DELETE carrying the CSRF header', async () => {
     await leaveCommunity('devops')
-    await leaveCommunity('devops')
-    expect(isMember('devops', demo.id)).toBe(false)
+    const [url, init] = fetchMock.mock.calls[0]!
+    expect([url, init?.method]).toEqual(['/api/communities/devops/members/me', 'DELETE'])
+    expect(new Headers(init?.headers).get('X-XSRF-TOKEN')).toBe('gateway-token')
   })
 })
 

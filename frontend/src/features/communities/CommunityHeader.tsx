@@ -11,6 +11,7 @@ import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/ui/Button'
 import { TextArea } from '@/shared/ui/TextArea'
 import { CommunityAvatar } from './CommunityAvatar'
+import { CommunityMembershipButton } from './JoinCommunityButton'
 
 const DESCRIPTION_MAX = 2000
 const iconAction = 'grid size-8 flex-none cursor-pointer place-items-center rounded-btn text-muted hover:bg-surface hover:text-ink'
@@ -146,6 +147,7 @@ export function CommunityHeader({ community, shutDown = false, onDeactivated }: 
                 </button>
               </>
             )}
+            <CommunityMembershipButton name={community.name} />
             <Link
               to={routes.submit(community.name)}
               className="flex flex-none items-center gap-1.5 self-start rounded-btn bg-action px-3 py-2 text-small font-medium text-action-ink hover:opacity-90"

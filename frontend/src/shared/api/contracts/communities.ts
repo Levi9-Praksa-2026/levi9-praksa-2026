@@ -19,10 +19,15 @@ export interface CommunityDetailResponse {
   memberCount: number
   createdAt: Instant
   /**
-   * Contract gap: whether the caller is a member (Join or Leave, and whether they may post).
-   * Proposed: present when logged in, false when logged out. Not sent yet, so absent.
+   * Mock only: the backend does not send a membership flag on the detail. The browser asks
+   * `GET /api/communities/{name}/members/me` instead, so this field is never used by the UI.
    */
   joined?: boolean
+}
+
+/** `GET /api/communities/{name}/members/me`: whether the caller has joined. Requires a session. */
+export interface CommunityMembershipResponse {
+  joined: boolean
 }
 
 /** `new`: newest first. `top`: most members. `hot` is not supported by the backend. */

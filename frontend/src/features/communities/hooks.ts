@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getCommunity, listCommunities } from '@/shared/api/communities'
+import { getCommunity, getCommunityMembership, listCommunities } from '@/shared/api/communities'
 import type { CommunityListParams } from '@/shared/api/contracts/communities'
 import { queryKeys } from '@/shared/api/queryKeys'
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
@@ -38,6 +38,15 @@ export function useCommunitySearch(query: string, limit = 8) {
     isLoading: query.trim() !== '' && (typing || result.isLoading),
     query: settled,
   }
+}
+
+/** Whether the signed-in user has joined this community. Nothing is asked while logged out. */
+export function useCommunityMembership(name: string, userId: number | undefined) {
+  return useQuery({
+    queryKey: queryKeys.communities.membership(name, userId ?? 0),
+    queryFn: () => getCommunityMembership(name),
+    enabled: userId !== undefined,
+  })
 }
 
 /** One community by name, for its page. */

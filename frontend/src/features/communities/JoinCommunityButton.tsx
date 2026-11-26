@@ -1,7 +1,14 @@
 import { useState } from 'react'
-import { Loader2, Plus } from 'lucide-react'
-import { joinCommunity } from '@/shared/api/communities'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Loader2, Plus, UserMinus, UserPlus } from 'lucide-react'
+import { useCurrentUser } from '@/features/users/useCurrentUser'
+import { joinCommunity, leaveCommunity } from '@/shared/api/communities'
+import { queryKeys } from '@/shared/api/queryKeys'
+import { routes } from '@/shared/config/routes'
 import { cn } from '@/shared/lib/cn'
+import { useCommunityMembership } from './hooks'
+
+const actionButton = 'flex flex-none cursor-pointer items-center gap-1.5 rounded-btn border border-line px-3 py-2 text-small font-medium text-ink hover:bg-surface disabled:cursor-wait disabled:opacity-60'
 
 export interface JoinCommunityButtonProps {
   name: string
@@ -9,9 +16,8 @@ export interface JoinCommunityButtonProps {
 }
 
 /**
- * TODO(community-search): `joinCommunity` is still an in-memory mock. Swap it for the real
- * `PUT /api/communities/{name}/members/me` when the browser session reaches the gateway; the props
- * and the idle/pending/joined/failed states stay the same.
+ * The directory row's Join: the endpoint is idempotent, so no per-row membership lookup is needed.
+ * The community page uses `CommunityMembershipButton` below, which knows the caller's real state.
  */
 export function JoinCommunityButton({ name, className }: JoinCommunityButtonProps) {
   const [state, setState] = useState<'idle' | 'pending' | 'joined' | 'failed'>('idle')
@@ -35,16 +41,69 @@ export function JoinCommunityButton({ name, className }: JoinCommunityButtonProp
       type="button"
       disabled={state === 'pending'}
       onClick={() => void join()}
-      className={cn(
-        'flex flex-none cursor-pointer items-center gap-1.5 rounded-btn border border-line px-3 py-2 text-small font-medium text-ink hover:bg-surface disabled:cursor-wait disabled:opacity-60',
-        state === 'failed' && 'border-accent text-accent',
-        className,
-      )}
+      className={cn(actionButton, state === 'failed' && 'border-accent text-accent', className)}
     >
-      {state === 'pending'
-        ? <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        : <Plus className="size-4" aria-hidden="true" />}
+      {state === 'pending' ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Plus className="size-4" aria-hidden="true" />}
       {state === 'failed' ? 'Retry join' : state === 'pending' ? 'Joining…' : 'Join'}
     </button>
+  )
+}
+
+/** The community page's Join/Leave, driven by the backend's /members/me endpoint. */
+export function CommunityMembershipButton({ name, className }: JoinCommunityButtonProps) {
+  const { user } = useCurrentUser()
+  const client = useQueryClient()
+  const membership = useCommunityMembership(name, user?.id)
+
+  function invalidate() {
+    void client.invalidateQueries({ queryKey: queryKeys.communities.membership(name, user?.id ?? 0) })
+    void client.invalidateQueries({ queryKey: queryKeys.communities.detail(name) })
+    void client.invalidateQueries({ queryKey: queryKeys.communities.list({}) })
+  }
+
+  const join = useMutation({ mutationFn: () => joinCommunity(name), onSuccess: invalidate })
+  const leave = useMutation({ mutationFn: () => leaveCommunity(name), onSuccess: invalidate })
+
+  if (user === null) {
+    return (
+      <a
+        href={routes.login}
+        aria-label="Log in to join"
+        className={cn(actionButton, 'items-center', className)}
+      >
+        <UserPlus className="size-4" aria-hidden="true" /> Join
+      </a>
+    )
+  }
+
+  const joined = membership.data?.joined ?? false
+  const pending = (user !== undefined && membership.isPending) || join.isPending || leave.isPending
+  const error = membership.isError
+    ? `Couldn't check your membership in l/${name}.`
+    : join.isError
+      ? `Couldn't join l/${name}. Try again.`
+      : leave.isError
+        ? `Couldn't leave l/${name}. Try again.`
+        : null
+
+  return (
+    <div className={cn('flex flex-col items-end gap-1', className)}>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => (joined ? leave.mutate() : join.mutate())}
+        className={actionButton}
+      >
+        {pending ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        ) : joined ? (
+          <UserMinus className="size-4" aria-hidden="true" />
+        ) : (
+          <UserPlus className="size-4" aria-hidden="true" />
+        )}
+        {pending ? (joined ? 'Leaving…' : 'Joining…') : joined ? 'Leave' : 'Join'}
+      </button>
+      {error && <p role="alert" className="text-label text-accent">{error}</p>}
+    </div>
   )
 }
