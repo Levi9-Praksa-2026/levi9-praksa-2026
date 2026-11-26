@@ -13,6 +13,14 @@ function request() {
 }
 
 describe('admin gateway contracts', () => {
+  it('creates users through the admin endpoint without invoking public registration or login', async () => {
+    const body = { username: 'new_user', email: 'new@example.test', firstName: 'New', lastName: 'User', password: 'long-demo-password' };
+    fetchMock.mockResolvedValueOnce(Response.json({ id: 10, username: 'new_user' }, { status: 201 }));
+    expect(await adminApi.createUser(body)).toMatchObject({ id: 10, username: 'new_user' });
+    expect(request()).toMatchObject({ path: '/api/admin/users', method: 'POST', credentials: 'same-origin', body });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  })
+
   it('requests the paginated user directory with search and status filters', async () => {
     const result = { content: [{ id: 7, username: 'reader', banned: true }], page: 1, size: 5, totalPages: 2, totalElements: 6 };
     fetchMock.mockResolvedValueOnce(Response.json(result));
