@@ -11,7 +11,7 @@ All admin reads and writes use the gateway session and the shared HTTP/CSRF wrap
 |---|---|---|
 | `/admin` | Active/inactive community totals, top five communities, navigation | `GET /api/communities` with `sort=top`; `inactive=true` selects inactive communities |
 | `/admin/communities` | Search, sort, paginate; create; edit description; confirm shutdown/reactivation | `GET /api/communities?inactive=true|false|all`, `POST /api/communities`, `GET/PATCH/DELETE /api/communities/{name}`, `POST /api/communities/{name}/reactivate` |
-| `/admin/users` | Ban with a required reason; unban; confirmation and backend errors | `POST/DELETE /api/admin/users/{username}/ban` |
+| `/admin/users` | Search and paginate all accounts; filter Active/Banned/Deleted; review details; ban with preset or custom reason; unban | `GET /api/admin/users?q=&status=&page=&size=`, `POST/DELETE /api/admin/users/{username}/ban` |
 | `/admin/posts` | Search/paginate posts, read full content and images, review paginated comments, confirm post removal, navigate to author moderation | `GET /api/posts`, `GET /api/posts/{id}/comments`, `DELETE /api/posts/{id}` |
 
 Names cannot be changed. Shutdown and post removal are soft operations. Communities can be reactivated;
@@ -31,9 +31,7 @@ The requirements assign admins removal of any post or comment. Post removal exis
 exist, but there is no comment-removal controller on develop. Comment review therefore explains that
 removal is unavailable and offers author moderation; it does not simulate successful removal.
 
-There is no user-directory, ban-status, ban-list, report queue, audit-log, or platform-statistics endpoint.
-User moderation accepts an exact username and relies on the ban/unban endpoint's response. No invented
-user counts, ban status, reports, or audit history are displayed. The normal public community page and
+The admin user directory returns names, email, role, account status, joined date, and ban details. It includes deleted accounts, but only live non-admin accounts expose moderation actions. Search matches username, email, first name or last name, ignoring case; wildcard characters are literal. Results are ordered newest first with ID as a stable tie-breaker. The UI shows five accounts per page and keeps search, status and page in the URL; author links using `?username=` still work. Password hashes and authorization records are never returned. There is no report queue, audit-log, or platform-statistics endpoint. The normal public community page and
 other pre-existing frontend operations still have mock helpers; this change does not migrate those.
 
 ## Design and validation
