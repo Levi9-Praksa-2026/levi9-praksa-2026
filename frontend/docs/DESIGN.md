@@ -47,3 +47,10 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 | Account | the user's initials on the `surface` tint plus the username (initials only on phones) | Tinted, so a person never looks like a community |
 | Icons | `lucide-react`, 16 to 20px, inheriting the text colour | One consistent icon set |
 | Active link | `aria-current="page"` gets the `surface` tint and `ink` text | The state is in the markup, so it is announced as well as seen |
+
+## Admin community filters (2026-11-26)
+
+- Use visible, labelled radio segments for All / Active / Inactive and Newest / Most members, with Lucide icons alongside text. Native radio groups support arrow keys and a single tab stop per group.
+- All is the default unfiltered status; Reset view clears search, status, sort and paging. Show the result count and selected status below the toolbar, and the actual status on every row.
+- Groups sit side by side when space allows and stack on phones. Reuse the theme's surface, accent, border and pill tokens.
+- Research: [eBay filtering](https://playbook.ebay.com/design-system/patterns/filtering-patterns) recommends visible quick filters and an Any/clear default for single-select status; [Visa filters](https://design.visa.com/patterns/filters/) distinguishes sorting from filtering and recommends visible selections and a clear reset.
