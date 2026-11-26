@@ -1,3 +1,4 @@
+import type { AdminCommunityFilters, AdminUserFilters } from './admin'
 import type { CommunityListParams } from './contracts/communities'
 import type { PostListParams } from './contracts/posts'
 
@@ -9,12 +10,21 @@ import type { PostListParams } from './contracts/posts'
 export const queryKeys = {
   /** Who is logged in. */
   me: ['me'] as const,
+  admin: {
+    users: ['admin', 'users'] as const,
+    userList: (filters: AdminUserFilters) => ['admin', 'users', filters] as const,
+    posts: ['admin', 'posts'] as const,
+    postList: (q: string, page: number) => ['admin', 'posts', { q, page }] as const,
+    comments: (postId: number, page: number) => ['admin', 'comments', postId, page] as const,
+    community: (name: string | undefined) => ['admin', 'community', name?.toLowerCase()] as const,
+  },
   /** The logged-in user's profile Overview (communities and recent posts). */
   profile: {
     overview: ['profile', 'overview'] as const,
   },
   communities: {
     all: ['communities'] as const,
+    adminList: (filters: AdminCommunityFilters) => ['communities', 'admin', filters] as const,
     /** The sidebar's list: one per user, so switching accounts never shows the last one's. */
     mine: (userId: number) => ['communities', 'mine', userId] as const,
     search: (name: string, limit: number) => ['communities', 'search', name, limit] as const,

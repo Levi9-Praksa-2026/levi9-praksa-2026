@@ -29,7 +29,7 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 | Illustrations | the two team scenes fixed to the window's bottom corners (`public/auth/`, background cut out), 220 to 460px and 220 to 450px wide with the window; the column is white and sits above them; left out under 768px wide or 600px tall | Brand warmth that stays put however long the form is; where they meet, the form stays readable; on a small screen the form needs all the room |
 | Sign-in form | email and password together on one screen | Short and familiar; the backend never says whether an email has an account (it would let anyone list who is registered), so there is nothing to ask about the email on its own |
 | Wrong password | "Invalid email or password" with "New here? Create an account", the email carried over | The same answer for an unknown email, with a way forward for someone new |
-| Errors | the accent blue, with an icon, right under their field (or in a notice above the form), and the field marked invalid | The palette has no red; the icon and the placement carry the meaning, not the colour alone |
+| Errors | the accent blue, with an icon, right under their field (or in a notice above the form), and the field marked invalid | Validation errors use brand blue; the icon and placement carry their meaning. Destructive actions use dedicated danger tokens |
 | Password | a show/hide eye; on sign-up the 12-character rule ticks off as it is met, and a four-step blue bar fills with the strength (length counts most) | The backend's only rule is the length (no composition rules, OWASP); the bar is advice |
 | Headings | `text-h3` | A 400px column: `text-h2` is too big for it |
 
@@ -48,3 +48,23 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 | Account | the user's initials on the `surface` tint plus the username (initials only on phones) | Tinted, so a person never looks like a community |
 | Icons | `lucide-react`, 16 to 20px, inheriting the text colour | One consistent icon set |
 | Active link | `aria-current="page"` gets the `surface` tint and `ink` text | The state is in the markup, so it is announced as well as seen |
+
+## Admin community filters (2026-11-26)
+
+- Use visible, labelled radio segments for All / Active / Inactive and Newest / Most members, with Lucide icons alongside text. Native radio groups support arrow keys and a single tab stop per group.
+- All is the default unfiltered status; Reset view clears search, status, sort and paging. Show the result count and selected status below the toolbar, and the actual status on every row.
+- Groups sit side by side when space allows and stack on phones. Reuse the theme's surface, accent, border and pill tokens.
+- Research: [eBay filtering](https://playbook.ebay.com/design-system/patterns/filtering-patterns) recommends visible quick filters and an Any/clear default for single-select status; [Visa filters](https://design.visa.com/patterns/filters/) distinguishes sorting from filtering and recommends visible selections and a clear reset.
+
+## Admin editor and ban dialogs (2026-11-26)
+
+- Community editing and user banning use the shared large modal (720px maximum), with an identity panel, clear field groups and a separated action footer.
+- Ban presets and the editable reason sit side by side on desktop. On phones they stack; presets use a compact two-column grid and the reason field is shorter.
+- Footer buttons stack at full width below 640px. Dialog content scrolls within the viewport on short screens.
+- Community identifiers wrap inside their panel, and textarea/grid minimum widths allow shrinking without horizontal overflow.
+
+## Destructive actions (2026-11-26)
+
+- Use `danger-outline` for entry points to ban, shut down a community, or remove a post. Confirming the action uses solid `danger`.
+- The semantic danger palette is red (#b42318), white text for filled controls, and a light red hover surface. Restore/reactivate/unban actions keep the regular button styling.
+- Post-card actions place Moderate author on the left and Remove post on the right. Labels remain visible on phones with compact horizontal padding. The Review post control is removed; card navigation is deferred to a future change.

@@ -1,6 +1,7 @@
 package com.levi9.reddit.community.controller;
 
 import com.levi9.reddit.community.dto.CommunityDTO;
+import com.levi9.reddit.community.dto.AdminCommunityDTO;
 import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
 import com.levi9.reddit.community.dto.CreateCommunityDTO;
@@ -55,21 +56,20 @@ public class CommunityController {
                 CommunitySort.valueOf(sort.toUpperCase(Locale.ROOT)), name, page, size);
     }
 
-    /** The presence of {@code inactive} selects this ADMIN handler; the boolean chooses which set to list. */
+    /** The presence of {@code inactive} selects this ADMIN handler: true, false, or all. */
     @GetMapping(params = "inactive")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "ADMIN: list communities by active/inactive state; sort=new|top")
-    public PageDTO<CommunityDTO> findCommunitiesForAdmin(
-            @RequestParam(defaultValue = "false") boolean inactive,
+    @Operation(summary = "ADMIN: inactive=true for inactive, false for active, all for both; sort=new|top")
+    public PageDTO<AdminCommunityDTO> findCommunitiesForAdmin(
+            @RequestParam @Pattern(regexp = "true|false|all", message = "inactive must be true, false or all") String inactive,
             @RequestParam(defaultValue = "new")
             @Pattern(regexp = "(?i)new|top", message = "sort must be new or top") String sort,
             @RequestParam(required = false) @Size(max = 50) String name,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         CommunitySort ordering = CommunitySort.valueOf(sort.toUpperCase(Locale.ROOT));
-        return inactive
-                ? communityService.findInactiveCommunities(ordering, name, page, size)
-                : communityService.findCommunities(ordering, name, page, size);
+        Boolean active = inactive.equals("all") ? null : inactive.equals("false");
+        return communityService.findAdminCommunities(active, ordering, name, page, size);
     }
 
     private static long userId(Jwt jwt) {

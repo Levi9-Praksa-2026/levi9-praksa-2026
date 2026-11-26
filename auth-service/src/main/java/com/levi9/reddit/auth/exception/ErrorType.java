@@ -7,7 +7,7 @@ package com.levi9.reddit.auth.exception;
 public enum ErrorType {
     INVALID_CREDENTIALS,
     USERNAME_TAKEN,
-    /** Only for changing the email on an authenticated profile, after the current password is checked. Register never sends it. */
+    /** Email conflict during self-service or admin profile editing. Public registration never sends it. */
     EMAIL_TAKEN,
     /** Register failed for a reason that must not be named, e.g. a taken email. Never "email taken". */
     REGISTRATION_FAILED,

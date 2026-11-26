@@ -1,6 +1,7 @@
 package com.levi9.reddit.community.service;
 
 import com.levi9.reddit.community.dto.CommunityDTO;
+import com.levi9.reddit.community.dto.AdminCommunityDTO;
 import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
 import com.levi9.reddit.community.dto.InternalCommunityDTO;
@@ -58,6 +59,25 @@ public class CommunityService {
                 : communities.findByActiveFalseAndNameContainingIgnoreCase(filter, pageable);
 
         return toPage(result, community -> new CommunityDTO(community.getName(), community.getMemberCount()));
+    }
+
+    /** Null active means no status restriction. Sorting and pagination apply to the combined result. */
+    @Transactional(readOnly = true)
+    public PageDTO<AdminCommunityDTO> findAdminCommunities(Boolean active, CommunitySort sort, String name, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, sortOf(sort));
+        String filter = name == null || name.isBlank() ? null : name.strip();
+        Page<Community> result;
+        if (active == null) {
+            result = filter == null ? communities.findAll(pageable)
+                    : communities.findByNameContainingIgnoreCase(filter, pageable);
+        } else if (active) {
+            result = filter == null ? communities.findByActiveTrue(pageable)
+                    : communities.findByActiveTrueAndNameContainingIgnoreCase(filter, pageable);
+        } else {
+            result = filter == null ? communities.findByActiveFalse(pageable)
+                    : communities.findByActiveFalseAndNameContainingIgnoreCase(filter, pageable);
+        }
+        return toPage(result, c -> new AdminCommunityDTO(c.getName(), c.getMemberCount(), c.isActive()));
     }
 
     private static Sort sortOf(CommunitySort sort) {

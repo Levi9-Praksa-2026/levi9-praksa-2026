@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CommunityRepository extends JpaRepository<Community, Long> {
+    Page<Community> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
     // Inactive communities stay in the database but never show up in public reads.
 
     Page<Community> findByActiveTrue(Pageable pageable);

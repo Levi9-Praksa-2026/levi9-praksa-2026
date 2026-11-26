@@ -32,6 +32,9 @@
   --color-accent-ink: var(--accent-ink);
   --color-action: var(--action);
   --color-action-ink: var(--action-ink);
+  --color-danger: var(--danger);
+  --color-danger-ink: var(--danger-ink);
+  --color-danger-surface: var(--danger-surface);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   /* the fixed palette, for pieces that keep their look on any ground band (posts, replies, chips) */
@@ -126,6 +129,9 @@
 @layer ui {
 /* ---------------------------------------------------------------- tokens */
 :root {
+  --danger: #b42318;
+  --danger-ink: #ffffff;
+  --danger-surface: #fef3f2;
   /* palette: white ground, ink #141833, Levi9 blue #2b3fa0 */
   --p-bg: #ffffff;
   --p-surface: #f1f3fa;
