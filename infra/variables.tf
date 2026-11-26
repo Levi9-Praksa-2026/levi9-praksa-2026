@@ -26,11 +26,6 @@ variable "owner" {
   description = "Owner tag on every resource: who answers for this account."
   default     = "i.radojicic-int@levi9.com"
 }
-variable "alb_owner" {
-  type        = string
-  description = "Owner tag for the ALB resources only."
-  default     = "r.trajkovski-int@levi9.com"
-}
 
 variable "db_instance_class" {
   type        = string
