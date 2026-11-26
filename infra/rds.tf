@@ -13,14 +13,6 @@ data "aws_subnets" "default" {
   }
 }
 
-# Pick the newest postgres 17 minor available in this region. A bare "17" can match several
-# engine versions, so latest = true is needed to avoid an ambiguous result.
-data "aws_rds_engine_version" "postgres" {
-  engine  = "postgres"
-  version = "17"
-  latest  = true
-}
-
 resource "aws_db_subnet_group" "this" {
   name       = "${local.name}-db"
   subnet_ids = data.aws_subnets.default.ids
@@ -29,13 +21,15 @@ resource "aws_db_subnet_group" "this" {
 }
 
 resource "aws_db_instance" "this" {
-  identifier = "${local.name}-dev"
+  identifier = local.name
 
+  # A major-version prefix lets RDS choose the latest 17 minor, including minor upgrades
+  # applied during the maintenance window, without a plan diff every time AWS ships one.
   engine         = "postgres"
-  engine_version = data.aws_rds_engine_version.postgres.version
-  instance_class = "db.t4g.micro"
+  engine_version = "17"
+  instance_class = var.db_instance_class
 
-  allocated_storage       = 20
+  allocated_storage       = var.db_allocated_storage_gb
   storage_type            = "gp3"
   storage_encrypted       = true
   backup_retention_period = 7
@@ -55,18 +49,12 @@ resource "aws_db_instance" "this" {
   auto_minor_version_upgrade = true
   apply_immediately          = false
   skip_final_snapshot        = false
-  final_snapshot_identifier  = "${local.name}-dev-final"
-  deletion_protection        = false # dev only: turn on before anyone relies on this database
-}
+  final_snapshot_identifier  = "${local.name}-final"
+  deletion_protection        = true
 
-output "rds_endpoint" {
-  value = aws_db_instance.this.endpoint
-}
-
-output "rds_jdbc_url" {
-  value = "jdbc:postgresql://${aws_db_instance.this.endpoint}/${aws_db_instance.this.db_name}"
-}
-
-output "rds_secret_arn" {
-  value = aws_db_instance.this.master_user_secret[0].secret_arn
+  # Two guards: deletion_protection blocks the AWS API, prevent_destroy blocks Terraform
+  # plans that would destroy or replace the instance. Remove both to delete it deliberately.
+  lifecycle {
+    prevent_destroy = true
+  }
 }
