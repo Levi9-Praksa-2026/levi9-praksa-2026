@@ -47,7 +47,7 @@ class PostControllerTest {
 
     @Test
     void findPosts_isPublicAndUsesDefaultPaging() throws Exception {
-        PostDTO post = new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0, CREATED, null, List.of());
+        PostDTO post = new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, "java", 3, 0, CREATED, null, List.of());
         when(postQueryService.findPosts(null, null, 0, 20)).thenReturn(new PageDTO<>(List.of(post), 0, 20, 1, 1));
 
         mockMvc.perform(get("/api/posts"))
@@ -59,7 +59,7 @@ class PostControllerTest {
 
     @Test
     void getPost_listsImagesWithUrls() throws Exception {
-        when(postQueryService.getPost(1L)).thenReturn(new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0,
+        when(postQueryService.getPost(1L)).thenReturn(new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, "java", 3, 0,
                 CREATED, null, List.of(new PostImageDTO(10L, "/api/posts/1/images/10"))));
 
         mockMvc.perform(get("/api/posts/1"))
@@ -72,7 +72,7 @@ class PostControllerTest {
     @Test
     void getPost_withoutImages_hasEmptyArray() throws Exception {
         when(postQueryService.getPost(1L))
-                .thenReturn(new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0, CREATED, null, null));
+                .thenReturn(new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, "java", 3, 0, CREATED, null, null));
 
         mockMvc.perform(get("/api/posts/1"))
                 .andExpect(status().isOk())
@@ -131,7 +131,7 @@ class PostControllerTest {
 
     @Test
     void findTop_withoutPeriod_isPublicAndDefaultsToAllTime() throws Exception {
-        PostDTO post = new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 42, 0, CREATED, null, List.of());
+        PostDTO post = new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, "java", 42, 0, CREATED, null, List.of());
         when(postQueryService.findTop(TopPeriod.ALL)).thenReturn(List.of(post));
 
         mockMvc.perform(get("/api/posts/top"))
@@ -142,7 +142,7 @@ class PostControllerTest {
 
     @Test
     void findTop_withWeekPeriod_passesWeek() throws Exception {
-        PostDTO post = new PostDTO(1L, "Fresh", "Body", 2L, "luka", 7L, 5, 0, CREATED, null, List.of());
+        PostDTO post = new PostDTO(1L, "Fresh", "Body", 2L, "luka", 7L, "java", 5, 0, CREATED, null, List.of());
         when(postQueryService.findTop(TopPeriod.WEEK)).thenReturn(List.of(post));
 
         mockMvc.perform(get("/api/posts/top").param("period", "WEEK"))
@@ -161,7 +161,7 @@ class PostControllerTest {
     @Test
     void getPost_returnsPost() throws Exception {
         when(postQueryService.getPost(1L))
-                .thenReturn(new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, 3, 0, CREATED, null, List.of()));
+                .thenReturn(new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, "java", 3, 0, CREATED, null, List.of()));
 
         mockMvc.perform(get("/api/posts/1"))
                 .andExpect(status().isOk())

@@ -59,7 +59,7 @@ class PostQueryServiceTest {
 
     @Test
     void findPosts_withoutFilters_returnsAllVisiblePostsNewestFirst() {
-        Post post = new Post("Hello", 1L, "luka", 7L);
+        Post post = new Post("Hello", 1L, "luka", 7L, "java");
         when(posts.findByRemovedAtIsNull(any())).thenReturn(page(post));
 
         PageDTO<PostDTO> result = service.findPosts(null, null, 0, 20);
@@ -105,9 +105,9 @@ class PostQueryServiceTest {
 
     @Test
     void findTop_all_mapsRepositoryResultInOrder() {
-        Post best = new Post("Best", 1L, "luka", 7L);
+        Post best = new Post("Best", 1L, "luka", 7L, "java");
         best.updateScore(50);
-        Post second = new Post("Second", 2L, "ana", 7L);
+        Post second = new Post("Second", 2L, "ana", 7L, "java");
         second.updateScore(10);
         when(posts.findTop10ByRemovedAtIsNullOrderByScoreDescIdDesc()).thenReturn(List.of(best, second));
 
@@ -120,7 +120,7 @@ class PostQueryServiceTest {
     @Test
     void findTop_week_asksForPostsCreatedInTheLastSevenDays() {
         Instant weekAgo = NOW.minus(Duration.ofDays(7));
-        Post recent = new Post("Recent", 1L, "luka", 7L);
+        Post recent = new Post("Recent", 1L, "luka", 7L, "java");
         when(posts.findTop10ByCreatedAtGreaterThanEqualAndRemovedAtIsNullOrderByScoreDescIdDesc(weekAgo))
                 .thenReturn(List.of(recent));
 
@@ -132,7 +132,7 @@ class PostQueryServiceTest {
 
     @Test
     void getPost_returnsVisiblePost() {
-        Post post = new Post("Hello", 1L, "luka", 7L);
+        Post post = new Post("Hello", 1L, "luka", 7L, "java");
         when(posts.findByIdAndRemovedAtIsNull(5L)).thenReturn(Optional.of(post));
 
         PostDTO result = service.getPost(5L);

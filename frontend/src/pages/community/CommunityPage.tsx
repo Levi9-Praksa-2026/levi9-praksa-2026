@@ -1,7 +1,9 @@
-import { useParams } from 'react-router'
+import { Plus } from 'lucide-react'
+import { Link, useParams } from 'react-router'
 import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
 import { useCommunity } from '@/features/communities/hooks'
 import { isApiError } from '@/shared/api/errors'
+import { routes } from '@/shared/config/routes'
 
 /** `/l/:name`: a community's page. For now its header only; its posts come with the feed. */
 export function CommunityPage() {
@@ -42,11 +44,17 @@ export function CommunityPage() {
     <section aria-labelledby="community-title" className="grid gap-4">
       <header className="flex items-center gap-4 rounded-lg border border-line bg-bg p-card-pad">
         <CommunityAvatar name={data.name} size="md" />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 id="community-title" className="truncate text-h3">l/{data.name}</h1>
           {data.description && <p className="mt-1 text-small text-muted">{data.description}</p>}
           <p className="mt-1 text-label text-muted">{data.memberCount} member{data.memberCount === 1 ? '' : 's'}</p>
         </div>
+        <Link
+          to={routes.submit(data.name)}
+          className="flex flex-none items-center gap-1.5 self-start rounded-btn bg-action px-3 py-2 text-small font-medium text-action-ink hover:opacity-90"
+        >
+          <Plus className="size-4" aria-hidden="true" /> Create post
+        </Link>
       </header>
       <div className="rounded-lg border border-line bg-bg px-card-pad py-10 text-center">
         <p className="text-small text-muted">Posts in l/{data.name} will show here.</p>

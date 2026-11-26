@@ -21,6 +21,7 @@ final class PostMapper {
                 post.getAuthorId(),
                 post.getAuthorUsername(),
                 post.getCommunityId(),
+                post.getCommunityName(),
                 post.getScore(),
                 post.getCommentCount(),
                 post.getCreatedAt(),

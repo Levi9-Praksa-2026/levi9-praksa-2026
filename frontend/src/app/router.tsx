@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router'
-import { COMMUNITY_PATTERN, routes } from '@/shared/config/routes'
+import { COMMUNITY_PATTERN, POST_PATTERN, routes, SUBMIT_PATTERN } from '@/shared/config/routes'
 import { HomePage } from '@/pages/home/HomePage'
 import { CommunitiesPage } from '@/pages/communities/CommunitiesPage'
 import { CommunityPage } from '@/pages/community/CommunityPage'
@@ -8,6 +8,8 @@ import { AuthLayout } from '@/pages/auth/AuthLayout'
 import { SignInPage } from '@/pages/auth/SignInPage'
 import { SignUpPage } from '@/pages/auth/SignUpPage'
 import { NotFoundPage } from '@/pages/not-found/NotFoundPage'
+import { PostPage } from '@/pages/post/PostPage'
+import { SubmitPage } from '@/pages/submit/SubmitPage'
 import { ForumLayout } from './shell/ForumLayout'
 import { RootLayout } from './RootLayout'
 
@@ -25,6 +27,8 @@ export const router = createBrowserRouter([
           { path: routes.profile, element: <ProfilePage /> },
           { path: routes.communities, element: <CommunitiesPage /> },
           { path: COMMUNITY_PATTERN, element: <CommunityPage /> },
+          { path: POST_PATTERN, element: <PostPage /> },
+          { path: SUBMIT_PATTERN, element: <SubmitPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

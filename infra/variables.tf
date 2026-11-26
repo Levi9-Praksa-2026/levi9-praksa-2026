@@ -26,3 +26,20 @@ variable "owner" {
   description = "Owner tag on every resource: who answers for this account."
   default     = "i.radojicic-int@levi9.com"
 }
+
+variable "db_instance_class" {
+  type        = string
+  description = "Instance class for the RDS Postgres instance."
+  default     = "db.t4g.micro"
+}
+
+variable "db_allocated_storage_gb" {
+  type        = number
+  description = "Initial allocated storage in GiB for the RDS instance."
+  default     = 20
+
+  validation {
+    condition     = var.db_allocated_storage_gb >= 20
+    error_message = "RDS gp3 storage starts at 20 GiB, so the value must be at least 20."
+  }
+}
