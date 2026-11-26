@@ -64,10 +64,22 @@ describe('PostCard', () => {
     expect(html).toContain('(edited)')
   })
 
-  it('numbers several images for screen readers', () => {
+  it('shows several images as a carousel: one at a time, numbered, with a dot each', () => {
     const images = [1, 2, 3].map(id => ({ id, url: `/api/posts/7/images/${id}` }))
     const html = render({ images })
+    expect(html).toContain('aria-roledescription="carousel"')
     expect(html).toContain('src="/api/posts/7/images/2"')
-    expect(html).toContain('alt="Post image 2 of 3"')
+    expect(html).toContain('alt="Attachment 2 of 3"')
+    expect(html.match(/aria-label="Show image \d of 3"/g)).toHaveLength(3)
+    expect(html).toContain('aria-label="Show image 1 of 3" aria-current="true"')
+    // On the first image there is nowhere to go back to.
+    expect(html).not.toContain('aria-label="Previous image"')
+    expect(html).toContain('aria-label="Next image"')
+  })
+
+  it('keeps a single image as it is, with no carousel', () => {
+    const html = render({ images: [{ id: 1, url: '/api/posts/7/images/1' }] })
+    expect(html).not.toContain('carousel')
+    expect(html).toContain('alt="Attached to the post"')
   })
 })

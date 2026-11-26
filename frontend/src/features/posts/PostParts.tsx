@@ -4,8 +4,8 @@ import { Link } from 'react-router'
 import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
 import type { PostImage, PostResponse } from '@/shared/api/contracts/posts'
 import { routes } from '@/shared/config/routes'
-import { cn } from '@/shared/lib/cn'
 import { relativeTime } from '@/shared/lib/relativeTime'
+import { ImageCarousel } from './ImageCarousel'
 
 /* The pieces the feed card and the post page share. */
 
@@ -40,47 +40,33 @@ export function PostMeta({ post, hideCommunity = false }: PostMetaProps) {
 export interface PostImagesProps {
   images: readonly PostImage[]
   /**
-   * card: one image at its own shape (capped in height), two or three side by side as squares.
-   * page: each image whole, one under the other, and a link to the file at full size.
+   * card: one image at its own shape, capped in height. page: the image whole, linking to its file at full size.
+   * Two or three images become a carousel in either.
    */
   variant?: 'card' | 'page'
 }
 
 export function PostImages({ images, variant = 'card' }: PostImagesProps) {
-  const many = images.length > 1
-  // Uploads carry no description; say there is an image and which one.
-  const alt = (index: number) => (many ? `Post image ${index + 1} of ${images.length}` : 'Post image')
+  if (images.length > 1) return <ImageCarousel images={images} variant={variant} />
+  const [image] = images
+  if (!image) return null
 
   if (variant === 'page') {
     return (
-      <div className="grid gap-3">
-        {images.map((image, index) => (
-          <a key={image.id} href={image.url} target="_blank" rel="noreferrer" className="block rounded-md focus-visible:outline-2">
-            <img
-              src={image.url}
-              alt={alt(index)}
-              decoding="async"
-              className="max-h-[80vh] w-full rounded-md border border-line bg-surface object-contain"
-            />
-          </a>
-        ))}
-      </div>
+      <a href={image.url} target="_blank" rel="noreferrer" className="block rounded-md focus-visible:outline-2">
+        <img src={image.url} alt="Attached to the post" decoding="async" className="max-h-[80vh] w-full rounded-md border border-line bg-surface object-contain" />
+      </a>
     )
   }
 
   return (
-    <div className={cn('grid gap-2', many && (images.length === 2 ? 'grid-cols-2' : 'grid-cols-3'))}>
-      {images.map((image, index) => (
-        <img
-          key={image.id}
-          src={image.url}
-          alt={alt(index)}
-          loading="lazy"
-          decoding="async"
-          className={cn('w-full rounded-md border border-line bg-surface object-cover', many ? 'aspect-square' : 'max-h-[400px]')}
-        />
-      ))}
-    </div>
+    <img
+      src={image.url}
+      alt="Attached to the post"
+      loading="lazy"
+      decoding="async"
+      className="max-h-[400px] w-full rounded-md border border-line bg-surface object-cover"
+    />
   )
 }
 

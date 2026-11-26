@@ -62,7 +62,8 @@ export type TopPeriod = 'ALL' | 'WEEK'
 /** The JSON part of `POST /api/posts` (multipart: this plus up to 3 images). Members only. */
 export interface CreatePostRequest {
   title: string
-  content: string
+  /** A post may be only a title. */
+  content: string | null
   communityId: number
 }
 

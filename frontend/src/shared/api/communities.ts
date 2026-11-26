@@ -14,8 +14,9 @@ import { invalid, optionalUser, requireAdmin, requireUser } from './mock/guards'
 import { handle } from './mock/server'
 
 /*
-  community-service, /api/communities/**. The list is a real request; the other operations are still
-  mocked from the in-memory data with the service's rules and status codes. Their signatures stay.
+  community-service, /api/communities/**. The list, one community and joining are real requests; leaving
+  and the admin operations are still mocked from the in-memory data with the service's rules and status
+  codes. Their signatures stay.
 */
 
 const memberCount = (c: CommunityRow) => db.members.filter(m => m.communityId === c.id).length
@@ -73,20 +74,17 @@ export function listCommunities({
   })
 }
 
-/** `GET /api/communities/{name}`: 404 if it does not exist or is shut down. */
+/** The path of one community. Names are plain (`COMMUNITY_NAME_PATTERN`); encoded anyway, so a typed URL can't escape it. */
+const communityPath = (name: string) => `/api/communities/${encodeURIComponent(name)}`
+
+/** `GET /api/communities/{name}`: found in any case; 404 if it does not exist or is shut down. */
 export function getCommunity(name: string): Promise<CommunityDetailResponse> {
-  return handle(() => toDetail(activeCommunity(name)))
+  return http<CommunityDetailResponse>(communityPath(name))
 }
 
-/** `PUT /api/communities/{name}/members/me`: join. Joining twice is harmless. */
+/** `PUT /api/communities/{name}/members/me`: join; 204. Joining twice is harmless. */
 export function joinCommunity(name: string): Promise<void> {
-  return handle(() => {
-    const me = requireUser()
-    const c = activeCommunity(name)
-    if (!db.members.some(m => m.communityId === c.id && m.userId === me.id)) {
-      db.members.push({ communityId: c.id, userId: me.id, joinedAt: new Date().toISOString() })
-    }
-  })
+  return http<void>(`${communityPath(name)}/members/me`, { method: 'PUT' })
 }
 
 /** `DELETE /api/communities/{name}/members/me`: leave. Leaving when not a member is harmless. */

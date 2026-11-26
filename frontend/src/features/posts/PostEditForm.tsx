@@ -1,7 +1,8 @@
-import { useId, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import type { PostResponse } from '@/shared/api/contracts/posts'
 import { cn } from '@/shared/lib/cn'
 import { Notice } from '@/shared/ui/Notice'
+import { TextArea } from '@/shared/ui/TextArea'
 import { TextField } from '@/shared/ui/TextField'
 import { useEditPost } from './hooks'
 import { CONTENT_MAX, saveErrorMessage, TITLE_MAX } from './messages'
@@ -14,7 +15,6 @@ export interface PostEditFormProps {
 
 /** The author's edit of a post's title and text, in place of them. Images stay as they are. */
 export function PostEditForm({ post, onDone }: PostEditFormProps) {
-  const contentId = useId()
   const [title, setTitle] = useState(post.title)
   const [content, setContent] = useState(post.content ?? '')
   const [titleError, setTitleError] = useState<string | null>(null)
@@ -43,17 +43,12 @@ export function PostEditForm({ post, onDone }: PostEditFormProps) {
         // oxlint-disable-next-line jsx-a11y/no-autofocus
         autoFocus
       />
-      <div className="flex min-w-0 flex-col gap-1.5">
-        <label htmlFor={contentId} className="text-small font-medium text-ink">Text <span className="font-normal text-muted">(optional)</span></label>
-        <textarea
-          id={contentId}
-          value={content}
-          maxLength={CONTENT_MAX}
-          rows={8}
-          onChange={event => setContent(event.target.value)}
-          className="min-h-32 resize-y rounded-md border border-line-strong bg-bg px-4 py-3 text-body text-ink outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-        />
-      </div>
+      <TextArea
+        label={<>Text <span className="font-normal text-muted">(optional)</span></>}
+        value={content}
+        maxLength={CONTENT_MAX}
+        onChange={event => setContent(event.target.value)}
+      />
 
       {save.error && <Notice tone="error">{saveErrorMessage(save.error)}</Notice>}
 
