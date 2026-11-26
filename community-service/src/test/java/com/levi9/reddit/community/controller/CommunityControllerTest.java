@@ -246,6 +246,18 @@ class CommunityControllerTest {
     }
 
     @Test
+    void myMembership_usesJwtSubjectAndReturnsJoinedFlag() throws Exception {
+        given(membershipService.isMember("backend", 42L)).willReturn(true);
+
+        mockMvc.perform(get("/api/communities/{name}/members/me", "backend")
+                        .with(jwt().jwt(j -> j.subject("42"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.joined").value(true));
+
+        verify(membershipService).isMember("backend", 42L);
+    }
+
+    @Test
     void join_unknownCommunityReturnsProblemDetail() throws Exception {
         willThrow(new CommunityNotFoundException("missing"))
                 .given(membershipService).join("missing", 42L);
