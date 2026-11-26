@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
-import { Search, ShieldCheck, UserRound } from 'lucide-react'
+import { Plus, Search, ShieldCheck, UserRound } from 'lucide-react'
 import { UserAvatar } from '@/features/users/UserAvatar'
 import { adminApi, type AdminUser, type AdminUserFilters } from '@/shared/api/admin'
 import { queryKeys } from '@/shared/api/queryKeys'
@@ -14,6 +14,7 @@ import { Modal } from '@/shared/ui/Modal'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { ConfirmAction } from './ui'
 import { adminError } from './errors'
+import { CreateUserDialog } from './CreateUserDialog'
 
 const BAN_REASONS = [
   { label: 'Spam', reason: 'Repeated spam or unsolicited advertising.' },
@@ -42,6 +43,7 @@ export function AdminUsersPage() {
   const [target, setTarget] = useState<AdminUser | null>(null)
   const [details, setDetails] = useState<AdminUser | null>(null)
   const [message, setMessage] = useState('')
+  const [creating, setCreating] = useState(false)
   const mutation = useMutation({
     mutationFn: ({ user, reason }: { user: AdminUser; reason: string }) => user.banned ? adminApi.unbanUser(user.username) : adminApi.banUser(user.username, reason),
     onSuccess: (_, { user }) => {
@@ -61,7 +63,10 @@ export function AdminUsersPage() {
     })
   }
   return <section aria-labelledby="admin-users-title" className="grid gap-5">
-    <header><h1 id="admin-users-title" className="text-h2">Manage users</h1><p className="mt-1 text-small text-muted">Browse accounts, review their status, and manage access.</p></header>
+    <header className="flex flex-col items-start gap-4">
+      <div><h1 id="admin-users-title" className="text-h2">Manage users</h1><p className="mt-1 text-small text-muted">Browse accounts, review their status, and manage access.</p></div>
+      <Button onClick={() => { setMessage(''); setCreating(true) }}><Plus className="size-4" aria-hidden="true" />Create user</Button>
+    </header>
     {message && <Notice tone="info">{message}</Notice>}
     <div className="grid gap-4 rounded-lg border border-line bg-bg p-card-pad">
       <form key={q} onSubmit={event => { event.preventDefault(); update('q', String(new FormData(event.currentTarget).get('q') ?? '').trim()) }} className="flex items-end gap-2">
@@ -105,6 +110,12 @@ export function AdminUsersPage() {
       <Pagination page={page} totalPages={list.data?.totalPages ?? 0} totalElements={list.data?.totalElements} itemLabel="users" onChange={page => update('page', String(page))} />
       {page > 0 && !list.data?.content.length && <Button variant="secondary" onClick={() => update('page', '')}>Back to first page</Button>}
     </>}
+    {creating && <CreateUserDialog onClose={() => setCreating(false)} onCreated={user => {
+      setCreating(false)
+      setMessage(`u/${user.username} created.`)
+      setParams({})
+      void client.invalidateQueries({ queryKey: queryKeys.admin.users })
+    }} />}
     {target && (target.banned ? <ConfirmAction title={`Unban u/${target.username}?`} label="Unban user" pending={mutation.isPending} error={mutation.error} onClose={() => setTarget(null)} onConfirm={() => mutation.mutate({ user: target, reason: '' })}>
       This user will be able to log in again. Previous sessions will not be restored.
     </ConfirmAction> : <BanUserDialog user={target} pending={mutation.isPending} error={mutation.error} onClose={() => setTarget(null)} onConfirm={reason => mutation.mutate({ user: target, reason })} />)}
