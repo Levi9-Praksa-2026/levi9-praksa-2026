@@ -13,6 +13,11 @@ output "alb_dns_name" {
   value = aws_lb.gateway.dns_name
 }
 
+output "github_ecr_push_role_arn" {
+  description = "Set as the repository variable AWS_ECR_PUSH_ROLE_ARN for the image workflow."
+  value       = aws_iam_role.github_ecr_push.arn
+}
+
 output "gateway_target_group_arn" {
   value = aws_lb_target_group.gateway.arn
 }
