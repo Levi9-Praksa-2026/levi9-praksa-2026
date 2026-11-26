@@ -38,8 +38,11 @@ locals {
     })
     post-service = merge(local.common_env, {
       AUTH_JWKS_URI = local.jwks_uri
-      S3_BUCKET     = aws_s3_bucket.media.bucket
-      AWS_REGION    = var.aws_region
+      # /internal community and membership checks when a post is created. Required: no fallback outside "dev".
+      # The calls carry no token, so they must stay on the internal network (Service Connect, internal security group).
+      COMMUNITY_SERVICE_URL = "http://community-service:8082"
+      S3_BUCKET             = aws_s3_bucket.media.bucket
+      AWS_REGION            = var.aws_region
     })
   }
 
