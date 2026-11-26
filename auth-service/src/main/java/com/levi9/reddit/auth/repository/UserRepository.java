@@ -1,6 +1,7 @@
 package com.levi9.reddit.auth.repository;
 
 import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.entity.UserRole;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -30,8 +31,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 or (:status = 'active' and u.deleted = false and u.banned = false)
                 or (:status = 'banned' and u.deleted = false and u.banned = true)
                 or (:status = 'deleted' and u.deleted = true))
+            and (:role is null or u.role = :role)
             """)
-    Page<User> findForAdmin(@Param("pattern") String pattern, @Param("status") String status, Pageable pageable);
+    Page<User> findForAdmin(@Param("pattern") String pattern, @Param("status") String status, @Param("role") UserRole role, Pageable pageable);
 
     /** Locks the row until the transaction ends ({@code select ... for update}). Use it before changing a user. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

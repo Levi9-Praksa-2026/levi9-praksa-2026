@@ -2,6 +2,7 @@ package com.levi9.reddit.auth.service;
 
 import com.levi9.reddit.auth.dto.RegisterDTO;
 import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.entity.UserRole;
 import com.levi9.reddit.auth.exception.ConflictException;
 import com.levi9.reddit.auth.exception.ErrorType;
 import com.levi9.reddit.auth.repository.UserRepository;
@@ -33,6 +34,16 @@ public class AuthService {
      */
     @Transactional
     public User register(RegisterDTO request) {
+        return create(request, UserRole.USER);
+    }
+
+    /** Called only by the admin controller. Public registration always uses USER. */
+    @Transactional
+    public User createByAdmin(RegisterDTO request, UserRole role) {
+        return create(request, java.util.Objects.requireNonNull(role, "role"));
+    }
+
+    private User create(RegisterDTO request, UserRole role) {
         if (users.existsByUsernameIgnoringCase(request.username())) {
             throw usernameTaken();
         }
@@ -42,6 +53,7 @@ public class AuthService {
 
         User user = new User(request.username(), request.email(), passwords.encode(request.password()),
                 request.firstName(), request.lastName());
+        if (role == UserRole.ADMIN) user.grantAdmin();
         try {
             // Flush now so a duplicate from a simultaneous registration fails here, where we can name it.
             users.saveAndFlush(user);

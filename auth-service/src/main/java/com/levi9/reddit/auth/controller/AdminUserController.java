@@ -1,7 +1,8 @@
 package com.levi9.reddit.auth.controller;
 
 import com.levi9.reddit.auth.dto.BanUserDTO;
-import com.levi9.reddit.auth.dto.RegisterDTO;
+import com.levi9.reddit.auth.dto.AdminCreateUserDTO;
+import com.levi9.reddit.auth.entity.UserRole;
 import com.levi9.reddit.auth.dto.UserProfileDTO;
 import com.levi9.reddit.auth.service.AuthService;
 import com.levi9.reddit.auth.dto.AdminUserDTO;
@@ -43,11 +44,11 @@ public class AdminUserController {
     private final UserDirectoryService directory;
     private final AuthService accounts;
 
-    /** Creates a regular USER account without changing the administrator's session. */
+    /** Creates a USER or ADMIN account without changing the administrator's session. */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserProfileDTO create(@Valid @RequestBody RegisterDTO request) {
-        var user = accounts.register(request);
+    public UserProfileDTO create(@Valid @RequestBody AdminCreateUserDTO request) {
+        var user = accounts.createByAdmin(request.registration(), request.role());
         return new UserProfileDTO(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName());
     }
 
@@ -55,9 +56,10 @@ public class AdminUserController {
     public PageDTO<AdminUserDTO> list(
             @RequestParam(required = false) @Size(max = 254) String q,
             @RequestParam(required = false) @Pattern(regexp = "active|banned|deleted") String status,
+            @RequestParam(required = false) UserRole role,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-        return directory.list(q, status, page, size);
+        return directory.list(q, status, role, page, size);
     }
 
     @PostMapping("/{username}/ban")

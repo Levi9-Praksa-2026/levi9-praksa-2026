@@ -63,14 +63,36 @@ class AdminUserControllerTest {
     @Test
     void adminCreatesRegularUserWithoutCredentialsInResponse() throws Exception {
         var request = new RegisterDTO("new_user", "new@example.test", "long-demo-password", "New", "User");
-        given(accounts.register(request)).willReturn(new User(request.username(), request.email(), "private-hash", "New", "User"));
+        given(accounts.createByAdmin(request, UserRole.USER)).willReturn(new User(request.username(), request.email(), "private-hash", "New", "User"));
         mvc.perform(post("/api/admin/users").with(admin()).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"new_user\",\"email\":\"new@example.test\",\"password\":\"long-demo-password\",\"firstName\":\"New\",\"lastName\":\"User\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.username").value("new_user"))
                 .andExpect(jsonPath("$.passwordHash").doesNotExist())
                 .andExpect(jsonPath("$.password").doesNotExist());
-        verify(accounts).register(request);
+        verify(accounts).createByAdmin(request, UserRole.USER);
+    }
+
+    @Test
+    void adminMayExplicitlyChooseEitherRole() throws Exception {
+        var request = new RegisterDTO("new_user", "new@example.test", "long-demo-password", "New", "User");
+        for (UserRole role : UserRole.values()) {
+            given(accounts.createByAdmin(request, role)).willReturn(new User(request.username(), request.email(), "hash", "New", "User"));
+            mvc.perform(post("/api/admin/users").with(admin()).contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"username\":\"new_user\",\"email\":\"new@example.test\",\"password\":\"long-demo-password\",\"firstName\":\"New\",\"lastName\":\"User\",\"role\":\"" + role.name() + "\"}"))
+                    .andExpect(status().isCreated());
+            verify(accounts).createByAdmin(request, role);
+        }
+    }
+
+    @Test
+    void invalidRoleIsRejectedAndRegularUsersCannotCreateAdmins() throws Exception {
+        String body = "{\"username\":\"new_user\",\"email\":\"new@example.test\",\"password\":\"long-demo-password\",\"firstName\":\"New\",\"lastName\":\"User\",\"role\":\"SUPERUSER\"}";
+        mvc.perform(post("/api/admin/users").with(admin()).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/admin/users").with(user()).contentType(MediaType.APPLICATION_JSON).content(body.replace("SUPERUSER", "ADMIN")))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(accounts);
     }
 
     @Test
@@ -86,7 +108,7 @@ class AdminUserControllerTest {
 
     @Test
     void adminReadsPaginatedDirectoryWithoutCredentials() throws Exception {
-        given(directory.list("reader", "banned", 1, 5)).willReturn(new PageDTO<>(List.of(
+        given(directory.list("reader", "banned", null, 1, 5)).willReturn(new PageDTO<>(List.of(
                 new AdminUserDTO(42L, "reader", "reader@example.test", "First", "Last", UserRole.USER,
                         true, false, "Spam", Instant.EPOCH, Instant.EPOCH)), 1, 5, 6, 2));
         mvc.perform(get("/api/admin/users").with(admin()).param("q", "reader").param("status", "banned")
@@ -101,6 +123,17 @@ class AdminUserControllerTest {
     }
 
     @Test
+    void directoryAcceptsBothRolesAlongsideOtherFilters() throws Exception {
+        for (UserRole role : UserRole.values()) {
+            given(directory.list("reader", "active", role, 0, 5)).willReturn(new PageDTO<>(List.of(), 0, 5, 0, 0));
+            mvc.perform(get("/api/admin/users").with(admin()).param("q", "reader").param("status", "active")
+                            .param("role", role.name()).param("size", "5"))
+                    .andExpect(status().isOk());
+            verify(directory).list("reader", "active", role, 0, 5);
+        }
+    }
+
+    @Test
     void directoryIsAdminOnly() throws Exception {
         mvc.perform(get("/api/admin/users")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/admin/users").with(user())).andExpect(status().isForbidden());
@@ -109,7 +142,7 @@ class AdminUserControllerTest {
 
     @Test
     void directoryRejectsInvalidFiltersAndPaging() throws Exception {
-        for (String key : List.of("status", "page", "size")) {
+        for (String key : List.of("status", "role", "page", "size")) {
             mvc.perform(get("/api/admin/users").with(admin()).param(key, "invalid"))
                     .andExpect(status().isBadRequest());
         }
