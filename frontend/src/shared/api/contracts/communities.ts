@@ -11,7 +11,7 @@ export interface CommunityResponse {
   memberCount: number
 }
 
-/** `GET /api/communities/{name}`: `CommunityDetailResponse.java`. Its `id` is what lists posts. */
+/** `GET /api/communities/{name}`: `CommunityDetailDTO.java`. Its `id` is what lists and creates posts. */
 export interface CommunityDetailResponse {
   id: number
   name: string
@@ -20,9 +20,9 @@ export interface CommunityDetailResponse {
   createdAt: Instant
   /**
    * Contract gap: whether the caller is a member (Join or Leave, and whether they may post).
-   * Proposed: present when logged in, false when logged out.
+   * Proposed: present when logged in, false when logged out. Not sent yet, so absent.
    */
-  joined: boolean
+  joined?: boolean
 }
 
 /** `new`: newest first. `top`: most members. `hot` is not supported by the backend. */

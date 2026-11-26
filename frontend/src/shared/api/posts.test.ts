@@ -16,7 +16,6 @@ import {
   voteComment,
   votePost,
 } from './posts'
-import { getCommunity } from './communities'
 
 /** The status of the ApiError a call rejects with. */
 async function statusOf(call: Promise<unknown>): Promise<number> {
@@ -105,15 +104,15 @@ describe('top posts (mocked)', () => {
 
 describe('writing posts', () => {
   it('lets a member post, and refuses a non-member with 403', async () => {
-    const backend = await getCommunity('backend')
+    const backend = db.communities.find(c => c.name === 'backend')!
     const post = await createPost({ title: '  New one  ', content: 'Body', communityId: backend.id })
     expect(post).toMatchObject({ title: 'New one', authorUsername: 'demo_user', score: 0, commentCount: 0, myVote: null })
-    const devops = await getCommunity('devops')
+    const devops = db.communities.find(c => c.name === 'devops')!
     expect(await statusOf(createPost({ title: 'x', content: 'y', communityId: devops.id }))).toBe(403)
   })
 
   it('needs a login, a title and at most 3 images', async () => {
-    const backend = await getCommunity('backend')
+    const backend = db.communities.find(c => c.name === 'backend')!
     const image = new File(['x'], 'a.png')
     expect(await statusOf(createPost({ title: ' ', content: 'y', communityId: backend.id }))).toBe(400)
     expect(await statusOf(createPost({ title: 'x', content: 'y', communityId: backend.id }, [image, image, image, image]))).toBe(400)
