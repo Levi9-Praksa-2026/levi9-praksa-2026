@@ -1,7 +1,7 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
-import { Ban, CircleCheck, Layers, Plus, Search, ShieldCheck, UserRound, UserRoundX } from 'lucide-react'
+import { Ban, CircleCheck, Layers, Pencil, Plus, Search, ShieldCheck, UserRound, UserRoundX } from 'lucide-react'
 import { UserAvatar } from '@/features/users/UserAvatar'
 import { adminApi, type AdminUser, type AdminUserFilters } from '@/shared/api/admin'
 import { queryKeys } from '@/shared/api/queryKeys'
@@ -15,6 +15,9 @@ import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { ConfirmAction } from './ui'
 import { adminError } from './errors'
 import { CreateUserDialog } from './CreateUserDialog'
+import { EditUserDialog } from './EditUserDialog'
+import { UserDetailsDialog } from './UserDetailsDialog'
+import { UserBadges } from './UserBadges'
 
 const BAN_REASONS = [
   { label: 'Spam', reason: 'Repeated spam or unsolicited advertising.' },
@@ -44,6 +47,7 @@ export function AdminUsersPage() {
   const client = useQueryClient()
   const [target, setTarget] = useState<AdminUser | null>(null)
   const [details, setDetails] = useState<AdminUser | null>(null)
+  const [editing, setEditing] = useState<{ user: AdminUser; returnToDetails: boolean } | null>(null)
   const [message, setMessage] = useState('')
   const [creating, setCreating] = useState(false)
   const mutation = useMutation({
@@ -106,12 +110,10 @@ export function AdminUsersPage() {
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2 text-label">
-                <span className="inline-flex items-center gap-1 rounded-btn bg-surface px-2 py-1 text-accent">{user.role === 'ADMIN' ? <ShieldCheck className="size-3" aria-hidden="true" /> : <UserRound className="size-3" aria-hidden="true" />}{user.role === 'ADMIN' ? 'Admin' : 'User'}</span>
-                <span className="rounded-btn border border-line px-2 py-1 text-muted">{user.deleted ? 'Deleted' : user.banned ? 'Banned' : 'Active'}</span>
-              </div>
+              <UserBadges user={user} />
               <div className="flex flex-wrap gap-2">
                 <Button variant="secondary" aria-label={`View details for u/${user.username}`} onClick={() => setDetails(user)}>Details</Button>
+                {!user.deleted && <Button variant="secondary" aria-label={`Edit u/${user.username}`} onClick={() => { setMessage(''); setEditing({ user, returnToDetails: false }) }}><Pencil className="size-4" aria-hidden="true" />Edit user</Button>}
                 {!user.deleted && user.role !== 'ADMIN' && <Button variant="secondary" aria-label={`${user.banned ? 'Unban' : 'Ban'} u/${user.username}`} onClick={() => { mutation.reset(); setMessage(''); setTarget(user) }}>{user.banned ? 'Unban user' : 'Ban user'}</Button>}
               </div>
             </div>
@@ -130,21 +132,21 @@ export function AdminUsersPage() {
     {target && (target.banned ? <ConfirmAction title={`Unban u/${target.username}?`} label="Unban user" pending={mutation.isPending} error={mutation.error} onClose={() => setTarget(null)} onConfirm={() => mutation.mutate({ user: target, reason: '' })}>
       This user will be able to log in again. Previous sessions will not be restored.
     </ConfirmAction> : <BanUserDialog user={target} pending={mutation.isPending} error={mutation.error} onClose={() => setTarget(null)} onConfirm={reason => mutation.mutate({ user: target, reason })} />)}
-    {details && <Modal title={`u/${details.username}`} onClose={() => setDetails(null)}>
-      <dl className="grid gap-4 text-small">
-        <Detail label="Name">{details.firstName} {details.lastName}</Detail>
-        <Detail label="Email">{details.email}</Detail>
-        <Detail label="Role">{details.role === 'ADMIN' ? 'Admin' : 'User'}</Detail>
-        <Detail label="Status">{details.deleted ? 'Deleted' : details.banned ? 'Banned' : 'Active'}</Detail>
-        <Detail label="Joined">{new Date(details.createdAt).toLocaleString()}</Detail>
-        {details.banned && <><Detail label="Reason for ban">{details.banReason ?? 'No reason recorded.'}</Detail>{details.bannedAt && <Detail label="Banned on">{new Date(details.bannedAt).toLocaleString()}</Detail>}</>}
-      </dl>
-    </Modal>}
+    {details && <UserDetailsDialog user={details} onClose={() => setDetails(null)} onEdit={() => {
+      setEditing({ user: details, returnToDetails: true })
+      setDetails(null)
+      setMessage('')
+    }} />}
+    {editing && <EditUserDialog user={editing.user} onClose={() => {
+      if (editing.returnToDetails) setDetails(editing.user)
+      setEditing(null)
+    }} onSaved={profile => {
+      if (editing.returnToDetails) setDetails({ ...editing.user, ...profile })
+      setEditing(null)
+      setMessage(`u/${profile.username} updated.`)
+      void client.invalidateQueries({ queryKey: queryKeys.admin.users })
+    }} />}
   </section>
-}
-
-function Detail({ label, children }: { label: string; children: ReactNode }) {
-  return <div><dt className="font-medium text-muted">{label}</dt><dd className="mt-1 whitespace-pre-wrap break-words">{children}</dd></div>
 }
 
 function BanUserDialog({ user, pending, error, onClose, onConfirm }: { user: AdminUser; pending: boolean; error: unknown; onClose: () => void; onConfirm: (reason: string) => void }) {
