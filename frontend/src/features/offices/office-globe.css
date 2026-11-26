@@ -1,0 +1,77 @@
+/* The office globe: the canvas, the label layer and the place chips. */
+.og {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: clip;
+  cursor: grab;
+}
+.og > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.og-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* A place chip: white, a warm dot, the office name. */
+.og-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f1430;
+  font: 500 13px/1 var(--font-text, system-ui);
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgb(15 20 48 / 0.08), 0 6px 18px -6px rgb(43 63 160 / 0.35);
+}
+/* CSS2DRenderer centres each label on its pin; these move it off to one side. */
+.og-label--up { translate: 0 -22px; }
+.og-label--down { translate: 0 22px; }
+.og-label--left { translate: calc(-50% - 14px) 0; }
+.og-label--right { translate: calc(50% + 14px) 0; }
+.og-label i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2b3fa0;
+}
+
+/* Phone: the chips sit closer to their pins so they stay inside a narrow globe. */
+@media (max-width: 767px) {
+  .og-label--up { translate: 0 -18px; }
+  .og-label--down { translate: 0 18px; }
+  .og-label--left { translate: calc(-50% - 9px) 0; }
+  .og-label--right { translate: calc(50% + 9px) 0; }
+  .og-label i { width: 6px; height: 6px; }
+}
+
+/* Without WebGL: the offices as a plain list. With it, the list is hidden. */
+.og-fallback {
+  display: none;
+}
+.og[data-fallback] .og-fallback {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: center;
+  justify-content: center;
+  height: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 24px;
+}
+.og[data-fallback] .og-fallback li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  font-weight: 500;
+}

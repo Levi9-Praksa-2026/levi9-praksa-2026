@@ -1,0 +1,18 @@
+# Local development. docker compose turns this profile on; in IntelliJ, put "dev" in the run configuration's
+# Active profiles. Never active in production: see docs/production-changes.md.
+# The S3 endpoint (Moto) stays in docker-compose.yml: the moto host name only exists inside compose.
+spring:
+  datasource:   # compose's Postgres from the host; inside compose, SPRING_DATASOURCE_* point at the postgres container
+    url: jdbc:postgresql://localhost:5432/reddit
+    username: reddit
+    password: reddit_local
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8081/oauth2/jwks}
+          issuer-uri: ${APP_PUBLIC_URL:http://localhost:3000}
+
+app:
+  community-service:
+    url: ${COMMUNITY_SERVICE_URL:http://localhost:8082}   # compose sets http://community-service:8082
