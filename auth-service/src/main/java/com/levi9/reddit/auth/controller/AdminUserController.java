@@ -1,6 +1,9 @@
 package com.levi9.reddit.auth.controller;
 
 import com.levi9.reddit.auth.dto.BanUserDTO;
+import com.levi9.reddit.auth.dto.AdminUpdateUserDTO;
+import com.levi9.reddit.auth.service.UserService;
+import org.springframework.web.bind.annotation.PatchMapping;
 import com.levi9.reddit.auth.dto.AdminCreateUserDTO;
 import com.levi9.reddit.auth.entity.UserRole;
 import com.levi9.reddit.auth.dto.UserProfileDTO;
@@ -43,6 +46,7 @@ public class AdminUserController {
     private final UserBanService bans;
     private final UserDirectoryService directory;
     private final AuthService accounts;
+    private final UserService profiles;
 
     /** Creates a USER or ADMIN account without changing the administrator's session. */
     @PostMapping
@@ -50,6 +54,12 @@ public class AdminUserController {
     public UserProfileDTO create(@Valid @RequestBody AdminCreateUserDTO request) {
         var user = accounts.createByAdmin(request.registration(), request.role());
         return new UserProfileDTO(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName());
+    }
+
+    @PatchMapping("/{username}")
+    public UserProfileDTO update(@PathVariable @Size(max = 30) String username,
+                                 @Valid @RequestBody AdminUpdateUserDTO request) {
+        return profiles.updateByAdmin(username, request);
     }
 
     @GetMapping

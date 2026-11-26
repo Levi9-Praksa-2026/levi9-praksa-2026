@@ -6,6 +6,7 @@ import com.levi9.reddit.auth.exception.ForbiddenException;
 import com.levi9.reddit.auth.exception.NotFoundException;
 import com.levi9.reddit.auth.config.UserApiSecurityConfig;
 import com.levi9.reddit.auth.service.UserBanService;
+import com.levi9.reddit.auth.service.UserService;
 import com.levi9.reddit.auth.service.AuthService;
 import com.levi9.reddit.auth.dto.RegisterDTO;
 import com.levi9.reddit.auth.entity.User;
@@ -56,6 +57,9 @@ class AdminUserControllerTest {
 
     @MockitoBean
     private AuthService accounts;
+
+    @MockitoBean
+    private UserService profiles;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
