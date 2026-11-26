@@ -47,3 +47,17 @@ export function useCommunity(name: string) {
     queryFn: () => getCommunity(name),
   })
 }
+
+/**
+ * ADMIN only: a shut-down community by name. The public detail endpoint 404s for inactive communities,
+ * so this looks in the admin list instead and keeps only an exact match (the filter is "contains").
+ */
+export function useInactiveCommunity(name: string, enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.communities.inactive(name),
+    queryFn: () => listCommunities({ inactive: true, name, size: 100 }).then(page => (
+      page.content.find(c => c.name.toLowerCase() === name.toLowerCase()) ?? null
+    )),
+    enabled,
+  })
+}

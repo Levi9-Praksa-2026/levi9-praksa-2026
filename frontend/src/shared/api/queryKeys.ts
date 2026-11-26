@@ -22,6 +22,8 @@ export const queryKeys = {
     list: (filters: CommunityListParams) => ['communities', 'list', filters] as const,
     /** Names are unique ignoring case, so `Frontend` and `frontend` share one entry. */
     detail: (name: string) => ['communities', 'detail', name.toLowerCase()] as const,
+    /** ADMIN: a shut-down community found through the admin list (there is no inactive detail endpoint). */
+    inactive: (name: string) => ['communities', 'inactive', name.toLowerCase()] as const,
   },
   posts: {
     all: ['posts'] as const,
