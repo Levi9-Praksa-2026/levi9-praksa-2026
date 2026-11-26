@@ -1,6 +1,9 @@
 package com.levi9.reddit.auth.controller;
 
 import com.levi9.reddit.auth.dto.BanUserDTO;
+import com.levi9.reddit.auth.dto.RegisterDTO;
+import com.levi9.reddit.auth.dto.UserProfileDTO;
+import com.levi9.reddit.auth.service.AuthService;
 import com.levi9.reddit.auth.dto.AdminUserDTO;
 import com.levi9.reddit.auth.dto.PageDTO;
 import com.levi9.reddit.auth.service.UserDirectoryService;
@@ -38,6 +41,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminUserController {
     private final UserBanService bans;
     private final UserDirectoryService directory;
+    private final AuthService accounts;
+
+    /** Creates a regular USER account without changing the administrator's session. */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserProfileDTO create(@Valid @RequestBody RegisterDTO request) {
+        var user = accounts.register(request);
+        return new UserProfileDTO(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName());
+    }
 
     @GetMapping
     public PageDTO<AdminUserDTO> list(

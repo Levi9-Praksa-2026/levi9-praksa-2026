@@ -6,6 +6,9 @@ import com.levi9.reddit.auth.exception.ForbiddenException;
 import com.levi9.reddit.auth.exception.NotFoundException;
 import com.levi9.reddit.auth.config.UserApiSecurityConfig;
 import com.levi9.reddit.auth.service.UserBanService;
+import com.levi9.reddit.auth.service.AuthService;
+import com.levi9.reddit.auth.dto.RegisterDTO;
+import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.service.UserDirectoryService;
 import com.levi9.reddit.auth.dto.AdminUserDTO;
 import com.levi9.reddit.auth.dto.PageDTO;
@@ -52,7 +55,34 @@ class AdminUserControllerTest {
     private UserDirectoryService directory;
 
     @MockitoBean
+    private AuthService accounts;
+
+    @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @Test
+    void adminCreatesRegularUserWithoutCredentialsInResponse() throws Exception {
+        var request = new RegisterDTO("new_user", "new@example.test", "long-demo-password", "New", "User");
+        given(accounts.register(request)).willReturn(new User(request.username(), request.email(), "private-hash", "New", "User"));
+        mvc.perform(post("/api/admin/users").with(admin()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"new_user\",\"email\":\"new@example.test\",\"password\":\"long-demo-password\",\"firstName\":\"New\",\"lastName\":\"User\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.username").value("new_user"))
+                .andExpect(jsonPath("$.passwordHash").doesNotExist())
+                .andExpect(jsonPath("$.password").doesNotExist());
+        verify(accounts).register(request);
+    }
+
+    @Test
+    void creationIsAdminOnlyAndValidatesTheRegistrationRules() throws Exception {
+        mvc.perform(post("/api/admin/users").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/admin/users").with(user()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/admin/users").with(admin()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(accounts);
+    }
 
     @Test
     void adminReadsPaginatedDirectoryWithoutCredentials() throws Exception {
