@@ -122,13 +122,19 @@ function CommunityEditor({ name, onClose, onSaved }: { name?: string; onClose: (
     setNameError('')
     mutation.mutate({ communityName, description: String(fields.get('description') ?? '') })
   }
-  return <Modal title={name ? `Edit l/${name}` : 'Create community'} onClose={onClose} busy={mutation.isPending}>
+  return <Modal title={name ? 'Edit community' : 'Create community'} onClose={onClose} busy={mutation.isPending} size="lg">
     {name && detail.isPending ? <Notice tone="info">Loading community details…</Notice> : name && detail.isError ? <Notice tone="error">{adminError(detail.error)} <button type="button" className="cursor-pointer underline" onClick={() => void detail.refetch()}>Try again</button></Notice> : (
-      <form onSubmit={submit} className="grid gap-5">
+      <form onSubmit={submit} className="grid min-w-0 grid-cols-1 gap-6">
         {mutation.isError && <Notice tone="error">{adminError(mutation.error)}</Notice>}
-        <TextField label="Community name" name="name" defaultValue={name} disabled={!!name || mutation.isPending} required maxLength={50} error={nameError} hint={name ? 'Community names cannot be changed.' : '1–50 letters, digits, underscores or hyphens. Leave out l/.'} />
-        <TextArea label="Description" name="description" defaultValue={detail.data?.description ?? ''} maxLength={2000} disabled={mutation.isPending} hint="Up to 2,000 characters. An empty description is allowed." />
-        <div className="flex flex-wrap justify-end gap-3"><Button variant="secondary" disabled={mutation.isPending} onClick={onClose}>Cancel</Button><Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? 'Saving…' : name ? 'Save description' : 'Create community'}</Button></div>
+        {name ? <div className="flex min-w-0 items-start gap-4 rounded-md bg-surface p-4">
+          <CommunityAvatar name={detail.data?.name ?? name} size="md" />
+          <div className="min-w-0 flex-1">
+            <p className="break-words text-lead font-semibold [overflow-wrap:anywhere]">l/{detail.data?.name ?? name}</p>
+            <p className="mt-1 text-small text-muted">Update the community description.</p>
+          </div>
+        </div> : <TextField label="Community name" name="name" required disabled={mutation.isPending} maxLength={50} error={nameError} hint="1–50 letters, digits, underscores or hyphens. Leave out l/." />}
+        <TextArea label="Description" name="description" defaultValue={detail.data?.description ?? ''} rows={6} maxLength={2000} disabled={mutation.isPending} hint="Up to 2,000 characters. An empty description is allowed." />
+        <div className="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:justify-end"><Button variant="secondary" disabled={mutation.isPending} onClick={onClose}>Cancel</Button><Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? 'Saving…' : name ? 'Save description' : 'Create community'}</Button></div>
       </form>
     )}
   </Modal>

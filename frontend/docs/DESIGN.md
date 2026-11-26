@@ -54,3 +54,10 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 - All is the default unfiltered status; Reset view clears search, status, sort and paging. Show the result count and selected status below the toolbar, and the actual status on every row.
 - Groups sit side by side when space allows and stack on phones. Reuse the theme's surface, accent, border and pill tokens.
 - Research: [eBay filtering](https://playbook.ebay.com/design-system/patterns/filtering-patterns) recommends visible quick filters and an Any/clear default for single-select status; [Visa filters](https://design.visa.com/patterns/filters/) distinguishes sorting from filtering and recommends visible selections and a clear reset.
+
+## Admin editor and ban dialogs (2026-11-26)
+
+- Community editing and user banning use the shared large modal (720px maximum), with an identity panel, clear field groups and a separated action footer.
+- Ban presets and the editable reason sit side by side on desktop. On phones they stack; presets use a compact two-column grid and the reason field is shorter.
+- Footer buttons stack at full width below 640px. Dialog content scrolls within the viewport on short screens.
+- Community identifiers wrap inside their panel, and textarea/grid minimum widths allow shrinking without horizontal overflow.

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
-import { Ban, CircleCheck, Layers, Pencil, Plus, Search, ShieldCheck, UserRound, UserRoundX } from 'lucide-react'
+import { Ban, Check, CircleCheck, Layers, Pencil, Plus, Search, ShieldCheck, UserRound, UserRoundX } from 'lucide-react'
 import { UserAvatar } from '@/features/users/UserAvatar'
 import { adminApi, type AdminUser, type AdminUserFilters } from '@/shared/api/admin'
 import { queryKeys } from '@/shared/api/queryKeys'
@@ -157,17 +157,29 @@ function BanUserDialog({ user, pending, error, onClose, onConfirm }: { user: Adm
     if (!reason.trim()) { setValidationError('Enter a reason for the ban.'); return }
     onConfirm(reason.trim())
   }
-  return <Modal title={`Ban u/${user.username}?`} onClose={onClose} busy={pending}>
-    <form onSubmit={submit} className="grid gap-5">
-      <p className="text-small text-muted">This user will lose access to their account.</p>
+  return <Modal title="Ban user" onClose={onClose} busy={pending} size="lg">
+    <form onSubmit={submit} className="grid min-w-0 grid-cols-1 gap-6">
+      <div className="flex min-w-0 items-start gap-4 rounded-md bg-surface p-4">
+        <UserAvatar username={user.username} className="size-12 text-lead" />
+        <div className="min-w-0 flex-1">
+          <h3 className="break-words text-h3">{user.firstName} {user.lastName}</h3>
+          <p className="mt-1 break-words text-small text-muted">u/{user.username}</p>
+        </div>
+      </div>
+      <p className="text-small text-muted">This user will lose access to their account. Choose a reason below or write your own.</p>
       {error != null && <Notice tone="error">{adminError(error)}</Notice>}
       {validationError && <Notice tone="error">{validationError}</Notice>}
-      <fieldset disabled={pending} className="min-w-0">
-        <legend className="mb-2 text-small font-medium">Common reasons</legend>
-        <div className="flex flex-wrap gap-2">{BAN_REASONS.map(preset => <button key={preset.label} type="button" aria-pressed={reason === preset.reason} onClick={() => { setReason(preset.reason); setValidationError('') }} className="cursor-pointer rounded-btn border border-line-strong px-3 py-2 text-small text-muted hover:bg-surface hover:text-ink aria-pressed:border-accent aria-pressed:bg-surface aria-pressed:text-accent">{preset.label}</button>)}</div>
-      </fieldset>
-      <TextArea label="Reason for ban" name="reason" value={reason} onChange={event => setReason(event.target.value)} disabled={pending} required maxLength={500} hint="Choose a common reason or write your own. You can edit the text before submitting. Up to 500 characters; visible to the user when they try to log in." />
-      <div className="flex flex-wrap justify-end gap-3"><Button variant="secondary" disabled={pending} onClick={onClose}>Cancel</Button><Button type="submit" disabled={pending}>{pending ? 'Saving…' : 'Ban user'}</Button></div>
+      <div className="grid items-start gap-5 sm:grid-cols-2">
+        <fieldset disabled={pending} className="min-w-0">
+          <legend className="mb-2 text-small font-medium">Common reasons</legend>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-1">{BAN_REASONS.map(preset => <button key={preset.label} type="button" aria-pressed={reason === preset.reason} onClick={() => { setReason(preset.reason); setValidationError('') }} className="flex min-h-11 cursor-pointer items-center justify-between gap-2 rounded-md border border-line-strong px-3 py-2 text-left text-small text-muted hover:bg-surface hover:text-ink aria-pressed:border-accent aria-pressed:bg-surface aria-pressed:text-accent">
+            <span className="min-w-0 break-words">{preset.label}</span>
+            <Check className={reason === preset.reason ? 'size-4 flex-none' : 'size-4 flex-none opacity-0'} aria-hidden="true" />
+          </button>)}</div>
+        </fieldset>
+        <TextArea label="Reason for ban" name="reason" value={reason} onChange={event => setReason(event.target.value)} rows={4} className="sm:[&>textarea]:min-h-48" disabled={pending} required maxLength={500} hint="Edit the selected reason or write your own. Up to 500 characters; shown to the user when they try to log in." />
+      </div>
+      <div className="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:justify-end"><Button variant="secondary" disabled={pending} onClick={onClose}>Cancel</Button><Button type="submit" disabled={pending}>{pending ? 'Saving…' : 'Ban user'}</Button></div>
     </form>
   </Modal>
 }
