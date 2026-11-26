@@ -6,13 +6,6 @@
 # The default VPC has one public subnet per AZ. A subnet group needs subnets in at least two
 # AZs. The instance is not publicly accessible and the rds security group is the boundary,
 # so no new subnets are needed for dev.
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
 resource "aws_db_subnet_group" "this" {
   name       = "${local.name}-db"
   subnet_ids = data.aws_subnets.default.ids

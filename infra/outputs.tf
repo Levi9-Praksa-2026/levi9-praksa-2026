@@ -9,3 +9,10 @@ output "rds_jdbc_url" {
 output "rds_secret_arn" {
   value = aws_db_instance.this.master_user_secret[0].secret_arn
 }
+output "alb_dns_name" {
+  value = aws_lb.gateway.dns_name
+}
+
+output "gateway_target_group_arn" {
+  value = aws_lb_target_group.gateway.arn
+}
