@@ -13,21 +13,40 @@ function request() {
 }
 
 describe('admin gateway contracts', () => {
+  it('updates only profile fields through the protected, encoded user path', async () => {
+    const body = { firstName: 'New', lastName: 'Name', email: 'new@example.test' };
+    fetchMock.mockResolvedValueOnce(Response.json({ id: 7, username: 'reader', ...body }));
+    expect(await adminApi.updateUser('test/user', body)).toMatchObject({ id: 7, ...body });
+    expect(request()).toMatchObject({ path: '/api/admin/users/test%2Fuser', method: 'PATCH', credentials: 'same-origin', body });
+  })
+
   it('creates users through the admin endpoint without invoking public registration or login', async () => {
-    const body = { username: 'new_user', email: 'new@example.test', firstName: 'New', lastName: 'User', password: 'long-demo-password' };
+    const body = { username: 'new_user', email: 'new@example.test', firstName: 'New', lastName: 'User', password: 'long-demo-password', role: 'USER' as const };
     fetchMock.mockResolvedValueOnce(Response.json({ id: 10, username: 'new_user' }, { status: 201 }));
     expect(await adminApi.createUser(body)).toMatchObject({ id: 10, username: 'new_user' });
     expect(request()).toMatchObject({ path: '/api/admin/users', method: 'POST', credentials: 'same-origin', body });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   })
 
-  it('requests the paginated user directory with search and status filters', async () => {
+  it('sends the selected admin role only to the protected create endpoint', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ id: 11, username: 'new_admin' }, { status: 201 }));
+    await adminApi.createUser({ username: 'new_admin', email: 'newadmin@example.test', firstName: 'New', lastName: 'Admin', password: 'long-demo-password', role: 'ADMIN' });
+    expect(request()).toMatchObject({ path: '/api/admin/users', method: 'POST', body: { role: 'ADMIN' } });
+  })
+
+  it('omits the role parameter when showing all accounts', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ content: [] }));
+    await adminApi.users({ page: 0, size: 5 });
+    expect(new URL(String(request().path), 'http://localhost').searchParams.has('role')).toBe(false);
+  })
+
+  it('requests the paginated user directory with search, status and role filters', async () => {
     const result = { content: [{ id: 7, username: 'reader', banned: true }], page: 1, size: 5, totalPages: 2, totalElements: 6 };
     fetchMock.mockResolvedValueOnce(Response.json(result));
-    expect(await adminApi.users({ q: 'name@example.test', status: 'banned', page: 1, size: 5 })).toEqual(result);
+    expect(await adminApi.users({ q: 'name@example.test', status: 'banned', role: 'USER', page: 1, size: 5 })).toEqual(result);
     const url = new URL(String(request().path), 'http://localhost');
     expect(url.pathname).toBe('/api/admin/users');
-    expect(Object.fromEntries(url.searchParams)).toEqual({ q: 'name@example.test', status: 'banned', page: '1', size: '5' });
+    expect(Object.fromEntries(url.searchParams)).toEqual({ q: 'name@example.test', status: 'banned', role: 'USER', page: '1', size: '5' });
   })
 
   it('uses the shared community endpoint for all, active and inactive admin views', async () => {

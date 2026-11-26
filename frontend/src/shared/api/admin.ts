@@ -4,6 +4,16 @@ import type { PageResponse } from './contracts/common'
 import type { CommunityDetailResponse, CommunitySort, CreateCommunityRequest } from './contracts/communities'
 import { http } from './http'
 
+export interface AdminCreateUserRequest extends RegisterRequest {
+  role?: 'USER' | 'ADMIN'
+}
+
+export interface AdminUpdateUserRequest {
+  firstName: string
+  lastName: string
+  email: string
+}
+
 export interface AdminUser {
   id: number
   username: string
@@ -18,6 +28,7 @@ export interface AdminUser {
   createdAt: string
 }
 export interface AdminUserFilters {
+  role?: 'USER' | 'ADMIN'
   q?: string
   status?: 'active' | 'banned' | 'deleted'
   page?: number
@@ -62,7 +73,8 @@ const banPath = (username: string) => `/api/admin/users/${encodeURIComponent(use
 
 /** Admin writes use the gateway session and CSRF handling, never the mock session. */
 export const adminApi = {
-  createUser: (body: RegisterRequest) => http<UserProfileResponse>('/api/admin/users', { method: 'POST', body }),
+  updateUser: (username: string, body: AdminUpdateUserRequest) => http<UserProfileResponse>(`/api/admin/users/${encodeURIComponent(username)}`, { method: 'PATCH', body }),
+  createUser: (body: AdminCreateUserRequest) => http<UserProfileResponse>('/api/admin/users', { method: 'POST', body }),
   users: (filters: AdminUserFilters) => http<PageResponse<AdminUser>>('/api/admin/users', { query: { ...filters } }),
   communities: ({ status, ...filters }: AdminCommunityFilters) => http<PageResponse<AdminCommunity>>('/api/communities', {
     query: { ...filters, inactive: status === 'active' ? 'false' : status === 'inactive' ? 'true' : 'all' },
