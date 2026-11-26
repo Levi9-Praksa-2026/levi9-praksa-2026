@@ -17,6 +17,11 @@ export const routes = {
   welcome: '/welcome/',
   /** The searchable community directory. */
   communities: '/communities',
+  /** Administrator overview. */
+  admin: '/admin',
+  adminCommunities: '/admin/communities',
+  adminUsers: '/admin/users',
+  adminPosts: '/admin/posts',
   /** A community's page: `/l/frontend`. */
   community: (name: string) => `/l/${encodeURIComponent(name)}`,
 } as const
