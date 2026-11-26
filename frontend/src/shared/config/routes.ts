@@ -19,6 +19,8 @@ export const routes = {
   communities: '/communities',
   /** A community's page: `/l/frontend`. */
   community: (name: string) => `/l/${encodeURIComponent(name)}`,
+  /** The logged-in user's own profile. */
+  profile: '/profile',
   /** A new post in a community: `/l/frontend/submit`. */
   submit: (communityName: string) => `/l/${encodeURIComponent(communityName)}/submit`,
   /** A post with its comments: `/posts/42`. `#comments` jumps to the comments. */
