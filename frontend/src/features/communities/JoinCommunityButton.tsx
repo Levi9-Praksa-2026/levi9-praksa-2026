@@ -49,14 +49,38 @@ export function JoinCommunityButton({ name, className }: JoinCommunityButtonProp
   )
 }
 
-/** The community page's Join/Leave, driven by the backend's /members/me endpoint. */
+/**
+ * The community page's Join/Leave. The membership query lives in the logged-in child only: a visitor
+ * without a session renders the login link and never calls /members/me.
+ */
 export function CommunityMembershipButton({ name, className }: JoinCommunityButtonProps) {
   const { user } = useCurrentUser()
+
+  if (user === null) {
+    return (
+      <a href={routes.login} aria-label="Log in to join" className={cn(actionButton, className)}>
+        <UserPlus className="size-4" aria-hidden="true" /> Join
+      </a>
+    )
+  }
+
+  if (user === undefined) {
+    return (
+      <button type="button" disabled className={cn(actionButton, className)}>
+        <UserPlus className="size-4" aria-hidden="true" /> Join
+      </button>
+    )
+  }
+
+  return <LoggedInMembershipButton name={name} userId={user.id} className={className} />
+}
+
+function LoggedInMembershipButton({ name, userId, className }: JoinCommunityButtonProps & { userId: number }) {
   const client = useQueryClient()
-  const membership = useCommunityMembership(name, user?.id)
+  const membership = useCommunityMembership(name, userId)
 
   function invalidate() {
-    void client.invalidateQueries({ queryKey: queryKeys.communities.membership(name, user?.id ?? 0) })
+    void client.invalidateQueries({ queryKey: queryKeys.communities.membership(name, userId) })
     void client.invalidateQueries({ queryKey: queryKeys.communities.detail(name) })
     void client.invalidateQueries({ queryKey: queryKeys.communities.list({}) })
   }
@@ -64,20 +88,8 @@ export function CommunityMembershipButton({ name, className }: JoinCommunityButt
   const join = useMutation({ mutationFn: () => joinCommunity(name), onSuccess: invalidate })
   const leave = useMutation({ mutationFn: () => leaveCommunity(name), onSuccess: invalidate })
 
-  if (user === null) {
-    return (
-      <a
-        href={routes.login}
-        aria-label="Log in to join"
-        className={cn(actionButton, 'items-center', className)}
-      >
-        <UserPlus className="size-4" aria-hidden="true" /> Join
-      </a>
-    )
-  }
-
   const joined = membership.data?.joined ?? false
-  const pending = (user !== undefined && membership.isPending) || join.isPending || leave.isPending
+  const pending = membership.isPending || join.isPending || leave.isPending
   const error = membership.isError
     ? `Couldn't check your membership in l/${name}.`
     : join.isError

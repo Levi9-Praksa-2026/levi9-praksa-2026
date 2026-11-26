@@ -47,7 +47,8 @@ export function CommunityPage() {
 
   const reactivateError = reactivate.isError ? `Couldn't reactivate l/${name}. Try again.` : null
 
-  if (isPending || user === undefined || (missing && isAdmin && inactive.isPending) || reactivate.isPending) return loading
+  // Public content never waits for /api/me: an anonymous 401 there must not hide the community.
+  if (isPending || (missing && isAdmin && inactive.isPending) || reactivate.isPending) return loading
 
   // An admin who just deactivated this community stays on the page, with a way to undo it.
   if (shutDown && data) {
