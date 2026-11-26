@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from './errors'
-import { db, mockSignInAs, resetMockDb } from './mock/db'
+import { db, resetMockDb } from './mock/db'
 import { setMockLatency } from './mock/server'
 import {
   createComment,
@@ -76,6 +76,22 @@ describe('post reads (real API)', () => {
     expect(new Headers(init?.headers).get('X-XSRF-TOKEN')).toBe('gateway-token')
   })
 
+  it('creates a post as multipart: a JSON part named post, then each image', async () => {
+    vi.stubGlobal('document', { cookie: 'XSRF-TOKEN=gateway-token' })
+    const image = new File(['png'], 'map.png', { type: 'image/png' })
+    await createPost({ title: 'New one', content: null, communityId: 3 }, [image, image])
+    const [url, init] = fetchMock.mock.calls[0]!
+    expect([url, init?.method]).toEqual(['/api/posts', 'POST'])
+    const form = init?.body as FormData
+    const post = form.get('post') as Blob
+    expect(post.type).toBe('application/json')
+    expect(JSON.parse(await post.text())).toEqual({ title: 'New one', content: null, communityId: 3 })
+    expect(form.getAll('images')).toHaveLength(2)
+    // The browser sets the multipart boundary itself, so no Content-Type is sent by hand.
+    expect(new Headers(init?.headers).has('Content-Type')).toBe(false)
+    expect(new Headers(init?.headers).get('X-XSRF-TOKEN')).toBe('gateway-token')
+  })
+
   it('removes a post with a DELETE and takes the 204 as done', async () => {
     fetchMock.mockImplementation(async () => new Response(null, { status: 204 }))
     await expect(removePost(42)).resolves.toBeUndefined()
@@ -99,25 +115,6 @@ describe('top posts (mocked)', () => {
     expect(all[0]!.title).toBe('What we learned moving to Java 25')
     const week = await getTopPosts('WEEK')
     expect(week.some(p => p.title === 'What we learned moving to Java 25')).toBe(false)
-  })
-})
-
-describe('writing posts', () => {
-  it('lets a member post, and refuses a non-member with 403', async () => {
-    const backend = db.communities.find(c => c.name === 'backend')!
-    const post = await createPost({ title: '  New one  ', content: 'Body', communityId: backend.id })
-    expect(post).toMatchObject({ title: 'New one', authorUsername: 'demo_user', score: 0, commentCount: 0, myVote: null })
-    const devops = db.communities.find(c => c.name === 'devops')!
-    expect(await statusOf(createPost({ title: 'x', content: 'y', communityId: devops.id }))).toBe(403)
-  })
-
-  it('needs a login, a title and at most 3 images', async () => {
-    const backend = db.communities.find(c => c.name === 'backend')!
-    const image = new File(['x'], 'a.png')
-    expect(await statusOf(createPost({ title: ' ', content: 'y', communityId: backend.id }))).toBe(400)
-    expect(await statusOf(createPost({ title: 'x', content: 'y', communityId: backend.id }, [image, image, image, image]))).toBe(400)
-    mockSignInAs(null)
-    expect(await statusOf(createPost({ title: 'x', content: 'y', communityId: backend.id }))).toBe(401)
   })
 })
 

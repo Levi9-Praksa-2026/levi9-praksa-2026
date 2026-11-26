@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { PostListParams, UpdatePostRequest } from '@/shared/api/contracts/posts'
-import { getPost, listComments, listPosts, removePost, updatePost } from '@/shared/api/posts'
+import type { CreatePostRequest, PostListParams, UpdatePostRequest } from '@/shared/api/contracts/posts'
+import { createPost, getPost, listComments, listPosts, removePost, updatePost } from '@/shared/api/posts'
 import { queryKeys } from '@/shared/api/queryKeys'
 
 /**
@@ -48,6 +48,18 @@ export function useRemovePost(postId: number) {
     mutationFn: () => removePost(postId),
     onSuccess: () => {
       client.removeQueries({ queryKey: queryKeys.posts.detail(postId) })
+      void client.invalidateQueries({ queryKey: ['posts', 'list'] })
+    },
+  })
+}
+
+/** Creates a post with its images. The new post goes into the cache for its page; feeds load again with it. */
+export function useCreatePost() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ request, images }: { request: CreatePostRequest; images: readonly File[] }) => createPost(request, images),
+    onSuccess: post => {
+      client.setQueryData(queryKeys.posts.detail(post.id), post)
       void client.invalidateQueries({ queryKey: ['posts', 'list'] })
     },
   })

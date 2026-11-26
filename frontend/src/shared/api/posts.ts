@@ -11,21 +11,19 @@ import type {
 import { ApiError } from './errors'
 import { http } from './http'
 import { db, voteKey, type CommentRow, type PostRow, type UserRow } from './mock/db'
-import { fileUrl, invalid, notBlank, optionalUser, requireUser } from './mock/guards'
+import { invalid, notBlank, optionalUser, requireUser } from './mock/guards'
 import { handle, newestFirst } from './mock/server'
 
 /*
-  post-service, /api/posts/** and /api/comments/**. The reads (`listPosts`, `getPost`, `listComments`), editing
-  and removing a post are real requests. Post votes have no endpoint yet, so `votePost` and `unvotePost` send nothing.
+  post-service, /api/posts/** and /api/comments/**. The reads (`listPosts`, `getPost`, `listComments`), creating,
+  editing and removing a post are real requests. Post votes have no endpoint yet, so `votePost` and `unvotePost` send nothing.
   Everything else is still mocked: it
   answers from the in-memory data with the service's rules (docs/data-model.md, the endpoints doc).
   Replace each body with a request when the backend is up; the signatures stay.
 */
 
-// Not fixed by the backend yet (no create-post DTO exists): the search limit, and a generous body.
-const TITLE_MAX = 300
+// The mocked comments' length limit, as post-service's PostLimits.CONTENT_MAX.
 const CONTENT_MAX = 40_000
-const IMAGES_MAX = 3
 
 function livePost(id: number): PostRow {
   const post = db.posts.find(p => p.id === id && !p.removedAt)
@@ -129,33 +127,17 @@ export function getPost(id: number): Promise<PostResponse> {
   return http<PostResponse>(`/api/posts/${id}`)
 }
 
-/** `POST /api/posts` (multipart: the JSON part and up to 3 images). Members only; 201 with the post. */
+/**
+ * `POST /api/posts`: multipart, a JSON part named `post` and up to 3 `images` (JPEG or PNG, 5 MB each). Members of
+ * the community only; 201 with the post. 403 `NOT_COMMUNITY_MEMBER`, 422 when the community is shut down or an image
+ * is refused, 413 when a file is too large for the server to read.
+ */
 export function createPost(request: CreatePostRequest, images: readonly File[] = []): Promise<PostResponse> {
-  return handle(() => {
-    const me = requireUser()
-    const title = notBlank('title', request.title, TITLE_MAX)
-    const content = notBlank('content', request.content, CONTENT_MAX)
-    if (images.length > IMAGES_MAX) throw invalid('images', `at most ${IMAGES_MAX} images`)
-    requireMember(me, request.communityId)
-    const at = now()
-    const row: PostRow = {
-      id: db.nextId.post++,
-      title,
-      content,
-      authorId: me.id,
-      authorUsername: me.username,
-      communityId: request.communityId,
-      score: 0,
-      commentCount: 0,
-      imageUrls: images.map(fileUrl),
-      createdAt: at,
-      updatedAt: at,
-      removedAt: null,
-      removedBy: null,
-    }
-    db.posts.push(row)
-    return toPost(row)
-  })
+  const form = new FormData()
+  // The JSON part needs its own content type, or post-service can't read it as the request object.
+  form.append('post', new Blob([JSON.stringify(request)], { type: 'application/json' }))
+  for (const image of images) form.append('images', image, image.name)
+  return http<PostResponse>('/api/posts', { method: 'POST', body: form })
 }
 
 /**
