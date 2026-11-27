@@ -1,5 +1,5 @@
 import { MessageSquare } from 'lucide-react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import type { PostResponse } from '@/shared/api/contracts/posts'
 import { routes } from '@/shared/config/routes'
 import { cn } from '@/shared/lib/cn'
@@ -15,10 +15,14 @@ export interface PostCardProps {
 
 /** One post in a feed: where and who from, the title (a link to the post), a short preview, its images, then actions. */
 export function PostCard({ post, hideCommunity = false, className }: PostCardProps) {
+  const navigate = useNavigate()
   const titleId = `post-${post.id}-title`
 
   return (
-    <article aria-labelledby={titleId} className={cn('grid gap-3 rounded-lg border border-line bg-bg p-card-pad', className)}>
+    <article aria-labelledby={titleId} onClick={(event) => {
+      if (event.defaultPrevented || (event.target as Element).closest('a, button, input, select, textarea, [role="dialog"]')) return
+      navigate(routes.post(post.id))
+    }} className={cn('grid cursor-pointer gap-3 rounded-lg border border-line bg-bg p-card-pad transition-colors hover:border-line-strong hover:bg-surface', className)}>
       <header>
         <PostMeta post={post} hideCommunity={hideCommunity} />
       </header>
