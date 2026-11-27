@@ -62,6 +62,20 @@ resource "aws_iam_role_policy" "ecs_task_secrets" {
   policy = data.aws_iam_policy_document.ecs_task_secrets.json
 }
 
+# Only auth-service may read the first admin's secret.
+data "aws_iam_policy_document" "auth_bootstrap_admin" {
+  statement {
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [aws_secretsmanager_secret.bootstrap_admin.arn]
+  }
+}
+
+resource "aws_iam_role_policy" "auth_bootstrap_admin" {
+  name   = "read-bootstrap-admin"
+  role   = aws_iam_role.ecs_task["auth-service"].id
+  policy = data.aws_iam_policy_document.auth_bootstrap_admin.json
+}
+
 resource "aws_iam_role" "ecs_task" {
   for_each = local.services
 

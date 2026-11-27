@@ -44,6 +44,12 @@ locals {
     })
     auth-service = merge(local.common_env, {
       APP_JWT_KEY_ID = var.jwt_key_id
+      # The RDS secret as for every service, plus the first admin's (secrets.tf). optional: a missing, empty or
+      # deleted secret doesn't stop startup, it only means no bootstrap admin.
+      SPRING_CONFIG_IMPORT = join(",", [
+        local.common_env.SPRING_CONFIG_IMPORT,
+        "optional:aws-secretsmanager:${aws_secretsmanager_secret.bootstrap_admin.arn}?prefix=app.bootstrap-admin.",
+      ])
     })
     community-service = merge(local.common_env, {
       AUTH_JWKS_URI = local.jwks_uri

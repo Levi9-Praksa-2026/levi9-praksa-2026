@@ -51,7 +51,26 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
   (`admin@levddit.local` / `admin-password`, `app.dev-admin.*`, overridable with `APP_DEVADMIN_*`), so admin
   endpoints can be tried with a real token on a fresh database. An existing account is never changed.
 - **Production:** nothing to set or remove: the code only exists in the dev profile. Because the password is in the
-  repo, never run the dev profile anywhere others can reach. Promote real admins in the database.
+  repo, never run the dev profile anywhere others can reach. The first real admin is the bootstrap admin below.
+
+### First admin account (bootstrap admin)
+A fresh database has no admin, and only an admin can create another one. `BootstrapAdminAccount` creates the first
+one at startup from `app.bootstrap-admin.username`, `.email` and `.password`. It does nothing while any ADMIN exists,
+never promotes an existing account with that email or username, and stops startup if the values break the
+registration rules. Locally the settings are unset, so it never runs.
+
+On AWS the values come from the `levddit/bootstrap-admin` secret, which auth-service imports itself as `optional:`
+(Terraform creates it empty). Once:
+1. Put the value in: `aws secretsmanager put-secret-value --secret-id levddit/bootstrap-admin --secret-string file://admin.json`
+   with `{"username": "...", "email": "...", "password": "..."}` (password at least 12 characters). Delete the local
+   file afterwards.
+2. Restart auth-service: `aws ecs update-service --cluster levddit --service auth-service --force-new-deployment`.
+   Its log says `Created bootstrap admin account ...`.
+3. Log in and change the password on the profile page, so the one in the secret no longer works.
+
+Leave the secret in place afterwards. If you do delete it, force a new auth-service deployment right after: the
+secret poller (every 30 s) fails on a secret that loaded at startup and is gone, and while it fails it also stops
+picking up RDS password rotations.
 
 ## gateway
 

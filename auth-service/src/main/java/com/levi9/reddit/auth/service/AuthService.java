@@ -37,7 +37,7 @@ public class AuthService {
         return create(request, UserRole.USER);
     }
 
-    /** Called only by the admin controller. Public registration always uses USER. */
+    /** Called only by the admin controller and the bootstrap admin account. Public registration always uses USER. */
     @Transactional
     public User createByAdmin(RegisterDTO request, UserRole role) {
         return create(request, java.util.Objects.requireNonNull(role, "role"));

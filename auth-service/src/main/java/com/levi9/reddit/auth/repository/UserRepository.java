@@ -51,4 +51,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("select count(u) > 0 from User u where lower(u.email) = lower(:email)")
     boolean existsByEmailIgnoringCase(@Param("email") String email);
+
+    /** Whether any account that isn't deleted has this role. The bootstrap admin uses it. */
+    boolean existsByRoleAndDeletedFalse(UserRole role);
 }
