@@ -18,6 +18,8 @@ export interface CommunityDetailResponse {
   description: string | null
   memberCount: number
   createdAt: Instant
+  /** Inactive details are returned only to admins. */
+  active: boolean
   /**
    * Mock only: the backend does not send a membership flag on the detail. The browser asks
    * `GET /api/communities/{name}/members/me` instead, so this field is never used by the UI.

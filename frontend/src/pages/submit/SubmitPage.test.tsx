@@ -10,10 +10,10 @@ import { SubmitPage } from './SubmitPage'
 const community = { id: 3, name: 'backend', description: null, memberCount: 7, createdAt: '2026-11-20T10:00:00Z' }
 
 /** Renders /l/backend/submit with `me` and the community already in the cache, so nothing is fetched. */
-function render(me: MeResponse | null) {
+function render(me: MeResponse | null, active = true) {
   const client = new QueryClient()
   client.setQueryData(queryKeys.me, me)
-  client.setQueryData(queryKeys.communities.detail('backend'), community)
+  client.setQueryData(queryKeys.communities.detail('backend'), { ...community, active })
   return renderToStaticMarkup(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={['/l/backend/submit']}>
@@ -26,6 +26,12 @@ function render(me: MeResponse | null) {
 }
 
 describe('SubmitPage', () => {
+  it('does not show a post form for an inactive community even to admins', () => {
+    const html = render({ id: 2, username: 'admin', roles: ['ADMIN'] }, false)
+    expect(html).toContain('shut down')
+    expect(html).not.toContain('<form')
+  })
+
   it('asks a logged-out reader to log in first', () => {
     const html = render(null)
     expect(html).toContain('Log in to post')

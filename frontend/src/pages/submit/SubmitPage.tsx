@@ -45,8 +45,8 @@ export function SubmitPage() {
     )
   }
 
-  if (error) {
-    const missing = isApiError(error) && error.status === 404
+  if (error || community?.active === false) {
+    const missing = community?.active === false || (isApiError(error) && error.status === 404)
     return (
       <div className={cn(panel, 'py-10 text-center')}>
         <h1 className="text-h3">{missing ? `l/${name} doesn't exist` : `Couldn't load l/${name}`}</h1>

@@ -87,7 +87,7 @@ export function AdminCommunitiesPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 max-sm:w-full">
-                {community.active && <Button variant="secondary" onClick={() => { setMessage(''); setEditor({ name: community.name }) }}>Edit details</Button>}
+                <Button variant="secondary" onClick={() => { setMessage(''); setEditor({ name: community.name }) }}>Edit details</Button>
                 <Button variant={community.active ? 'danger-outline' : 'secondary'} onClick={() => { changeStatus.reset(); setTarget({ name: community.name, inactive: !community.active }) }}>{community.active ? 'Shut down' : 'Reactivate'}</Button>
               </div>
             </li>)}

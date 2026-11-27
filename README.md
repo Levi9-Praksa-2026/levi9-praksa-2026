@@ -164,6 +164,9 @@ fails (failures still fail CI). The status table is in the GitHub run summary, a
   shut-down communities with `?inactive=true`: the *presence* of the parameter selects the admin
   handler, so `inactive=false` still requires ADMIN. The frontend's searchable directory is
   `/communities`.
+- `GET /api/communities/{name}` returns active community details publicly. Admins also receive
+  inactive community details; the response includes `active` so the UI can show the shutdown state.
+  Unknown names return 404 for everyone.
 - `sort=hot` is in the endpoints document but not implemented yet. It needs activity data from
   post-service's `/internal/posts/community-activity`, which is separate work.
 
