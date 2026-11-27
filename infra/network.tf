@@ -16,3 +16,11 @@ data "aws_subnets" "default" {
     values = [data.aws_vpc.default.id]
   }
 }
+
+# The gateway's trusted-proxies regex in ecs.tf assumes this range. Warns at plan time if it doesn't match.
+check "default_vpc_cidr" {
+  assert {
+    condition     = data.aws_vpc.default.cidr_block == "172.31.0.0/16"
+    error_message = "The default VPC is not 172.31.0.0/16; update trusted_proxies in ecs.tf to match."
+  }
+}
