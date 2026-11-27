@@ -16,19 +16,31 @@ locals {
 
   # Settings every service needs. No SPRING_PROFILES_ACTIVE on purpose: production runs without "dev".
   # Each service picks its own schema in its application.yml, so one datasource URL fits all four.
+  # The RDS-managed secret is imported by the application itself (task role), so a rotated password reaches the
+  # pool without a task replacement. Its JSON keys become spring.datasource.* (username + password).
   common_env = {
-    APP_PUBLIC_URL             = local.public_url
-    SPRING_DATASOURCE_URL      = "jdbc:postgresql://${aws_db_instance.this.address}:${aws_db_instance.this.port}/${aws_db_instance.this.db_name}"
-    SPRING_DATASOURCE_USERNAME = aws_db_instance.this.username
-    JAVA_TOOL_OPTIONS          = "-XX:MaxRAMPercentage=75" # the JVM sizes itself to the container's memory
+    APP_PUBLIC_URL        = local.public_url
+    SPRING_DATASOURCE_URL = "jdbc:postgresql://${aws_db_instance.this.address}:${aws_db_instance.this.port}/${aws_db_instance.this.db_name}"
+    # One aws-secretsmanager: location only. Multiple imports use commas, not semicolons (a semicolon means
+    # another secret name in the same import, which would also inherit ?prefix=).
+    SPRING_CONFIG_IMPORT = "aws-secretsmanager:${aws_db_instance.this.master_user_secret[0].secret_arn}?prefix=spring.datasource."
+    # The client needs a region before it can read the secret, so this bootstrap value cannot come from a secret.
+    # Base application.yml disables the integration for local runs; production turns it back on here.
+    SPRING_CLOUD_AWS_REGION_STATIC                  = var.aws_region
+    SPRING_CLOUD_AWS_SECRETSMANAGER_ENABLED         = "true"
+    SPRING_CLOUD_AWS_SECRETSMANAGER_RELOAD_STRATEGY = "refresh"
+    SPRING_CLOUD_AWS_SECRETSMANAGER_RELOAD_PERIOD   = "30s"
+    JAVA_TOOL_OPTIONS                               = "-XX:MaxRAMPercentage=75" # the JVM sizes itself to the container's memory
   }
 
+  # Non-secret settings stay as environment variables: the beans that consume them are built at startup,
+  # so a Secrets Manager import would not make them changeable without a deployment anyway.
   service_env = {
     gateway = merge(local.common_env, {
+      SPRING_CLOUD_GATEWAY_SERVER_WEBMVC_TRUSTEDPROXIES = local.trusted_proxies
       AUTH_SERVICE_URL                                  = "http://auth-service:8081"
       COMMUNITY_SERVICE_URL                             = "http://community-service:8082"
       POST_SERVICE_URL                                  = "http://post-service:8083"
-      SPRING_CLOUD_GATEWAY_SERVER_WEBMVC_TRUSTEDPROXIES = local.trusted_proxies
     })
     auth-service = merge(local.common_env, {
       APP_JWT_KEY_ID = var.jwt_key_id
@@ -46,25 +58,17 @@ locals {
     })
   }
 
-  # Secrets: only ARNs are written here. ECS fetches the values with the execution role when a task starts, so they
-  # never appear in the task definition or in Terraform state. ":password::" picks one key out of RDS's JSON secret.
-  db_password = "${aws_db_instance.this.master_user_secret[0].secret_arn}:password::"
-
+  # These two are still injected by ECS at task start, so the execution role reads them. The DB credentials are
+  # imported by the application itself through SPRING_CONFIG_IMPORT and the task role instead.
   service_secrets = {
     gateway = {
-      SPRING_DATASOURCE_PASSWORD      = local.db_password
       APP_OAUTH_GATEWAY_CLIENT_SECRET = aws_secretsmanager_secret.gateway_client_secret.arn
     }
     auth-service = {
-      SPRING_DATASOURCE_PASSWORD      = local.db_password
       APP_OAUTH_GATEWAY_CLIENT_SECRET = aws_secretsmanager_secret.gateway_client_secret.arn
       APP_JWT_PRIVATE_KEY             = aws_secretsmanager_secret.jwt_private_key.arn
     }
-    community-service = {
-      SPRING_DATASOURCE_PASSWORD = local.db_password
-    }
-    post-service = {
-      SPRING_DATASOURCE_PASSWORD = local.db_password
-    }
+    community-service = {}
+    post-service      = {}
   }
 }

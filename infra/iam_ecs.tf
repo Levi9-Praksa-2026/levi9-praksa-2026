@@ -31,6 +31,8 @@ data "aws_iam_policy_document" "ecs_execution_secrets" {
   statement {
     actions = ["secretsmanager:GetSecretValue"]
     resources = [
+      # Kept so a rollback to a task definition that still injects SPRING_DATASOURCE_PASSWORD can start.
+      # The current task definitions no longer use this permission; it can be removed after the cutover.
       aws_db_instance.this.master_user_secret[0].secret_arn,
       aws_secretsmanager_secret.gateway_client_secret.arn,
       aws_secretsmanager_secret.jwt_private_key.arn,
@@ -42,6 +44,22 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
   name   = "read-startup-secrets"
   role   = aws_iam_role.ecs_execution.id
   policy = data.aws_iam_policy_document.ecs_execution_secrets.json
+}
+
+# The application reads the RDS credentials at runtime via Spring Cloud AWS.
+data "aws_iam_policy_document" "ecs_task_secrets" {
+  statement {
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [aws_db_instance.this.master_user_secret[0].secret_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_secrets" {
+  for_each = local.services
+
+  name   = "read-app-secrets"
+  role   = aws_iam_role.ecs_task[each.key].id
+  policy = data.aws_iam_policy_document.ecs_task_secrets.json
 }
 
 resource "aws_iam_role" "ecs_task" {

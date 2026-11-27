@@ -22,6 +22,10 @@ spring:
     jdbc:
       initialize-schema: never   # Flyway owns the tables (V1__spring_session.sql)
   cloud:
+    aws:
+      secretsmanager:
+        # Local runs have no AWS credentials or secret to read. Production turns it on with an env var.
+        enabled: false
     gateway:
       server:
         webmvc:
