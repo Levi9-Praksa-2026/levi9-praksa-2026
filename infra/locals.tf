@@ -7,7 +7,7 @@ locals {
     media    = "a.dejanovic-int@levi9.com"
     ecs      = "i.radojicic-int@levi9.com"
     schedule = "i.radojicic-int@levi9.com"
-    rds     = "ma.ivanovic-int@levi9.com"
+    rds      = "ma.ivanovic-int@levi9.com"
     # Other resource owners are added as each part lands.
   }
   # The backend services: the list every per-service resource loops over. Names match the module folders and
