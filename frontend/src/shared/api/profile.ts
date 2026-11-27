@@ -3,20 +3,19 @@ import type { UserProfileResponse } from './contracts/users'
 import { http } from './http'
 
 /*
-  Real requests only: no mock store and no seeded people, posts or communities.
+  Real requests only: no mock store and no seeded people or posts.
 
-  There is no profile overview endpoint yet. Until there is one, the identity comes from the real
-  GET /api/users/me and recentPosts is deliberately empty: post-service cannot filter posts by author,
-  so there is no honest way to fill it from the current API.
+  There is no profile overview endpoint yet, so the identity comes from GET /api/users/me and the posts are
+  fetched separately with listPosts({ authorId }) (see features/profile/useMyPosts).
 */
 
-/** The real account, with empty lists until a service can answer the whole Overview. */
+/** The real account, narrowed to what the profile shows. */
 export function getMyProfileOverview(): Promise<ProfileOverviewResponse> {
   return http<UserProfileResponse>('/api/users/me').then(me => ({
+    id: me.id,
     username: me.username,
     firstName: me.firstName,
     lastName: me.lastName,
-    recentPosts: [],
   }))
 }
 

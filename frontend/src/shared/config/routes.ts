@@ -17,6 +17,10 @@ export const routes = {
   /** "Join now": the registration form. `?email=` fills in the email. */
   signUp: '/signup',
   welcome: '/welcome/',
+  /**
+   * The search/discovery page. The URL stays `/communities` so old links keep working, but it now shows
+   * post results first, communities second, and falls back to discovery when nothing matches.
+   */
   
   /** Administrator overview. */
   admin: '/admin',
@@ -26,7 +30,7 @@ export const routes = {
 
   /** The searchable community directory. */
   communities: communitiesPath,
-  /** Where the header search lands: the directory filtered by a (trimmed) name, or all of it if empty. */
+  /** Where the header search lands: post titles and community names matching the trimmed query, or discovery if empty. */
   communitiesSearch: (name: string) => {
     const q = name.trim()
     return q ? `${communitiesPath}?q=${encodeURIComponent(q)}` : communitiesPath

@@ -51,13 +51,14 @@ public class PostController {
     private final PostCommandService postCommandService;
 
     @GetMapping
-    @Operation(summary = "Latest posts, optionally filtered by community and/or searched by title")
+    @Operation(summary = "Latest posts, optionally filtered by community, author or title")
     public PageDTO<PostDTO> findPosts(
             @RequestParam(required = false) Long communityId,
             @RequestParam(required = false) @Size(max = 300) String q,
+            @RequestParam(required = false) @Min(1) Long authorId,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-        return postQueryService.findPosts(communityId, q, page, size);
+        return postQueryService.findPosts(communityId, q, authorId, page, size);
     }
 
     @GetMapping("/top")

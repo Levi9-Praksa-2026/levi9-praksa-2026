@@ -2,6 +2,7 @@ package com.levi9.reddit.post.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.levi9.reddit.post.dto.CommentDTO;
+import com.levi9.reddit.post.exception.BadRequestException;
+import com.levi9.reddit.post.exception.ErrorType;
 import com.levi9.reddit.post.dto.PageDTO;
 import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.dto.PostImageDTO;
@@ -48,7 +51,7 @@ class PostControllerTest {
     @Test
     void findPosts_isPublicAndUsesDefaultPaging() throws Exception {
         PostDTO post = new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, "java", 3, 0, CREATED, null, List.of());
-        when(postQueryService.findPosts(null, null, 0, 20)).thenReturn(new PageDTO<>(List.of(post), 0, 20, 1, 1));
+        when(postQueryService.findPosts(null, null, null, 0, 20)).thenReturn(new PageDTO<>(List.of(post), 0, 20, 1, 1));
 
         mockMvc.perform(get("/api/posts"))
                 .andExpect(status().isOk())
@@ -104,13 +107,34 @@ class PostControllerTest {
 
     @Test
     void findPosts_passesFiltersAndPaging() throws Exception {
-        when(postQueryService.findPosts(7L, "spring", 2, 10)).thenReturn(new PageDTO<>(List.of(), 2, 10, 0, 0));
+        when(postQueryService.findPosts(7L, "spring", null, 2, 10)).thenReturn(new PageDTO<>(List.of(), 2, 10, 0, 0));
 
         mockMvc.perform(get("/api/posts").param("communityId", "7").param("q", "spring")
                         .param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page").value(2))
                 .andExpect(jsonPath("$.size").value(10));
+    }
+
+    @Test
+    void findPosts_passesAuthorIdToTheQuery() throws Exception {
+        when(postQueryService.findPosts(null, null, 1L, 0, 20)).thenReturn(new PageDTO<>(List.of(), 0, 20, 0, 0));
+
+        mockMvc.perform(get("/api/posts").param("authorId", "1"))
+                .andExpect(status().isOk());
+
+        verify(postQueryService).findPosts(null, null, 1L, 0, 20);
+    }
+
+    @Test
+    void findPosts_withAuthorAndCommunity_returnsBadRequest() throws Exception {
+        when(postQueryService.findPosts(any(), any(), any(), anyInt(), anyInt()))
+                .thenThrow(new BadRequestException(ErrorType.INVALID_QUERY_PARAMETERS,
+                        "authorId cannot be combined with communityId or q"));
+
+        mockMvc.perform(get("/api/posts").param("authorId", "1").param("communityId", "7"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorType").value("INVALID_QUERY_PARAMETERS"));
     }
 
     @Test

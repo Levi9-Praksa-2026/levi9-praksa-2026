@@ -54,6 +54,8 @@ export interface PostListParams extends PageParams {
   communityId?: number
   /** Searches titles (contains, any case), up to 300 characters. */
   q?: string
+  /** Only this author's posts; a standalone filter (400 when combined with communityId or q). */
+  authorId?: number
 }
 
 /** `GET /api/posts/top?period=`: the top 10 by score. WEEK: only posts created in the last 7 days. */

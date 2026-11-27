@@ -20,16 +20,16 @@ afterEach(() => {
 })
 
 describe('profile data', () => {
-  it('reads the real account and leaves recent posts empty until an overview endpoint exists', async () => {
+  it('reads the real account, including the id used to find the user’s posts', async () => {
     fetchMock.mockResolvedValue(json(200, {
       id: 1, username: 'demo_user', email: 'demo@example.com', firstName: 'Demo', lastName: 'User',
     }))
 
     expect(await getMyProfileOverview()).toEqual({
+      id: 1,
       username: 'demo_user',
       firstName: 'Demo',
       lastName: 'User',
-      recentPosts: [],
     })
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/users/me')
   })
