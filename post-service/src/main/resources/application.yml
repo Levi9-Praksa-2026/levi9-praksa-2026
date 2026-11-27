@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: post-service
+  cloud:
+    aws:
+      secretsmanager:
+        # Local runs have no AWS credentials or secret to read. Production turns it on with an env var.
+        enabled: false
   datasource:
     hikari:
       schema: post   # connections start in this schema, so native SQL finds the tables too
