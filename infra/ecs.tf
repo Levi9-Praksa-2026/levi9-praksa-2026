@@ -5,23 +5,21 @@
 # The services' environment variables and secrets are in ecs_env.tf.
 
 locals {
-  # Which image each service runs: the pinned var.image_tag if set, otherwise the newest image in its repository.
-  image_tags = {
-    for service, image in data.aws_ecr_image.latest : service => coalesce(var.image_tag, image.image_tags[0])
-  }
-
   # All four services, whichever resource created them (schedule.tf scales every one).
   ecs_services = merge(aws_ecs_service.this, { gateway = aws_ecs_service.gateway })
 }
 
 # ---------- which version to run ----------
-# The newest image the image workflow pushed to each repository. A deploy is: release to main (the workflow pushes
-# new images), then "Terraform apply". Plan and apply both ask ECR, so they always agree on the version.
-data "aws_ecr_image" "latest" {
+# The image each service runs: the one tagged var.image_tag if set (a rollback), otherwise the newest image the image
+# workflow pushed. A deploy is: release to main (the workflow pushes new images), then "Terraform apply".
+# Task definitions point at the image's digest, not a tag: an unchanged service's rebuild only adds another tag to the
+# same image, so its digest, and with it the task definition, stays the same and the service isn't redeployed.
+data "aws_ecr_image" "this" {
   for_each = local.services
 
   repository_name = aws_ecr_repository.this[each.key].name
-  most_recent     = true
+  image_tag       = var.image_tag
+  most_recent     = var.image_tag == null ? true : null
 }
 
 # ---------- cluster + Service Connect ----------
@@ -69,7 +67,7 @@ resource "aws_ecs_task_definition" "this" {
 
   container_definitions = jsonencode([{
     name      = each.key
-    image     = "${aws_ecr_repository.this[each.key].repository_url}:${local.image_tags[each.key]}"
+    image     = "${aws_ecr_repository.this[each.key].repository_url}@${data.aws_ecr_image.this[each.key].image_digest}"
     essential = true
 
     portMappings = [{

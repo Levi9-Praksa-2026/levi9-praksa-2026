@@ -40,7 +40,12 @@ output "ecs_cluster_name" {
   value       = aws_ecs_cluster.this.name
 }
 
-output "running_image_tags" {
-  description = "The image tag each service's task definition uses."
-  value       = local.image_tags
+output "running_images" {
+  description = "The image each service's task definition uses: its digest, and every commit tag on it (an unchanged service's image carries the tags of several commits)."
+  value = {
+    for service, image in data.aws_ecr_image.this : service => {
+      digest = image.image_digest
+      tags   = image.image_tags
+    }
+  }
 }
