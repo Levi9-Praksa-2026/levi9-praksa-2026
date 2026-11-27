@@ -1,23 +1,32 @@
 import { X } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 export function ImageViewer({ url, onClose }: { url: string; onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null)
+
   useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
+    const dialog = ref.current!
+    const previous = document.activeElement as HTMLElement | null
+    const overflow = document.documentElement.style.overflow
+    document.documentElement.style.overflow = 'hidden'
+    dialog.showModal()
+    return () => {
+      dialog.close()
+      document.documentElement.style.overflow = overflow
+      previous?.focus()
     }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
+  }, [])
 
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-label="Enlarged image" className="fixed inset-0 z-50 flex items-center justify-center bg-[#000]/90 p-4" onClick={(event) => { event.stopPropagation(); onClose() }}>
-      <button type="button" aria-label="Close image" className="absolute top-4 right-4 cursor-pointer rounded-full bg-[#000]/50 p-2 text-white hover:bg-[#000]/80">
+    // Escape and the close button provide keyboard dismissal; this handler dismisses the backdrop.
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
+    <dialog ref={ref} aria-label="Enlarged image" onCancel={(event) => { event.preventDefault(); onClose() }} onClick={(event) => { event.stopPropagation(); if (event.target === event.currentTarget) onClose() }} className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none items-center justify-center border-0 bg-ink/90 p-4 backdrop:bg-transparent open:flex">
+      <button type="button" aria-label="Close image" onClick={onClose} className="absolute top-4 right-4 cursor-pointer rounded-full bg-ink/70 p-2 text-white hover:bg-ink">
         <X className="size-6" aria-hidden="true" />
       </button>
-      <img src={url} alt="Enlarged attachment" className="max-h-full max-w-full object-contain" onClick={(event) => event.stopPropagation()} />
-    </div>,
+      <img src={url} alt="Enlarged attachment" className="max-h-full max-w-full object-contain" />
+    </dialog>,
     document.body,
   )
 }

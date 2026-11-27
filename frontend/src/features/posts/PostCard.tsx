@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react'
 import { MessageSquare } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import type { PostResponse } from '@/shared/api/contracts/posts'
@@ -18,11 +19,24 @@ export function PostCard({ post, hideCommunity = false, className }: PostCardPro
   const navigate = useNavigate()
   const titleId = `post-${post.id}-title`
 
+  function openPost(event: MouseEvent<HTMLElement>) {
+    if (event.defaultPrevented || (event.button !== 0 && event.button !== 1)) return
+    if ((event.target as Element).closest('a, button, input, select, textarea, dialog, [role="dialog"]')) return
+    if (window.getSelection()?.toString()) return
+
+    const path = routes.post(post.id)
+    if (event.button === 1 || event.ctrlKey || event.metaKey || event.shiftKey) {
+      event.preventDefault()
+      window.open(path, '_blank', 'noopener,noreferrer')
+      return
+    }
+    navigate(path)
+  }
+
   return (
-    <article aria-labelledby={titleId} onClick={(event) => {
-      if (event.defaultPrevented || (event.target as Element).closest('a, button, input, select, textarea, [role="dialog"]')) return
-      navigate(routes.post(post.id))
-    }} className={cn('grid cursor-pointer gap-3 rounded-lg border border-line bg-bg p-card-pad transition-colors hover:border-line-strong hover:bg-surface', className)}>
+    // The title and action links supply keyboard navigation; the article adds a pointer shortcut.
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
+    <article aria-labelledby={titleId} onClick={openPost} onAuxClick={openPost} className={cn('grid cursor-pointer gap-3 rounded-lg border border-line bg-bg p-card-pad transition-colors hover:border-line-strong', className)}>
       <header>
         <PostMeta post={post} hideCommunity={hideCommunity} />
       </header>
