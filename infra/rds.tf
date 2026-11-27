@@ -10,11 +10,12 @@ resource "aws_db_subnet_group" "this" {
   name       = "${local.name}-db"
   subnet_ids = data.aws_subnets.default.ids
 
-  tags = { Name = "${local.name}-db" }
+  tags = { Name = "${local.name}-db", Owner = local.owners.rds }
 }
 
 resource "aws_db_instance" "this" {
   identifier = local.name
+  tags       = { Owner = local.owners.rds }
 
   # A major-version prefix lets RDS choose the latest 17 minor, including minor upgrades
   # applied during the maintenance window, without a plan diff every time AWS ships one.
