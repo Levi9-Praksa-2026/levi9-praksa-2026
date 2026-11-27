@@ -123,6 +123,21 @@ class AuthorizationCodeFlowTests {
     }
 
     @Test
+    void cleanupPreservesAnActiveCodeAndRefreshSession() throws Exception {
+        var cleanup = new com.levi9.reddit.auth.security.AuthorizationCleanup(jdbc, java.time.Clock.systemUTC());
+        String code = authorize();
+        assertThat(cleanup.purgeExpired()).isZero();
+        String refreshToken = JsonPath.read(tokenBody(exchange(code)), "$.refresh_token");
+
+        // A spent code expires long before the refresh token in the same row.
+        jdbc.update("UPDATE oauth2_authorization SET authorization_code_issued_at = ?, authorization_code_expires_at = ?",
+                java.sql.Timestamp.from(Instant.now().minus(Duration.ofHours(2))),
+                java.sql.Timestamp.from(Instant.now().minus(Duration.ofHours(1))));
+        assertThat(cleanup.purgeExpired()).isZero();
+        refresh(refreshToken).andExpect(status().isOk());
+    }
+
+    @Test
     void revokingTheUserEndsTheirRefresh() throws Exception {
         String refreshToken = JsonPath.read(tokenBody(exchange(authorize())), "$.refresh_token");
 

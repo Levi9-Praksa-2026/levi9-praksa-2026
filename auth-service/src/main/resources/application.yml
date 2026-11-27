@@ -51,6 +51,9 @@ app:
     refresh-token-ttl: 7d
     generate-key: false   # production default; key comes from APP_JWT_PRIVATE_KEY + APP_JWT_KEY_ID
   oauth:
+    authorization-cleanup:
+      enabled: true
+      cron: "0 0 0 * * *" # Daily at midnight UTC; expired tokens get a five-minute grace period.
     gateway-client:
       secret: ${APP_OAUTH_GATEWAY_CLIENT_SECRET:}   # required; startup fails without it
   # Per client IP, refilled gradually (10 per minute = one back every 6 s). DECISIONS.md 2026-11-18.
