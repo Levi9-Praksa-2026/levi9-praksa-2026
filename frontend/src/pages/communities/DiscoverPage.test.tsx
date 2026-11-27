@@ -44,9 +44,9 @@ function render(url: string, seed: Seed = {}) {
   const communitiesPage = Number(params.get('communitiesPage') ?? 0)
   // no-op: primes the same keys the page reads, without touching the network
   if (seed.searchPosts) client.setQueryData(queryKeys.posts.list({ q, page: postsPage, size: 5 }), seed.searchPosts)
-  if (seed.searchCommunities) client.setQueryData(queryKeys.communities.list({ name: q, sort: 'new', page: communitiesPage, size: 5 }), seed.searchCommunities)
+  if (seed.searchCommunities) client.setQueryData(queryKeys.communities.list({ name: q, sort: 'new', page: communitiesPage, size: 10 }), seed.searchCommunities)
   if (seed.posts) client.setQueryData(queryKeys.posts.list({ page: postsPage, size: 5 }), seed.posts)
-  if (seed.communities) client.setQueryData(queryKeys.communities.list({ sort: 'new', page: communitiesPage, size: 5 }), seed.communities)
+  if (seed.communities) client.setQueryData(queryKeys.communities.list({ sort: 'new', page: communitiesPage, size: 10 }), seed.communities)
   return renderToStaticMarkup(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[url]}>

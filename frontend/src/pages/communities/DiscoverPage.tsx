@@ -10,7 +10,9 @@ import { cn } from '@/shared/lib/cn'
 import { Pagination } from '@/shared/ui/Pagination'
 import { Select, type SelectOption } from '@/shared/ui/Select'
 
-const PAGE_SIZE = 5
+const POSTS_PAGE_SIZE = 5
+/** As the community directory before it (10 a page). */
+const COMMUNITIES_PAGE_SIZE = 10
 const POSTS_PAGE = 'postsPage'
 const COMMUNITIES_PAGE = 'communitiesPage'
 const SORT_OPTIONS: readonly SelectOption<'new' | 'top'>[] = [
@@ -98,14 +100,14 @@ export function DiscoverPage() {
     name: queryName || undefined,
     sort,
     page: communitiesPage,
-    size: PAGE_SIZE,
+    size: COMMUNITIES_PAGE_SIZE,
   }
   // Both pairs stay mounted: the search pair is disabled without a query, and the discovery pair is ready
   // before the empty search settles, so falling back to it never flashes skeletons or flips a state flag.
-  const searchPosts = usePosts({ q: queryName || undefined, page: postsPage, size: PAGE_SIZE }, searching)
+  const searchPosts = usePosts({ q: queryName || undefined, page: postsPage, size: POSTS_PAGE_SIZE }, searching)
   const searchCommunities = useCommunityDirectory(searchFilters, searching)
-  const discoveryPosts = usePosts({ page: postsPage, size: PAGE_SIZE })
-  const discoveryCommunities = useCommunityDirectory({ sort, page: communitiesPage, size: PAGE_SIZE })
+  const discoveryPosts = usePosts({ page: postsPage, size: POSTS_PAGE_SIZE })
+  const discoveryCommunities = useCommunityDirectory({ sort, page: communitiesPage, size: COMMUNITIES_PAGE_SIZE })
 
   const searchEmpty = searching
     && !searchPosts.isPending && !searchCommunities.isPending

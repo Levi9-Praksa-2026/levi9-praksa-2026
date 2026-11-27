@@ -46,12 +46,12 @@ variable "db_allocated_storage_gb" {
 
 variable "image_tag" {
   type        = string
-  description = "Git SHA of the images to run, for all four services. Leave null to run the newest image in each ECR repository; set it only to pin a version, e.g. for a rollback."
+  description = "Full git SHA of the images to run, for all four services. Leave null to run the newest image in each ECR repository; set it only to pin a version, e.g. for a rollback."
   default     = null
 
   validation {
-    condition     = var.image_tag == null || can(regex("^[0-9a-f]{7,40}$", var.image_tag))
-    error_message = "image_tag must be a git SHA (7 to 40 lowercase hex characters), never 'latest'."
+    condition     = var.image_tag == null || can(regex("^[0-9a-f]{40}$", var.image_tag))
+    error_message = "image_tag must be a full git SHA (40 lowercase hex characters, as the image workflow tags images), never 'latest'."
   }
 }
 
@@ -97,5 +97,41 @@ variable "log_retention_days" {
   validation {
     condition     = contains([1, 3, 5, 7, 14, 30, 60, 90], var.log_retention_days)
     error_message = "Use one of the retention values CloudWatch accepts (1, 3, 5, 7, 14, 30, 60, 90)."
+  }
+}
+
+variable "office_hours" {
+  type = object({
+    enabled   = bool
+    timezone  = string
+    rds_start = string
+    rds_stop  = string
+    ecs_start = string
+    ecs_stop  = string
+    ecs_tasks = number
+  })
+  description = "When RDS and the ECS services run: weekdays, team office hours 08:30-18:00. RDS starts 15 minutes before the services (it needs 5-10 to come up) and stops 10 minutes after them. ecs_tasks is the task count per service while running."
+  default = {
+    enabled   = true
+    timezone  = "Europe/Belgrade"
+    rds_start = "cron(15 8 ? * MON-FRI *)"
+    rds_stop  = "cron(10 18 ? * MON-FRI *)"
+    ecs_start = "cron(30 8 ? * MON-FRI *)"
+    ecs_stop  = "cron(0 18 ? * MON-FRI *)"
+    ecs_tasks = 1
+  }
+
+  validation {
+    condition = alltrue([
+      for c in [var.office_hours.rds_start, var.office_hours.rds_stop, var.office_hours.ecs_start, var.office_hours.ecs_stop] :
+      can(regex("^cron\\(.+\\)$", c))
+    ])
+    error_message = "All four times must be EventBridge Scheduler cron expressions, e.g. cron(30 8 ? * MON-FRI *)."
+  }
+
+  # auth-service keeps state per task (issue #139), so for now every service runs exactly one task.
+  validation {
+    condition     = var.office_hours.ecs_tasks == 1
+    error_message = "ecs_tasks must be 1 until auth-service can run more than one task (issue #139)."
   }
 }

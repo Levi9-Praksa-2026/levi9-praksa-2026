@@ -42,6 +42,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // no cookies: the token travels in a header
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // The caller's own membership is private; the generic public GET rule comes after it.
+                        .requestMatchers(HttpMethod.GET, "/api/communities/*/members/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/communities", "/api/communities/**").permitAll()
                         // URL rules run before validation, so a non-admin gets 403 even with an invalid body.
                         // Match only the ADMIN paths; e.g. DELETE .../members/me must stay a user operation.

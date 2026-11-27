@@ -8,7 +8,7 @@ import { AccountMenu } from './AccountMenu'
 import { SearchCombobox } from './SearchCombobox'
 
 export interface TopBarProps {
-  /** Logged in, logged out (null), or still asking (undefined: the account area stays empty). */
+  /** Logged in, or logged out/unknown (null or undefined: the login actions stay visible). */
   user: MeResponse | null | undefined
   /** Under 1024px: the button that opens the sidebar drawer. */
   drawerOpen: boolean
@@ -51,7 +51,7 @@ export function TopBar({ user, drawerOpen, drawerId, onOpenDrawer, sidebar }: To
           <SearchCombobox className="w-full max-w-[560px]" />
         </div>
         <div className="ml-auto flex flex-none items-center gap-2 lg:absolute lg:top-1/2 lg:right-4 lg:-translate-y-1/2">
-          {user === null && (
+          {!user && (
             <>
               {/* a plain link on purpose: the login is a chain of redirects through the gateway, a full page load */}
               <a href={routes.login} className="inline-flex rounded-btn px-3 py-2 text-small font-medium text-accent hover:bg-surface">

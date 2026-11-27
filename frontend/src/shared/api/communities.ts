@@ -3,6 +3,7 @@ import {
   COMMUNITY_NAME_PATTERN,
   type CommunityDetailResponse,
   type CommunityListParams,
+  type CommunityMembershipResponse,
   type CommunityResponse,
   type CreateCommunityRequest,
   type UpdateCommunityRequest,
@@ -10,34 +11,16 @@ import {
 import { ApiError } from './errors'
 import { http } from './http'
 import { db, type CommunityRow } from './mock/db'
-import { invalid, optionalUser, requireAdmin, requireUser } from './mock/guards'
+import { invalid, optionalUser, requireAdmin } from './mock/guards'
 import { handle } from './mock/server'
 
 /*
-  community-service, /api/communities/**. The list, one community and joining are real requests; leaving
-  and the admin operations are still mocked from the in-memory data with the service's rules and status
-  codes. Their signatures stay.
+  community-service, /api/communities/**. Everything the browser uses is a real request; only creating
+  a community is still mocked from the in-memory data with the service's rules and status codes.
+  Its signature stays.
 */
 
 const memberCount = (c: CommunityRow) => db.members.filter(m => m.communityId === c.id).length
-
-/** An active community by name (any case), or the service's 404. */
-function activeCommunity(name: string): CommunityRow {
-  const found = db.communities.find(c => c.name.toLowerCase() === name.toLowerCase() && c.isActive)
-  if (!found) throw notFound(name)
-  return found
-}
-
-/** Any community, shut down or not, for the ADMIN endpoints. */
-function anyCommunity(name: string): CommunityRow {
-  const found = db.communities.find(c => c.name.toLowerCase() === name.toLowerCase())
-  if (!found) throw notFound(name)
-  return found
-}
-
-function notFound(name: string): ApiError {
-  return new ApiError({ status: 404, title: 'Not Found', detail: `Community not found: ${name}`, errorType: 'COMMUNITY_NOT_FOUND' })
-}
 
 function toDetail(c: CommunityRow): CommunityDetailResponse {
   const me = optionalUser()
@@ -89,11 +72,12 @@ export function joinCommunity(name: string): Promise<void> {
 
 /** `DELETE /api/communities/{name}/members/me`: leave. Leaving when not a member is harmless. */
 export function leaveCommunity(name: string): Promise<void> {
-  return handle(() => {
-    const me = requireUser()
-    const c = activeCommunity(name)
-    db.members = db.members.filter(m => !(m.communityId === c.id && m.userId === me.id))
-  })
+  return http<void>(`${communityPath(name)}/members/me`, { method: 'DELETE' })
+}
+
+/** `GET /api/communities/{name}/members/me`: whether the caller has joined; 401 when logged out. */
+export function getCommunityMembership(name: string): Promise<CommunityMembershipResponse> {
+  return http<CommunityMembershipResponse>(`${communityPath(name)}/members/me`)
 }
 
 /** `POST /api/communities` (ADMIN): 201 with the new community; 409 if the name is taken, in any case. */
@@ -122,27 +106,15 @@ export function createCommunity(request: CreateCommunityRequest): Promise<Commun
 
 /** `PATCH /api/communities/{name}` (ADMIN): the description only; the name never changes. */
 export function updateCommunityDescription(name: string, request: UpdateCommunityRequest): Promise<void> {
-  return handle(() => {
-    requireAdmin()
-    const c = activeCommunity(name)
-    if (request.description === null || request.description === undefined) throw invalid('description', 'must not be null')
-    if (request.description.length > 2000) throw invalid('description', 'size must be between 0 and 2000')
-    c.description = request.description
-  })
+  return http<void>(communityPath(name), { method: 'PATCH', body: request })
 }
 
 /** `DELETE /api/communities/{name}` (ADMIN): shut down; nothing is deleted. */
 export function deactivateCommunity(name: string): Promise<void> {
-  return handle(() => {
-    requireAdmin()
-    anyCommunity(name).isActive = false
-  })
+  return http<void>(communityPath(name), { method: 'DELETE' })
 }
 
 /** `POST /api/communities/{name}/reactivate` (ADMIN): undo a shutdown. */
 export function reactivateCommunity(name: string): Promise<void> {
-  return handle(() => {
-    requireAdmin()
-    anyCommunity(name).isActive = true
-  })
+  return http<void>(`${communityPath(name)}/reactivate`, { method: 'POST' })
 }
