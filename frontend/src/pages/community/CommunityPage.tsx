@@ -54,7 +54,7 @@ export function CommunityPage() {
   if (shutDown && data) {
     return (
       <section aria-labelledby="community-title" className="grid gap-card-gap">
-        <CommunityHeader community={data} shutDown />
+        <CommunityHeader key={data.id} community={data} shutDown />
         <InactiveCommunityNotice name={data.name} onReactivate={() => reactivate.mutate()} pending={reactivate.isPending} error={reactivateError} />
         <Link to={routes.communities} className="w-fit text-small font-medium text-accent underline underline-offset-2">Back to communities</Link>
       </section>
@@ -101,7 +101,8 @@ export function CommunityPage() {
   if (!data) return null
   return (
     <section aria-labelledby="community-title" className="grid gap-card-gap">
-      <CommunityHeader community={data} onDeactivated={() => setShutDownName(name)} />
+      {/* Keyed so a cached community never inherits another one's unsaved draft or dialog state. */}
+      <CommunityHeader key={data.id} community={data} onDeactivated={() => setShutDownName(name)} />
       <nav aria-label="Community sections">
         <span aria-current="page" className="inline-flex h-btn items-center rounded-btn bg-surface px-4 text-small font-semibold text-ink">
           Posts
