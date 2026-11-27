@@ -116,6 +116,110 @@ flowchart LR
 
 `develop` is where work comes together, and `main` is what gets deployed. There is no staging environment.
 
+## On AWS
+
+One environment in `eu-central-1`, all of it in Terraform under [`infra/`](infra).
+
+```mermaid
+flowchart LR
+    user([Browser])
+
+    cf["CloudFront<br/>HTTPS"]
+    fe[("S3<br/>React build")]
+
+    subgraph vpc[default VPC]
+        alb["ALB<br/>HTTP :80"]
+
+        subgraph ecs[ECS Fargate · Service Connect]
+            gw["gateway"]
+            auth["auth-service"]
+            comm["community-service"]
+            post["post-service"]
+        end
+
+        rds[("RDS PostgreSQL 17<br/>schema per service")]
+    end
+
+    media[("S3<br/>post images")]
+    sm["Secrets Manager"]
+
+    user -->|HTTPS| cf
+    cf -->|"everything else"| fe
+    cf -->|"/api, /oauth2, /login/oauth2,<br/>/connect, /.well-known, /logout"| alb
+    alb --> gw
+    gw --> auth & comm & post
+    gw & auth & comm & post --> rds
+    post --> media
+    ecs -.->|"secrets"| sm
+
+    classDef edge    fill:#ffffff,stroke:#0B1F4B,stroke-width:2px,color:#0B1F4B
+    classDef gateway fill:#0B1F4B,stroke:#050f26,stroke-width:2px,color:#ffffff
+    classDef service fill:#163A7A,stroke:#0B1F4B,color:#ffffff
+    classDef data    fill:#2F5FB3,stroke:#163A7A,color:#ffffff
+
+    class user,cf,alb,sm edge
+    class gw gateway
+    class auth,comm,post service
+    class fe,rds,media data
+
+    style vpc fill:transparent,stroke:#0B1F4B,stroke-dasharray:6 4
+    style ecs fill:transparent,stroke:#163A7A
+```
+
+| Piece | What it does |
+| --- | --- |
+| CloudFront | The only public entry point. Sends the gateway's paths to the ALB and everything else to the React bucket. HTTPS to the browser, HTTP to the ALB. |
+| ALB | Accepts traffic only from CloudFront: its security group allows CloudFront's address list, and its listener forwards only requests carrying the secret `X-Origin-Verify` header (anything else gets 403). |
+| ECS Fargate | The four services, one task each, 0.5 vCPU / 1 GB. Only the gateway is behind the ALB; the others find each other by name through Service Connect (`http://auth-service:8081`, as in Docker Compose). A failing deployment rolls back by itself. |
+| RDS | One PostgreSQL 17 instance, one database, a schema per service. Flyway creates the schemas on startup. Not publicly reachable. The master password is generated and rotated by RDS; the services read it from Secrets Manager themselves. |
+| S3 | Post images, private and versioned. post-service serves them; the browser never reaches the bucket. |
+| Secrets Manager | The JWT signing key and the gateway's OAuth client secret. Terraform creates the secrets empty; the values are put in by hand. |
+| Security groups | The whole network boundary: CloudFront -> ALB -> gateway -> services -> RDS, each accepting only the layer before it. |
+
+Everything runs in the default VPC's public subnets with public IPs and no NAT gateway, to keep the cost down.
+`docs/production-changes.md` lists every setting the services need in production.
+
+### Office hours
+
+RDS and the four services run on weekdays only, 08:30-18:00 Belgrade time. EventBridge Scheduler starts RDS at
+08:15 and the services at 08:30, then stops the services at 18:00 and RDS at 18:10. Outside those hours the site is
+down. The ALB keeps running, because it has no off switch.
+
+To run it outside office hours, start RDS first, wait until it is available, then scale the services to 1:
+
+```bash
+aws rds start-db-instance --db-instance-identifier levddit
+aws ecs update-service --cluster levddit --service auth-service --desired-count 1
+```
+
+Do the same for `community-service`, `post-service` and `gateway`. The next scheduled stop turns them off again.
+
+### Deploying the backend
+
+1. Merge the release PR from `develop` into `main`.
+2. The **Service images** workflow builds all four images and pushes them to ECR as `levddit/<service>:<commit SHA>`.
+   It never deploys.
+3. Once it finishes, run the **Terraform apply** workflow on `main` (Actions -> Terraform apply -> Run workflow).
+   Each task definition points at the newest image's digest, so only services whose image actually changed are
+   redeployed.
+
+To roll back, set `image_tag` in `infra/variables.tf` to an older commit SHA (ECR keeps the last 10 images) and
+apply again. Set it back to `null` afterwards.
+
+### Changing the infrastructure
+
+1. Change the Terraform in `infra/` on a feature branch.
+2. The **Terraform plan** workflow comments the plan on the PR. It is read-only.
+3. Merge to `develop`, then release to `main`. Merging never changes AWS.
+4. Run **Terraform apply** on `main`. It stops if the plan deletes or replaces anything, unless you tick
+   *Allow destroy*.
+
+GitHub Actions gets short-lived AWS credentials through OIDC, so no AWS keys are stored in GitHub. The plan role
+is read-only, and the apply and image-push roles only work from `main`. State is in the S3 bucket
+`levddit-tfstate-466578118705`.
+
+While RDS is stopped, a plan that changes the RDS instance fails to apply. Start the instance first.
+
 ## Status
 
 | Area | State |
@@ -126,7 +230,7 @@ flowchart LR
 | Auth: register / login / refresh | in progress |
 | Communities CRUD | in progress |
 | Posts, comments, votes | in progress |
-| AWS deployment | in progress: network, security groups, RDS |
+| AWS deployment | backend runs on ECS Fargate; CloudFront and the frontend deploy in progress |
 
 ## Run it locally
 

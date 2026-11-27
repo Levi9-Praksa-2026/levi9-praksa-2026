@@ -17,6 +17,10 @@ export const routes = {
   /** "Join now": the registration form. `?email=` fills in the email. */
   signUp: '/signup',
   welcome: '/welcome/',
+  /**
+   * The search/discovery page. The URL stays `/communities` so old links keep working, but it now shows
+   * post results first, communities second, and falls back to discovery when nothing matches.
+   */
   
   /** Administrator overview. */
   admin: '/admin',
@@ -26,7 +30,7 @@ export const routes = {
 
   /** The searchable community directory. */
   communities: communitiesPath,
-  /** Where the header search lands: the directory filtered by a (trimmed) name, or all of it if empty. */
+  /** Where the header search lands: post titles and community names matching the trimmed query, or discovery if empty. */
   communitiesSearch: (name: string) => {
     const q = name.trim()
     return q ? `${communitiesPath}?q=${encodeURIComponent(q)}` : communitiesPath
@@ -35,6 +39,8 @@ export const routes = {
   community: (name: string) => `/l/${encodeURIComponent(name)}`,
   /** The logged-in user's own profile. */
   profile: '/profile',
+  /** A user's public profile. */
+  user: (username: string) => `/u/${encodeURIComponent(username)}`,
   /** A new post in a community: `/l/frontend/submit`. */
   submit: (communityName: string) => `/l/${encodeURIComponent(communityName)}/submit`,
   /** A post with its comments: `/posts/42`. `#comments` jumps to the comments. */
@@ -43,6 +49,7 @@ export const routes = {
 
 /** The route pattern for `routes.community`, for the router. */
 export const COMMUNITY_PATTERN = '/l/:name'
+export const USER_PATTERN = '/u/:username'
 /** The route pattern for `routes.post`, for the router. */
 export const POST_PATTERN = '/posts/:id'
 /** The route pattern for `routes.submit`, for the router. */

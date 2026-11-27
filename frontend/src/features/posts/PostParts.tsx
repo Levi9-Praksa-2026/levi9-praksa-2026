@@ -6,6 +6,7 @@ import type { PostImage, PostResponse } from '@/shared/api/contracts/posts'
 import { routes } from '@/shared/config/routes'
 import { relativeTime } from '@/shared/lib/relativeTime'
 import { ImageCarousel } from './ImageCarousel'
+import { ImageViewer } from './ImageViewer'
 
 /* The pieces the feed card and the post page share. */
 
@@ -29,7 +30,11 @@ export function PostMeta({ post, hideCommunity = false }: PostMetaProps) {
           <span aria-hidden="true">·</span>
         </>
       )}
-      <span className="truncate">u/{post.authorUsername}</span>
+      {post.authorUsername ? (
+        <Link to={routes.user(post.authorUsername)} className="truncate hover:text-accent">u/{post.authorUsername}</Link>
+      ) : (
+        <span className="truncate">[deleted]</span>
+      )}
       <span aria-hidden="true">·</span>
       <time dateTime={post.createdAt} title={new Date(post.createdAt).toLocaleString()}>{relativeTime(post.createdAt)}</time>
       {post.updatedAt && <span title={`Edited ${new Date(post.updatedAt).toLocaleString()}`}>(edited)</span>}
@@ -40,33 +45,25 @@ export function PostMeta({ post, hideCommunity = false }: PostMetaProps) {
 export interface PostImagesProps {
   images: readonly PostImage[]
   /**
-   * card: one image at its own shape, capped in height. page: the image whole, linking to its file at full size.
+   * card: one image at its own shape, capped in height. page: the image whole.
    * Two or three images become a carousel in either.
    */
   variant?: 'card' | 'page'
 }
 
 export function PostImages({ images, variant = 'card' }: PostImagesProps) {
+  const [openImage, setOpenImage] = useState<string | null>(null)
   if (images.length > 1) return <ImageCarousel images={images} variant={variant} />
   const [image] = images
   if (!image) return null
 
-  if (variant === 'page') {
-    return (
-      <a href={image.url} target="_blank" rel="noreferrer" className="block rounded-md focus-visible:outline-2">
-        <img src={image.url} alt="Attached to the post" decoding="async" className="max-h-[80vh] w-full rounded-md border border-line bg-surface object-contain" />
-      </a>
-    )
-  }
-
   return (
-    <img
-      src={image.url}
-      alt="Attached to the post"
-      loading="lazy"
-      decoding="async"
-      className="max-h-[400px] w-full rounded-md border border-line bg-surface object-cover"
-    />
+    <>
+      <button type="button" aria-label="Enlarge image" onClick={() => setOpenImage(image.url)} className="block w-full cursor-zoom-in rounded-md focus-visible:outline-2">
+        <img src={image.url} alt="Attached to the post" loading={variant === 'card' ? 'lazy' : undefined} decoding="async" className={variant === 'card' ? 'max-h-[400px] w-full rounded-md border border-line bg-surface object-cover' : 'max-h-[80vh] w-full rounded-md border border-line bg-surface object-contain'} />
+      </button>
+      {openImage && <ImageViewer url={openImage} onClose={() => setOpenImage(null)} />}
+    </>
   )
 }
 

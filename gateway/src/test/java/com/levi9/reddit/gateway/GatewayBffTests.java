@@ -71,6 +71,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -156,8 +157,49 @@ class GatewayBffTests {
     }
 
     @Test
-    void withoutASessionMeIs401NotARedirect() throws Exception {
-        mvc.perform(get("/api/me")).andExpect(status().isUnauthorized());
+    void withoutASessionMeIs204NotARedirect() throws Exception {
+        mvc.perform(get("/api/me"))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""))
+                .andExpect(header().doesNotExist(HttpHeaders.LOCATION));
+        assertThat(BACKEND.authorizationByPath).isEmpty();
+    }
+
+    @Test
+    void missingAndExpiredSessionCookiesReturnAnonymousMe() throws Exception {
+        Session expired = storedSessionWithCurrentToken("USER");
+        expired.setLastAccessedTime(Instant.now().minusSeconds(3600));
+        save(expired);
+        for (Cookie cookie : List.of(new Cookie("SESSION", "bm90LWEtc2Vzc2lvbg=="), sessionCookie(expired))) {
+            mvc.perform(get("/api/me").cookie(cookie))
+                    .andExpect(status().isNoContent())
+                    .andExpect(content().string(""))
+                    .andExpect(header().doesNotExist(HttpHeaders.LOCATION));
+        }
+        assertThat(BACKEND.authorizationByPath).isEmpty();
+    }
+
+    @Test
+    void realHttpSessionCheckReturnsSuccessfulUncacheableResponses() throws Exception {
+        Cookie session = sessionCookie(storedSessionWithCurrentToken("USER"));
+        try (var client = HttpClient.newHttpClient()) {
+            URI uri = URI.create("http://localhost:" + port + "/api/me");
+            var anonymous = client.send(HttpRequest.newBuilder(uri).build(), HttpResponse.BodyHandlers.ofString());
+            assertThat(anonymous.statusCode()).isEqualTo(204);
+            assertThat(anonymous.body()).isEmpty();
+            assertThat(anonymous.headers().firstValue("location")).isEmpty();
+            assertThat(anonymous.headers().firstValue("cache-control").orElse("")).contains("no-store");
+
+            var authenticated = client.send(HttpRequest.newBuilder(uri)
+                    .header("Cookie", session.getName() + "=" + session.getValue()).build(),
+                    HttpResponse.BodyHandlers.ofString());
+            assertThat(authenticated.statusCode()).isEqualTo(200);
+            var body = tools.jackson.databind.json.JsonMapper.builder().build().readTree(authenticated.body());
+            assertThat(body.get("id").asLong()).isEqualTo(42);
+            assertThat(body.get("username").asString()).isEqualTo("marko");
+            assertThat(authenticated.headers().firstValue("cache-control").orElse("")).contains("no-store");
+        }
+        assertThat(BACKEND.authorizationByPath).isEmpty();
     }
 
     // --- Admin concealment ---
@@ -373,6 +415,9 @@ class GatewayBffTests {
 
         assertThat(sessions.findById(session.getId())).isNull();
         assertThat(BACKEND.authorizationByPath).doesNotContainKey("/api/posts");
+        mvc.perform(get("/api/me").cookie(sessionCookie(session)))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
     }
 
     @Test

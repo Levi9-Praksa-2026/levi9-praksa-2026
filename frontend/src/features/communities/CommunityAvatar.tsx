@@ -12,7 +12,7 @@ export function CommunityAvatar({ name, size = 'sm', className }: CommunityAvata
   return (
     <span
       className={cn(
-        'inline-grid flex-none place-items-center rounded-full bg-accent font-semibold text-accent-ink uppercase',
+        'inline-flex flex-none items-center justify-center leading-none rounded-full bg-accent font-semibold text-accent-ink uppercase',
         size === 'sm' ? 'size-7 text-label' : 'size-12 text-lead',
         className,
       )}

@@ -2,17 +2,37 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import type { CreatePostRequest, PostListParams, UpdatePostRequest } from '@/shared/api/contracts/posts'
 import { createPost, getPost, listComments, listPosts, removePost, updatePost } from '@/shared/api/posts'
 import { queryKeys } from '@/shared/api/queryKeys'
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 
 /**
  * One page of posts, newest first. While the next page loads, the current one stays on screen
  * (`isPlaceholderData`), so paging doesn't flash back to skeletons.
  */
-export function usePosts(params: PostListParams) {
+export function usePosts(params: PostListParams, enabled = true) {
   return useQuery({
     queryKey: queryKeys.posts.list(params),
     queryFn: () => listPosts(params),
     placeholderData: keepPreviousData,
+    enabled,
   })
+}
+
+/** Posts whose title contains what was typed: waits for a 300 ms pause, at most `limit` results. */
+export function usePostSearch(query: string, limit = 4) {
+  const settled = useDebouncedValue(query.trim(), 300)
+  const typing = settled !== query.trim()
+  const result = useQuery({
+    queryKey: queryKeys.posts.search(settled, limit),
+    queryFn: () => listPosts({ q: settled, size: limit }).then(page => page.content),
+    enabled: settled !== '',
+  })
+  return {
+    // while still typing, the last answer is for an older query: show none of it, so Enter can't open a stale result
+    data: typing ? undefined : result.data,
+    error: typing ? null : result.error,
+    isLoading: query.trim() !== '' && (typing || result.isLoading),
+    query: settled,
+  }
 }
 
 /** One post, for its own page. */

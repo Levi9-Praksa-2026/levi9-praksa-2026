@@ -3,6 +3,7 @@ package com.levi9.reddit.community.controller;
 import com.levi9.reddit.community.dto.CommunityDTO;
 import com.levi9.reddit.community.dto.AdminCommunityDTO;
 import com.levi9.reddit.community.dto.CommunityDetailDTO;
+import com.levi9.reddit.community.dto.CommunityMembershipDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
 import com.levi9.reddit.community.dto.CreateCommunityDTO;
 import com.levi9.reddit.community.dto.PageDTO;
@@ -101,7 +102,16 @@ public class CommunityController {
         membershipService.leave(name, userId(jwt));
         return ResponseEntity.noContent().build();
     }
-    
+
+    @GetMapping("/{name}/members/me")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Whether the caller has joined the community")
+    public CommunityMembershipDTO myMembership(@PathVariable @Size(max = 50) String name,
+                                               @AuthenticationPrincipal Jwt jwt) {
+        return new CommunityMembershipDTO(membershipService.isMember(name, userId(jwt)));
+    }
+
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")

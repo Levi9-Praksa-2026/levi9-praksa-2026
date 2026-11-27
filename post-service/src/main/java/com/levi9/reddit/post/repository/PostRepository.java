@@ -27,6 +27,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findByCommunityIdAndRemovedAtIsNull(Long communityId, Pageable pageable);
 
+    Page<Post> findByAuthorIdAndRemovedAtIsNull(Long authorId, Pageable pageable);
+
     // Spring Data escapes % and _ in the search text, so they match literally instead of as wildcards.
     Page<Post> findByTitleContainingIgnoreCaseAndRemovedAtIsNull(String title, Pageable pageable);
 

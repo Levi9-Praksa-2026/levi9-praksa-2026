@@ -49,6 +49,15 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 | Icons | `lucide-react`, 16 to 20px, inheriting the text colour | One consistent icon set |
 | Active link | `aria-current="page"` gets the `surface` tint and `ink` text | The state is in the markup, so it is announced as well as seen |
 
+## Search and discovery (2026-11-26)
+
+| Decision | Value | Why |
+|---|---|---|
+| Dropdown groups | Small muted `text-label` labels "Posts" then "Communities"; up to four of each, continuous arrow-key navigation across both | Matches the existing option metadata style, and posts come first as on the page |
+| Page sections | `<h2>` "Posts" then "Communities", each with its own loading/error/empty state and pagination | The page mirrors the dropdown's order and keeps each list independently readable |
+| Section filter | Three plain buttons "All / Posts / Communities" using theme tokens, active one `bg-surface`, state in `aria-pressed` | "All" restores the stacked default after filtering; no new component or palette needed |
+| No matches | Keep `<h1>Discover</h1>` with a muted note naming the query and a Clear button, then show unfiltered posts and active communities | The user still gets a useful page instead of two empty lists; the URL stays shareable |
+| Profile posts (2026-11-26) | The five newest own posts as `PostCard`s under "Recent posts", with skeletons, empty note and a section-level error + Try again | The user asked for cards instead of plain text rows; the posts are a separate request, so they can fail on their own without hiding the identity |
 ## Admin community filters (2026-11-26)
 
 - Use visible, labelled radio segments for All / Active / Inactive and Newest / Most members, with Lucide icons alongside text. Native radio groups support arrow keys and a single tab stop per group.

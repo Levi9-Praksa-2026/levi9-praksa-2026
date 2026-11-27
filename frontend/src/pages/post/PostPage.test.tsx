@@ -45,8 +45,9 @@ describe('PostPage', () => {
     expect(html).toContain('Release notes')
     expect(html).toContain('which a card would cut off')
     expect(html).not.toContain('line-clamp')
-    expect(html).toContain('href="/api/posts/2/images/1" target="_blank"')
+    expect(html).toContain('aria-label="Enlarge image"')
     expect(html).toContain('href="/l/backend"')
+    expect(html).toContain('href="/u/ana"')
   })
 
   it('treats an id that cannot be a post as gone, without asking', () => {

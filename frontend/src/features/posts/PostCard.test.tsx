@@ -49,6 +49,12 @@ describe('PostCard', () => {
     expect(html).toContain('href="/posts/7#comments"')
   })
 
+  it('links the post author to their public profile', () => {
+    expect(render()).toContain('href="/u/ana"')
+    expect(render({ authorUsername: '' })).not.toContain('href="/u/')
+    expect(render({ authorUsername: '' })).toContain('[deleted]')
+  })
+
   it('names the article by its title', () => {
     expect(render()).toMatch(/<article aria-labelledby="post-7-title".*<h2 id="post-7-title"/)
   })

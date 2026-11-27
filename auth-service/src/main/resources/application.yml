@@ -3,6 +3,11 @@ server:
   # Behind the gateway, the client's address arrives in X-Forwarded-For. Tomcat reads it from the right, skips
   # private-network hops (the gateway) and uses the first public one as the remote address (rate limits use it).
   forward-headers-strategy: native
+  tomcat:
+    # Keep a relative Location (/signin) so the browser stays on the origin it is on. An absolute one is built from
+    # the scheme and host this service sees, which behind CloudFront, the ALB and the gateway is http:// and can be
+    # the ALB's own name, a host the browser can't reach. SignInRedirectTests.
+    use-relative-redirects: true
   servlet:
     session:
       # The login session (it lets /oauth2/authorize see who logged in). Not readable by scripts, not sent on
@@ -15,6 +20,11 @@ server:
 spring:
   application:
     name: auth-service
+  cloud:
+    aws:
+      secretsmanager:
+        # Local runs have no AWS credentials or secret to read. Production turns it on with an env var.
+        enabled: false
   datasource:
     hikari:
       schema: auth   # connections start in this schema, so native SQL finds the tables too
@@ -41,6 +51,9 @@ app:
     refresh-token-ttl: 7d
     generate-key: false   # production default; key comes from APP_JWT_PRIVATE_KEY + APP_JWT_KEY_ID
   oauth:
+    authorization-cleanup:
+      enabled: true
+      cron: "0 0 0 * * *" # Daily at midnight UTC; expired tokens get a five-minute grace period.
     gateway-client:
       secret: ${APP_OAUTH_GATEWAY_CLIENT_SECRET:}   # required; startup fails without it
   # Per client IP, refilled gradually (10 per minute = one back every 6 s). DECISIONS.md 2026-11-18.

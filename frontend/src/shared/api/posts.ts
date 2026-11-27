@@ -105,9 +105,9 @@ const now = () => new Date().toISOString()
 
 // ---------------------------------------------------------------- posts
 
-/** `GET /api/posts?communityId=&q=&page=&size=`: latest first. No filter is the main page; `q` searches titles. */
-export function listPosts({ communityId, q, page, size }: PostListParams = {}): Promise<PageResponse<PostResponse>> {
-  return http<PageResponse<PostResponse>>('/api/posts', { query: { communityId, q, page, size } })
+/** `GET /api/posts?communityId=&q=&authorId=&page=&size=`: latest first. `q` searches titles; `authorId` lists one user's posts. */
+export function listPosts({ communityId, q, authorId, page, size }: PostListParams = {}): Promise<PageResponse<PostResponse>> {
+  return http<PageResponse<PostResponse>>('/api/posts', { query: { communityId, q, authorId, page, size } })
 }
 
 /** `GET /api/posts/top?period=ALL|WEEK`: the 10 highest scores; WEEK only counts posts created in the last 7 days. */

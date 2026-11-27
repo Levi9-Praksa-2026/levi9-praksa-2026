@@ -51,3 +51,30 @@ output "post_service_task_role_arn" {
   description = "Attach as the task role in the post-service ECS task definition, so it can use the images bucket."
   value       = aws_iam_role.post_service_task.arn
 }
+output "ecs_execution_role_arn" {
+  value = aws_iam_role.ecs_execution.arn
+}
+
+output "ecs_task_role_arns" {
+  value = { for service, role in aws_iam_role.ecs_task : service => role.arn }
+}
+
+output "media_bucket_name" {
+  description = "Bucket name for the post-service S3_BUCKET setting."
+  value       = aws_s3_bucket.media.id
+}
+
+output "ecs_cluster_name" {
+  description = "For aws ecs update-service (starting and stopping services by hand)."
+  value       = aws_ecs_cluster.this.name
+}
+
+output "running_images" {
+  description = "The image each service's task definition uses: its digest, and every commit tag on it (an unchanged service's image carries the tags of several commits)."
+  value = {
+    for service, image in data.aws_ecr_image.this : service => {
+      digest = image.image_digest
+      tags   = image.image_tags
+    }
+  }
+}

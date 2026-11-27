@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import { QueryObserver } from '@tanstack/react-query'
+import { getMe } from '@/shared/api/auth'
 import { ApiError } from '@/shared/api/errors'
 import { queryKeys } from '@/shared/api/queryKeys'
 import { createQueryClient, retryDelay, shouldRetry } from './queryClient'
@@ -28,6 +30,29 @@ describe('retryDelay', () => {
 })
 
 describe('a 401 while the page is open', () => {
+  it('replaces the cached user with null after the session ends', async () => {
+    const client = createQueryClient()
+    const user = { id: 42, username: 'marko', roles: ['USER'] }
+    client.setQueryData(queryKeys.me, user)
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+    const observer = new QueryObserver(client, { queryKey: queryKeys.me, queryFn: getMe })
+    const unsubscribe = observer.subscribe(() => {})
+    try {
+      await expect(client.fetchQuery({
+        queryKey: queryKeys.communities.detail('frontend'),
+        queryFn: () => Promise.reject(status(401)),
+      })).rejects.toMatchObject({ status: 401 })
+      await vi.waitFor(() => expect(client.getQueryData(queryKeys.me)).toBeNull())
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(client.getQueryState(queryKeys.me)?.status).toBe('success')
+    } finally {
+      unsubscribe()
+      client.clear()
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('asks "me" again, unless "me" itself answered it', async () => {
     const client = createQueryClient()
     const invalidate = vi.spyOn(client, 'invalidateQueries')

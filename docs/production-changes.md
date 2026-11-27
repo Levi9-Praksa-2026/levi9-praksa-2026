@@ -130,8 +130,12 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 
 ### Credentials
 - **Local:** `docker-compose.yml` falls back to `reddit` / `reddit_local` when `.env` does not override them.
-- **Production:** set a strong `POSTGRES_PASSWORD` (or the RDS credentials) through the environment. Never rely on
-  the compose defaults.
+- **Production:** RDS generates the master password and stores it in a Secrets Manager secret it owns; the
+  username and password reach the apps through `SPRING_CONFIG_IMPORT` in the ECS environment. Secrets Manager's
+  managed rotation runs every 7 days by default. Each app polls the secret every 30 s and updates its Hikari pool
+  in place, so rotation needs no redeploy. Variables that do not come from a secret (service URLs, JWKS URI,
+  bucket, region, trusted proxies) stay as plain ECS environment variables and change with a new task definition.
+  Never rely on the compose defaults.
 
 ### Published port
 - **Local:** Postgres is published on `5432` so you can connect from the host.

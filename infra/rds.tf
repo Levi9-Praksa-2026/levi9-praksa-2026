@@ -10,11 +10,12 @@ resource "aws_db_subnet_group" "this" {
   name       = "${local.name}-db"
   subnet_ids = data.aws_subnets.default.ids
 
-  tags = { Name = "${local.name}-db" }
+  tags = { Name = "${local.name}-db", Owner = local.owners.rds }
 }
 
 resource "aws_db_instance" "this" {
   identifier = local.name
+  tags       = { Owner = local.owners.rds }
 
   # A major-version prefix lets RDS choose the latest 17 minor, including minor upgrades
   # applied during the maintenance window, without a plan diff every time AWS ships one.
@@ -30,8 +31,9 @@ resource "aws_db_instance" "this" {
   db_name  = "reddit"
   username = "reddit"
 
-  # RDS generates the master password and keeps it in a Secrets Manager secret it owns.
-  # No password in Terraform state, and Secrets Manager handles rotation.
+  # RDS generates the master password and keeps it in a Secrets Manager secret it owns. No password in
+  # Terraform state. RDS rotates this secret automatically every 7 days by default (Secrets Manager's
+  # single-user rotation); the apps pick up the new password from the secret within 30 s.
   manage_master_user_password = true
 
   db_subnet_group_name   = aws_db_subnet_group.this.name

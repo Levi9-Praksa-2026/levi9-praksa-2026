@@ -60,7 +60,8 @@ class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/me").authenticated()
+                        // Public pages ask about the session too; no session is a normal 204 response.
+                        .requestMatchers(HttpMethod.GET, "/api/me").permitAll()
                         .anyRequest().permitAll());
         return http.build();
     }

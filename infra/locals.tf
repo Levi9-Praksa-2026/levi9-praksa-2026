@@ -5,9 +5,17 @@ locals {
     alb        = "r.trajkovski-int@levi9.com"
     cloudfront = "ma.ivanovic-int@levi9.com"
     # network, rds, ecr, ecs... added as each part lands
+    alb      = "r.trajkovski-int@levi9.com"
+    ecs_iam  = "a.dejanovic-int@levi9.com"
+    media    = "a.dejanovic-int@levi9.com"
+    ecs      = "i.radojicic-int@levi9.com"
+    schedule = "i.radojicic-int@levi9.com"
+    rds      = "ma.ivanovic-int@levi9.com"
+    # Other resource owners are added as each part lands.
   }
   # The backend services: the list every per-service resource loops over. Names match the module folders and
-  # docker-compose service names; ports match each Dockerfile's EXPOSE.
+  # docker-compose service names; ports match each Dockerfile's EXPOSE. The gateway is the only one behind the ALB
+  # and the only one without a Service Connect name; ecs.tf gives it its own service resource.
   services = {
     gateway           = { port = 8080 }
     auth-service      = { port = 8081 }
@@ -31,4 +39,5 @@ locals {
     caching_optimized      = "658327ea-f89d-4fab-a63d-7e88639e58f6"
     all_viewer_except_host = "b689b0a8-53d0-40ab-baf2-68738e2966ac"
   }
+}
 }

@@ -46,6 +46,14 @@ public class CommunityMembershipService {
         community.updateMemberCount(community.getMemberCount() - 1);
     }
 
+    /** The caller's membership by name; a missing or inactive community is a 404. */
+    @Transactional(readOnly = true)
+    public boolean isMember(String name, long userId) {
+        Community community = communities.findActiveByName(name)
+                .orElseThrow(() -> new CommunityNotFoundException(name));
+        return members.existsById(new CommunityMemberId(community.getId(), userId));
+    }
+
     /** Internal membership check: a missing or inactive community is a 404, a non-member is simply false. */
     @Transactional(readOnly = true)
     public boolean isMember(long communityId, long userId) {
