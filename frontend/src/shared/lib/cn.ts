@@ -11,7 +11,7 @@ const twMerge = extendTailwindMerge({
     theme: {
       color: [
         'bg', 'surface', 'card', 'ink', 'muted', 'accent', 'accent-ink', 'action', 'action-ink',
-        'line', 'line-strong', 'p-bg', 'p-ink', 'p-muted', 'p-accent', 'p-surface', 'canvas', 'white',
+        'danger', 'danger-ink', 'danger-surface', 'line', 'line-strong', 'p-bg', 'p-ink', 'p-muted', 'p-accent', 'p-surface', 'canvas', 'white',
       ],
       font: ['display', 'text', 'mono'],
       text: ['label', 'small', 'ui', 'body', 'lead', 'card', 'h3', 'h2', 'h1', 'stat'],

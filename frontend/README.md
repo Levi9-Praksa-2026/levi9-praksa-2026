@@ -53,6 +53,11 @@ When the backend is ready, each function body becomes a request; the signatures 
 auth-service's own CSRF token. "Log in" is a page load to `routes.login` (the gateway's OAuth start), which
 comes back through `/signin`.
 
+## Administration
+
+The admin area at `/admin` includes community management, user ban/unban, and post moderation.
+See [the admin flow and backend coverage](docs/ADMIN.md) for supported operations and current API gaps.
+
 ## Styling
 
 Visual decisions and their reasons are recorded in `docs/DESIGN.md`; anything it doesn't cover is asked

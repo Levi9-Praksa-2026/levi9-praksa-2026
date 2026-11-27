@@ -21,6 +21,14 @@ export const routes = {
    * The search/discovery page. The URL stays `/communities` so old links keep working, but it now shows
    * post results first, communities second, and falls back to discovery when nothing matches.
    */
+  
+  /** Administrator overview. */
+  admin: '/admin',
+  adminCommunities: '/admin/communities',
+  adminUsers: '/admin/users',
+  adminPosts: '/admin/posts',
+
+  /** The searchable community directory. */
   communities: communitiesPath,
   /** Where the header search lands: post titles and community names matching the trimmed query, or discovery if empty. */
   communitiesSearch: (name: string) => {

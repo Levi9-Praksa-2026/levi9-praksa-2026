@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.levi9.reddit.community.dto.CommunityDTO;
+import com.levi9.reddit.community.dto.AdminCommunityDTO;
 import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
 import com.levi9.reddit.community.dto.PageDTO;
@@ -154,8 +155,8 @@ class CommunityControllerTest {
 
     @Test
     void inactiveList_asAdmin_returnsTheInactiveCommunities() throws Exception {
-        given(communityService.findInactiveCommunities(CommunitySort.NEW, "back", 1, 10)).willReturn(
-                new PageDTO<>(List.of(new CommunityDTO("archived", 3)), 1, 10, 1, 1));
+        given(communityService.findAdminCommunities(false, CommunitySort.NEW, "back", 1, 10)).willReturn(
+                new PageDTO<>(List.of(new AdminCommunityDTO("archived", 3, false)), 1, 10, 1, 1));
 
         mockMvc.perform(get("/api/communities")
                         .param("inactive", "true")
@@ -167,13 +168,13 @@ class CommunityControllerTest {
                 .andExpect(jsonPath("$.content[0].name").value("archived"))
                 .andExpect(jsonPath("$.content[0].memberCount").value(3));
 
-        verify(communityService).findInactiveCommunities(CommunitySort.NEW, "back", 1, 10);
+        verify(communityService).findAdminCommunities(false, CommunitySort.NEW, "back", 1, 10);
         verifyNoInteractions(membershipService);
     }
 
     @Test
     void inactiveList_passesTheSortThrough() throws Exception {
-        given(communityService.findInactiveCommunities(CommunitySort.TOP, null, 0, 20)).willReturn(
+        given(communityService.findAdminCommunities(false, CommunitySort.TOP, null, 0, 20)).willReturn(
                 new PageDTO<>(List.of(), 0, 20, 0, 0));
 
         mockMvc.perform(get("/api/communities")
@@ -182,12 +183,12 @@ class CommunityControllerTest {
                         .with(admin()))
                 .andExpect(status().isOk());
 
-        verify(communityService).findInactiveCommunities(CommunitySort.TOP, null, 0, 20);
+        verify(communityService).findAdminCommunities(false, CommunitySort.TOP, null, 0, 20);
     }
 
     @Test
     void inactiveFalse_asAdmin_returnsTheActiveList() throws Exception {
-        given(communityService.findCommunities(CommunitySort.TOP, null, 0, 20)).willReturn(
+        given(communityService.findAdminCommunities(true, CommunitySort.TOP, null, 0, 20)).willReturn(
                 new PageDTO<>(List.of(), 0, 20, 0, 0));
 
         mockMvc.perform(get("/api/communities")
@@ -196,7 +197,7 @@ class CommunityControllerTest {
                         .with(admin()))
                 .andExpect(status().isOk());
 
-        verify(communityService).findCommunities(CommunitySort.TOP, null, 0, 20);
+        verify(communityService).findAdminCommunities(true, CommunitySort.TOP, null, 0, 20);
         verify(communityService, never()).findInactiveCommunities(any(), anyString(), anyInt(), anyInt());
     }
 

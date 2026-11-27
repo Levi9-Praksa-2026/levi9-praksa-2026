@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router'
-import { ChevronDown, Compass, Home, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useCurrentUser } from '@/features/users/useCurrentUser'
+import { ChevronDown, Compass, Home, ChevronLeft, ChevronRight, X, ShieldCheck } from 'lucide-react'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { CommunityResponse } from '@/shared/api/contracts/communities'
 import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
@@ -39,6 +40,7 @@ function SidebarLink({ to, icon, label, rail, end }: { to: string; icon: ReactNo
 
 /** The forum's sidebar: Home and the communities you joined. */
 export function Sidebar({ id, variant, showMyCommunities, communities, onToggle }: SidebarProps) {
+  const { user } = useCurrentUser()
   const rail = variant === 'rail'
   const [mineOpen, setMineOpen] = useState(true)
   const listId = `${id}-mine`
@@ -67,6 +69,8 @@ export function Sidebar({ id, variant, showMyCommunities, communities, onToggle 
         <div className="flex flex-col gap-0.5 px-3 pt-1">
           <SidebarLink to={routes.home} end rail={rail} label="Home" icon={<Home className="size-5 flex-none" aria-hidden="true" />} />
           <SidebarLink to={routes.communities} rail={rail} label="Discover" icon={<Compass className="size-5 flex-none" aria-hidden="true" />} />
+          <SidebarLink to={routes.communities} rail={rail} label="Communities" icon={<Compass className="size-5 flex-none" aria-hidden="true" />} />
+          {user?.roles.includes('ADMIN') && <SidebarLink to={routes.admin} rail={rail} label="Admin dashboard" icon={<ShieldCheck className="size-5 flex-none" aria-hidden="true" />} />}
         </div>
 
         {showMyCommunities && (

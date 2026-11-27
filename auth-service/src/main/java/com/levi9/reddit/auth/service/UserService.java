@@ -1,6 +1,7 @@
 package com.levi9.reddit.auth.service;
 
 import com.levi9.reddit.auth.dto.UpdateUserDTO;
+import com.levi9.reddit.auth.dto.AdminUpdateUserDTO;
 import com.levi9.reddit.auth.dto.UserProfileDTO;
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.entity.UserRole;
@@ -49,6 +50,29 @@ public class UserService {
             if (ex.getCause() instanceof ConstraintViolationException constraint
                     && "ux_users_email_lower".equals(constraint.getConstraintName())) {
                 throw new ConflictException(ErrorType.EMAIL_TAKEN, "Email is already taken");
+            }
+            throw ex;
+        }
+        return toProfileResponse(user);
+    }
+
+    /** Administrators may edit live profiles, including banned users, without the target's password. */
+    @Transactional
+    public UserProfileDTO updateByAdmin(String username, AdminUpdateUserDTO request) {
+        User found = users.findByUsernameIgnoringCase(username)
+                .orElseThrow(() -> new NotFoundException(ErrorType.USER_NOT_FOUND, "User not found"));
+        User user = requireExistingUser(users.findUserById(found.getId()));
+        users.findByEmailIgnoringCase(request.email()).filter(other -> !other.getId().equals(user.getId()))
+                .ifPresent(other -> { throw new ConflictException(ErrorType.EMAIL_TAKEN, "Email is already taken"); });
+        user.updateProfile(request.firstName(), request.lastName(), request.email());
+        try {
+            users.flush();
+        } catch (DataIntegrityViolationException ex) {
+            for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+                if (cause instanceof ConstraintViolationException constraint
+                        && "ux_users_email_lower".equals(constraint.getConstraintName())) {
+                    throw new ConflictException(ErrorType.EMAIL_TAKEN, "Email is already taken");
+                }
             }
             throw ex;
         }

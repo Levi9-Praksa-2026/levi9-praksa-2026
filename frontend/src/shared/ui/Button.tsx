@@ -3,7 +3,7 @@ import { cn } from '@/shared/lib/cn'
 import { AppLink } from '@/shared/ui/Link'
 import type { ActionItem } from '@/shared/ui/types'
 
-export type ButtonVariant = 'primary' | 'secondary'
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'danger-outline'
 /** md: forum screens. nav: the header's main action. hero: the big pill in a hero or a band. xl: the closing band's full-width button. */
 export type ButtonSize = 'md' | 'nav' | 'hero' | 'xl'
 
@@ -42,6 +42,8 @@ const sizes: Record<ButtonSize, string> = {
 }
 
 const variants: Record<ButtonVariant, string> = {
+  danger: 'border-transparent bg-danger text-danger-ink hover:bg-[color-mix(in_oklab,var(--danger)_86%,var(--ink))]',
+  'danger-outline': 'border-danger bg-bg text-danger hover:bg-danger-surface',
   primary: 'border-transparent bg-action text-action-ink hover:bg-[color-mix(in_oklab,var(--action)_84%,var(--bg))]',
   secondary:
     'bg-bg text-ink border-line-strong hover:bg-[color-mix(in_oklab,var(--bg)_92%,var(--ink))] hover:border-[color-mix(in_oklab,var(--ink)_32%,transparent)]',
