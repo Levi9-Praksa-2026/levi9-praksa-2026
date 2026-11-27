@@ -2,6 +2,7 @@ package com.levi9.reddit.post.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -48,7 +49,7 @@ class PostControllerTest {
     @Test
     void findPosts_isPublicAndUsesDefaultPaging() throws Exception {
         PostDTO post = new PostDTO(1L, "Hello", "Body", 2L, "luka", 7L, "java", 3, 0, CREATED, null, List.of());
-        when(postQueryService.findPosts(null, null, 0, 20)).thenReturn(new PageDTO<>(List.of(post), 0, 20, 1, 1));
+        when(postQueryService.findPosts(null, null, null, 0, 20)).thenReturn(new PageDTO<>(List.of(post), 0, 20, 1, 1));
 
         mockMvc.perform(get("/api/posts"))
                 .andExpect(status().isOk())
@@ -104,13 +105,23 @@ class PostControllerTest {
 
     @Test
     void findPosts_passesFiltersAndPaging() throws Exception {
-        when(postQueryService.findPosts(7L, "spring", 2, 10)).thenReturn(new PageDTO<>(List.of(), 2, 10, 0, 0));
+        when(postQueryService.findPosts(7L, "spring", null, 2, 10)).thenReturn(new PageDTO<>(List.of(), 2, 10, 0, 0));
 
         mockMvc.perform(get("/api/posts").param("communityId", "7").param("q", "spring")
                         .param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page").value(2))
                 .andExpect(jsonPath("$.size").value(10));
+    }
+
+    @Test
+    void findPosts_passesAuthorIdToTheQuery() throws Exception {
+        when(postQueryService.findPosts(null, null, 1L, 0, 20)).thenReturn(new PageDTO<>(List.of(), 0, 20, 0, 0));
+
+        mockMvc.perform(get("/api/posts").param("authorId", "1"))
+                .andExpect(status().isOk());
+
+        verify(postQueryService).findPosts(null, null, 1L, 0, 20);
     }
 
     @Test

@@ -80,6 +80,17 @@ class PostQueryIntegrationTests {
     }
 
     @Test
+    void filtersByAuthorIdNewestFirstAndSkipsRemovedPosts() throws Exception {
+        postRepository.save(new Post("Another by luka", 1L, "luka", 100L, "backend"));
+
+        mockMvc.perform(get("/api/posts").param("authorId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[*].title")
+                        .value(contains("Another by luka", "First in backend")))
+                .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
     void searchesTitleCaseInsensitivelyAndSkipsRemovedPosts() throws Exception {
         mockMvc.perform(get("/api/posts").param("q", "spring"))
                 .andExpect(status().isOk())

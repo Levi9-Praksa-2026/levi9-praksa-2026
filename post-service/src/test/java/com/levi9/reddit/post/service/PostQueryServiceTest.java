@@ -62,7 +62,7 @@ class PostQueryServiceTest {
         Post post = new Post("Hello", 1L, "luka", 7L, "java");
         when(posts.findByRemovedAtIsNull(any())).thenReturn(page(post));
 
-        PageDTO<PostDTO> result = service.findPosts(null, null, 0, 20);
+        PageDTO<PostDTO> result = service.findPosts(null, null, null, 0, 20);
 
         assertThat(result.content()).extracting(PostDTO::title).containsExactly("Hello");
         assertThat(result.totalElements()).isEqualTo(1);
@@ -79,7 +79,7 @@ class PostQueryServiceTest {
     void findPosts_withCommunity_filtersByCommunity() {
         when(posts.findByCommunityIdAndRemovedAtIsNull(eq(7L), any())).thenReturn(Page.empty());
 
-        service.findPosts(7L, "  ", 0, 20);
+        service.findPosts(7L, "  ", null, 0, 20);
 
         verify(posts).findByCommunityIdAndRemovedAtIsNull(eq(7L), any());
     }
@@ -88,9 +88,18 @@ class PostQueryServiceTest {
     void findPosts_withQuery_searchesTrimmedTitle() {
         when(posts.findByTitleContainingIgnoreCaseAndRemovedAtIsNull(eq("spring"), any())).thenReturn(Page.empty());
 
-        service.findPosts(null, "  spring ", 0, 20);
+        service.findPosts(null, "  spring ", null, 0, 20);
 
         verify(posts).findByTitleContainingIgnoreCaseAndRemovedAtIsNull(eq("spring"), any());
+    }
+
+    @Test
+    void findPosts_withAuthor_filtersByAuthor() {
+        when(posts.findByAuthorIdAndRemovedAtIsNull(eq(2L), any())).thenReturn(Page.empty());
+
+        service.findPosts(null, null, 2L, 0, 20);
+
+        verify(posts).findByAuthorIdAndRemovedAtIsNull(eq(2L), any());
     }
 
     @Test
@@ -98,7 +107,7 @@ class PostQueryServiceTest {
         when(posts.findByCommunityIdAndTitleContainingIgnoreCaseAndRemovedAtIsNull(eq(7L), eq("spring"), any()))
                 .thenReturn(Page.empty());
 
-        service.findPosts(7L, "spring", 0, 20);
+        service.findPosts(7L, "spring", null, 0, 20);
 
         verify(posts).findByCommunityIdAndTitleContainingIgnoreCaseAndRemovedAtIsNull(eq(7L), eq("spring"), any());
     }

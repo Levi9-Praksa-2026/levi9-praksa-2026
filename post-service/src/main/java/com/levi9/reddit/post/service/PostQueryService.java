@@ -43,17 +43,21 @@ public class PostQueryService {
     private final Clock clock;
 
     /**
-     * Newest posts first. Both filters are optional and can be combined.
+     * Newest posts first. communityId and query are optional and can be combined; authorId is a standalone
+     * filter for a user's own posts and takes precedence when present.
      *
      * @param communityId only posts of this community, or {@code null} for all communities
      * @param query       text the title must contain (case-insensitive), or {@code null}/blank for no search
+     * @param authorId    only posts by this author, or {@code null} for everyone
      */
-    public PageDTO<PostDTO> findPosts(Long communityId, String query, int page, int size) {
+    public PageDTO<PostDTO> findPosts(Long communityId, String query, Long authorId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, NEWEST_FIRST);
         String title = query == null || query.isBlank() ? null : query.strip();
 
         Page<Post> result;
-        if (communityId != null && title != null) {
+        if (authorId != null) {
+            result = posts.findByAuthorIdAndRemovedAtIsNull(authorId, pageable);
+        } else if (communityId != null && title != null) {
             result = posts.findByCommunityIdAndTitleContainingIgnoreCaseAndRemovedAtIsNull(communityId, title, pageable);
         } else if (communityId != null) {
             result = posts.findByCommunityIdAndRemovedAtIsNull(communityId, pageable);
