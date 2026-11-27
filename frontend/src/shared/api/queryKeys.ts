@@ -29,6 +29,8 @@ export const queryKeys = {
     list: (params: PostListParams) => ['posts', 'list', params] as const,
     /** The top bar's title suggestions: fewer than a page, keyed by the typed text. */
     search: (q: string, limit: number) => ['posts', 'search', q, limit] as const,
+    /** The profile's short list of the logged-in user's posts. */
+    byAuthor: (authorId: number, limit: number) => ['posts', 'byAuthor', authorId, limit] as const,
     detail: (id: number) => ['posts', 'detail', id] as const,
     /** One page of a post's comments, under the post so removing the post can clear both. */
     comments: (postId: number, page: number) => ['posts', 'detail', postId, 'comments', page] as const,
