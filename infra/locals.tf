@@ -40,4 +40,3 @@ locals {
     all_viewer_except_host = "b689b0a8-53d0-40ab-baf2-68738e2966ac"
   }
 }
-}
