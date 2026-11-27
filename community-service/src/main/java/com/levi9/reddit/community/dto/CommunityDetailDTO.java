@@ -7,5 +7,6 @@ public record CommunityDetailDTO(
         String name,
         String description,
         int memberCount,
-        Instant createdAt) {
+        Instant createdAt,
+        boolean active) {
 }

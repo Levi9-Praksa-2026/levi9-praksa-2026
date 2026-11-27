@@ -284,4 +284,33 @@ class CommunityServiceApplicationTests {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.errorType").value("COMMUNITY_NOT_FOUND"));
     }
+
+    @Test
+    @Transactional
+    void detailVisibilityDependsOnStatusAndCallerRole() throws Exception {
+        communityRepository.save(new Community("live", 1L));
+        Community inactive = new Community("archived", 1L);
+        inactive.updateDescription("Archived description");
+        inactive.deactivate();
+        communityRepository.save(inactive);
+        entityManager.flush();
+        entityManager.clear();
+        RequestPostProcessor user = jwt().authorities(new SimpleGrantedAuthority("ROLE_USER"));
+
+        mockMvc.perform(get("/api/communities/live"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.active").value(true));
+        mockMvc.perform(get("/api/communities/live").with(user)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/communities/live").with(admin())).andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/communities/ARCHIVED").with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Archived description"))
+                .andExpect(jsonPath("$.active").value(false));
+        mockMvc.perform(get("/api/communities/archived").with(user)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/communities/archived")).andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/communities/missing")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/communities/missing").with(user)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/communities/missing").with(admin())).andExpect(status().isNotFound());
+    }
 }

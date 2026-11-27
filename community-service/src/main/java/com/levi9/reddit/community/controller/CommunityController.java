@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -80,9 +81,11 @@ public class CommunityController {
     }
 
     @GetMapping("/{name}")
-    @Operation(summary = "A single community with all its details; 404 if it doesn't exist or is inactive")
-    public CommunityDetailDTO getCommunity(@PathVariable @Size(max = 50) String name) {
-        return communityService.getCommunity(name);
+    @Operation(summary = "Community details; inactive communities are visible only to admins")
+    public CommunityDetailDTO getCommunity(@PathVariable @Size(max = 50) String name, Authentication authentication) {
+        boolean includeInactive = authentication != null && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream().anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        return communityService.getCommunity(name, includeInactive);
     }
 
     @PutMapping("/{name}/members/me")

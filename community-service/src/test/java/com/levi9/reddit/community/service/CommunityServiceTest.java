@@ -184,6 +184,7 @@ class CommunityServiceTest {
         assertThat(result.description()).isEqualTo("Backend discussion");
         assertThat(result.memberCount()).isEqualTo(7);
         assertThat(result.createdAt()).isEqualTo(community.getCreatedAt());
+        assertThat(result.active()).isTrue();
     }
 
     @Test
@@ -193,6 +194,28 @@ class CommunityServiceTest {
         assertThatThrownBy(() -> service.getCommunity("missing"))
                 .isInstanceOf(CommunityNotFoundException.class)
                 .hasMessage("Community not found: missing");
+    }
+
+    @Test
+    void getCommunity_includingInactive_returnsDetails() {
+        Community inactive = new Community("retired", 42L);
+        inactive.updateDescription("Archived description");
+        inactive.deactivate();
+        when(communities.findByName("retired")).thenReturn(Optional.of(inactive));
+
+        CommunityDetailDTO result = service.getCommunity("retired", true);
+
+        assertThat(result.name()).isEqualTo("retired");
+        assertThat(result.description()).isEqualTo("Archived description");
+        assertThat(result.active()).isFalse();
+    }
+
+    @Test
+    void getCommunity_includingInactive_missingStillThrowsNotFound() {
+        when(communities.findByName("missing")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getCommunity("missing", true))
+                .isInstanceOf(CommunityNotFoundException.class);
     }
 
     @Test

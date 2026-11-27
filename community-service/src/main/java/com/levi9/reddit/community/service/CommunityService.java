@@ -89,14 +89,14 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public CommunityDetailDTO getCommunity(String name) {
-        Community community = communities.findActiveByName(name)
+        return getCommunity(name, false);
+    }
+
+    @Transactional(readOnly = true)
+    public CommunityDetailDTO getCommunity(String name, boolean includeInactive) {
+        Community community = (includeInactive ? communities.findByName(name) : communities.findActiveByName(name))
                 .orElseThrow(() -> new CommunityNotFoundException(name));
-        return new CommunityDetailDTO(
-                community.getId(),
-                community.getName(),
-                community.getDescription(),
-                community.getMemberCount(),
-                community.getCreatedAt());
+        return detail(community);
     }
 
     /** Internal lookup by id: a missing or inactive community is a 404 to the caller. */
@@ -150,7 +150,8 @@ public class CommunityService {
                 community.getName(),
                 community.getDescription(),
                 community.getMemberCount(),
-                community.getCreatedAt());
+                community.getCreatedAt(),
+                community.isActive());
     }
 
     private static <E, R> PageDTO<R> toPage(Page<E> page, Function<E, R> mapper) {

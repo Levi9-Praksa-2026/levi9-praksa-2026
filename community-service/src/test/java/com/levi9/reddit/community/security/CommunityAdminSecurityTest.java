@@ -22,6 +22,7 @@ import com.levi9.reddit.community.dto.CommunityDetailDTO;
 import com.levi9.reddit.community.dto.CommunitySort;
 import com.levi9.reddit.community.dto.PageDTO;
 import com.levi9.reddit.community.exception.GlobalExceptionHandler;
+import com.levi9.reddit.community.exception.CommunityNotFoundException;
 import com.levi9.reddit.community.service.CommunityMembershipService;
 import com.levi9.reddit.community.service.CommunityService;
 import java.time.Instant;
@@ -109,7 +110,7 @@ class CommunityAdminSecurityTest {
     @Test
     void create_asAdmin_isAllowed() throws Exception {
         given(communityService.create(anyString(), nullable(String.class), anyLong()))
-                .willReturn(new CommunityDetailDTO(1L, "backend", "Backend discussion", 0, Instant.now()));
+                .willReturn(new CommunityDetailDTO(1L, "backend", "Backend discussion", 0, Instant.now(), true));
 
         mockMvc.perform(post("/api/communities")
                         .with(admin())
@@ -156,6 +157,30 @@ class CommunityAdminSecurityTest {
 
         mockMvc.perform(get("/api/communities"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void inactiveDetails_areVisibleOnlyToAdmins() throws Exception {
+        given(communityService.getCommunity("retired", true))
+                .willReturn(new CommunityDetailDTO(1L, "retired", "Archived description", 3, Instant.now(), false));
+        given(communityService.getCommunity("retired", false)).willThrow(new CommunityNotFoundException("retired"));
+
+        mockMvc.perform(get("/api/communities/retired").with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Archived description"))
+                .andExpect(jsonPath("$.active").value(false));
+        mockMvc.perform(get("/api/communities/retired").with(regularUser()))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/communities/retired").param("includeInactive", "true"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void missingDetails_remainNotFoundForAdmins() throws Exception {
+        given(communityService.getCommunity("missing", true)).willThrow(new CommunityNotFoundException("missing"));
+
+        mockMvc.perform(get("/api/communities/missing").with(admin()))
+                .andExpect(status().isNotFound());
     }
 
     @Test

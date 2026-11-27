@@ -56,7 +56,7 @@ class CommunityJwtSecurityTest {
     @Test
     void create_withAdminToken_isCreatedByThatUser() throws Exception {
         given(communityService.create(anyString(), nullable(String.class), eq(5L)))
-                .willReturn(new CommunityDetailDTO(1L, "backend", "Backend discussion", 0, Instant.now()));
+                .willReturn(new CommunityDetailDTO(1L, "backend", "Backend discussion", 0, Instant.now(), true));
 
         create(TestTokens.token(5, "admin", "ADMIN")).andExpect(status().isCreated());
     }

@@ -30,6 +30,7 @@ function toDetail(c: CommunityRow): CommunityDetailResponse {
     description: c.description,
     memberCount: memberCount(c),
     createdAt: c.createdAt,
+    active: c.isActive,
     joined: !!me && db.members.some(m => m.communityId === c.id && m.userId === me.id),
   }
 }

@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
-import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
 import { CommunityHeader } from '@/features/communities/CommunityHeader'
 import { InactiveCommunityNotice } from '@/features/communities/InactiveCommunityNotice'
-import { useCommunity, useInactiveCommunity } from '@/features/communities/hooks'
+import { useCommunity } from '@/features/communities/hooks'
 import { PostFeed } from '@/features/posts/PostFeed'
 import { useCurrentUser } from '@/features/users/useCurrentUser'
 import { reactivateCommunity } from '@/shared/api/communities'
@@ -15,11 +14,10 @@ import { routes } from '@/shared/config/routes'
 /** `/l/:name`: the community's header, its Posts tab, and the posts written in it. */
 export function CommunityPage() {
   const { name = '' } = useParams()
-  const { user } = useCurrentUser()
+  const { user, loading: userLoading } = useCurrentUser()
   const isAdmin = user?.roles.includes('ADMIN') ?? false
   const { data, error, isPending, refetch } = useCommunity(name)
-  const missing = isApiError(error) && error.status === 404
-  const inactive = useInactiveCommunity(name, missing && isAdmin)
+  const missing = (isApiError(error) && error.status === 404) || (data?.active === false && !isAdmin)
   const client = useQueryClient()
   // Keyed by name, so navigating to another community never inherits this page's shut-down state.
   const [shutDownName, setShutDownName] = useState<string | null>(null)
@@ -30,7 +28,7 @@ export function CommunityPage() {
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: queryKeys.communities.all })
       setShutDownName(null)
-      // The detail endpoint will answer again now that the community is active.
+      // Reload the community status after reactivation.
       void refetch()
     },
   })
@@ -48,10 +46,9 @@ export function CommunityPage() {
   const reactivateError = reactivate.isError ? `Couldn't reactivate l/${name}. Try again.` : null
 
   // Public content never waits for /api/me: an anonymous 401 there must not hide the community.
-  if (isPending || (missing && isAdmin && inactive.isPending) || reactivate.isPending) return loading
+  if (isPending || reactivate.isPending || (data?.active === false && userLoading)) return loading
 
-  // An admin who just deactivated this community stays on the page, with a way to undo it.
-  if (shutDown && data) {
+  if (isAdmin && data && (shutDown || data.active === false)) {
     return (
       <section aria-labelledby="community-title" className="grid gap-card-gap">
         <CommunityHeader key={data.id} community={data} shutDown />
@@ -61,28 +58,7 @@ export function CommunityPage() {
     )
   }
 
-  // A normal visitor gets a 404; an admin can also be looking at a shut-down community, which the
-  // public detail endpoint never returns, so it is looked up through the admin list instead.
-  if (missing && isAdmin && inactive.data) {
-    const community = inactive.data
-    return (
-      <section aria-labelledby="community-title" className="grid gap-card-gap">
-        <header className="flex items-center gap-4 rounded-lg border border-line bg-bg p-card-pad">
-          <CommunityAvatar name={community.name} size="md" />
-          <div className="min-w-0 flex-1">
-            <h1 id="community-title" className="truncate text-h3">l/{community.name}</h1>
-            <p className="mt-1 text-label text-muted">
-              {community.memberCount} member{community.memberCount === 1 ? '' : 's'} · Shut down
-            </p>
-          </div>
-        </header>
-        <InactiveCommunityNotice name={community.name} onReactivate={() => reactivate.mutate()} pending={reactivate.isPending} error={reactivateError} />
-        <Link to={routes.communities} className="w-fit text-small font-medium text-accent underline underline-offset-2">Back to communities</Link>
-      </section>
-    )
-  }
-
-  if (error) {
+  if (error || missing) {
     return (
       <div className="rounded-lg border border-line bg-bg px-card-pad py-10 text-center">
         <h1 className="text-h3">{missing ? `l/${name} doesn't exist` : `Couldn't load l/${name}`}</h1>

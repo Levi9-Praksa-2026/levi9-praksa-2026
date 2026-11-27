@@ -50,8 +50,8 @@ export function CommunityHeader({ community, shutDown = false, onDeactivated }: 
   const deactivate = useMutation({
     mutationFn: () => deactivateCommunity(community.name),
     onSuccess: () => {
-      // Only listings change: the detail query would now 404, and the page keeps its own state.
-      void client.invalidateQueries({ queryKey: queryKeys.communities.list({}) })
+      // Refresh community data, including the status returned to admins.
+      void client.invalidateQueries({ queryKey: queryKeys.communities.all })
       setConfirming(false)
       onDeactivated?.()
     },

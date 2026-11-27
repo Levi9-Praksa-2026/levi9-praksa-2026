@@ -203,8 +203,8 @@ class CommunityControllerTest {
 
     @Test
     void getCommunity_returnsEveryDetail() throws Exception {
-        given(communityService.getCommunity("backend")).willReturn(new CommunityDetailDTO(
-                1L, "backend", "Backend discussion", 7, CREATED));
+        given(communityService.getCommunity("backend", false)).willReturn(new CommunityDetailDTO(
+                1L, "backend", "Backend discussion", 7, CREATED, true));
 
         mockMvc.perform(get("/api/communities/{name}", "backend"))
                 .andExpect(status().isOk())
@@ -214,12 +214,13 @@ class CommunityControllerTest {
                 .andExpect(jsonPath("$.creatorId").doesNotExist())
                 .andExpect(jsonPath("$.memberCount").value(7))
                 .andExpect(jsonPath("$.createdAt").exists())
+                .andExpect(jsonPath("$.active").value(true))
                 .andExpect(jsonPath("$.posts").doesNotExist());
     }
 
     @Test
     void getCommunity_missing_returnsProblemDetail() throws Exception {
-        given(communityService.getCommunity("missing")).willThrow(new CommunityNotFoundException("missing"));
+        given(communityService.getCommunity("missing", false)).willThrow(new CommunityNotFoundException("missing"));
 
         mockMvc.perform(get("/api/communities/{name}", "missing"))
                 .andExpect(status().isNotFound())
@@ -273,7 +274,7 @@ class CommunityControllerTest {
     @Test
     void create_returnsCreatedCommunity() throws Exception {
         given(communityService.create("backend", "Backend discussion", 1L))
-                .willReturn(new CommunityDetailDTO(1L, "backend", "Backend discussion", 0, CREATED));
+                .willReturn(new CommunityDetailDTO(1L, "backend", "Backend discussion", 0, CREATED, true));
 
         mockMvc.perform(post("/api/communities")
                         .with(admin())
