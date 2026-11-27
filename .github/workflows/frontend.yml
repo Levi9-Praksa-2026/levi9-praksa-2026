@@ -32,3 +32,59 @@ jobs:
       run: npm test
     - name: Type check and build
       run: npm run build
+    # The deploy job uploads these exact files, so what was tested is what goes live.
+    - name: Save the build
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-dist
+        path: frontend/dist
+        retention-days: 1
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write    # trade GitHub's OIDC token for AWS credentials
+      actions: read      # download the build from the build job
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      AWS_REGION: eu-central-1
+    steps:
+    - name: Check deploy configuration
+      env:
+        ROLE_ARN: ${{ vars.AWS_FRONTEND_DEPLOY_ROLE_ARN }}
+        BUCKET: ${{ vars.FRONTEND_BUCKET }}
+        DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+      run: |
+        if [ -z "$ROLE_ARN" ] || [ -z "$BUCKET" ] || [ -z "$DISTRIBUTION_ID" ]; then
+          echo "::error::Set the repository variables AWS_FRONTEND_DEPLOY_ROLE_ARN, FRONTEND_BUCKET and CLOUDFRONT_DISTRIBUTION_ID from the Terraform outputs."
+          exit 1
+        fi
+    - uses: actions/download-artifact@v4
+      with:
+        name: frontend-dist
+        path: frontend/dist
+    - name: AWS credentials (frontend deploy role, main only)
+      uses: aws-actions/configure-aws-credentials@v5
+      with:
+        role-to-assume: ${{ vars.AWS_FRONTEND_DEPLOY_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+    - name: Upload the build to S3
+      env:
+        BUCKET: ${{ vars.FRONTEND_BUCKET }}
+      run: |
+        aws s3 sync dist "s3://$BUCKET" --delete --cache-control "public, max-age=86400"
+        # HTML is the SPA entry point: never cache it at the edge. Hashed assets keep the one-day TTL above.
+        find dist -type f -name '*.html' -print0 | while IFS= read -r -d '' file; do
+          aws s3 cp "$file" "s3://$BUCKET/${file#dist/}" --cache-control "no-cache, no-store, must-revalidate"
+        done
+    - name: Invalidate CloudFront
+      env:
+        DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+      run: aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/*"

@@ -72,3 +72,64 @@ resource "aws_iam_role_policy" "github_ecr_push" {
   role   = aws_iam_role.github_ecr_push.id
   policy = data.aws_iam_policy_document.github_ecr_push.json
 }
+
+# Same OIDC pattern for the frontend deploy: main only, no AWS keys in GitHub. The job syncs the built
+# dist/ into the private frontend bucket and invalidates the CDN so the new build is visible immediately.
+
+data "aws_iam_policy_document" "github_frontend_deploy_trust" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [local.github_oidc_provider_arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = [local.github_main_sub]
+    }
+  }
+}
+
+resource "aws_iam_role" "github_frontend_deploy" {
+  name                 = "${local.name}-github-frontend-deploy"
+  description          = "GitHub Actions on main: deploy the React build and invalidate CloudFront"
+  assume_role_policy   = data.aws_iam_policy_document.github_frontend_deploy_trust.json
+  max_session_duration = 3600
+  tags                 = { Name = "${local.name}-github-frontend-deploy" }
+}
+
+data "aws_iam_policy_document" "github_frontend_deploy" {
+  # aws s3 sync lists the bucket to work out which objects to add and remove.
+  statement {
+    sid       = "ListFrontendBucket"
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.frontend.arn]
+  }
+
+  statement {
+    sid       = "WriteFrontendObjects"
+    actions   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
+    resources = ["${aws_s3_bucket.frontend.arn}/*"]
+  }
+
+  statement {
+    sid       = "InvalidateFrontend"
+    actions   = ["cloudfront:CreateInvalidation"]
+    resources = [aws_cloudfront_distribution.app.arn]
+  }
+}
+
+resource "aws_iam_role_policy" "github_frontend_deploy" {
+  name   = "deploy-frontend"
+  role   = aws_iam_role.github_frontend_deploy.id
+  policy = data.aws_iam_policy_document.github_frontend_deploy.json
+}
