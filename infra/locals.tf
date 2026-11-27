@@ -2,7 +2,8 @@ locals {
   # Prefix for resource names. The apply role may only manage IAM resources named levddit-*.
   name = var.project
   owners = {
-    alb = "r.trajkovski-int@levi9.com"
+    alb        = "r.trajkovski-int@levi9.com"
+    cloudfront = "ma.ivanovic-int@levi9.com"
     # network, rds, ecr, ecs... added as each part lands
   }
   # The backend services: the list every per-service resource loops over. Names match the module folders and
