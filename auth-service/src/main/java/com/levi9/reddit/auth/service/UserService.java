@@ -3,6 +3,7 @@ package com.levi9.reddit.auth.service;
 import com.levi9.reddit.auth.dto.UpdateUserDTO;
 import com.levi9.reddit.auth.dto.AdminUpdateUserDTO;
 import com.levi9.reddit.auth.dto.UserProfileDTO;
+import com.levi9.reddit.auth.dto.PublicUserProfileDTO;
 import com.levi9.reddit.auth.entity.User;
 import com.levi9.reddit.auth.entity.UserRole;
 import com.levi9.reddit.auth.exception.ConflictException;
@@ -33,6 +34,12 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserProfileDTO getProfile(Long userId) {
         return toProfileResponse(requireProfileUser(users.findById(userId)));
+    }
+
+    @Transactional(readOnly = true)
+    public PublicUserProfileDTO getPublicProfile(String username) {
+        User user = requireExistingUser(users.findByUsernameIgnoringCase(username));
+        return new PublicUserProfileDTO(user.getUsername(), user.getFirstName(), user.getLastName(), user.getCreatedAt());
     }
 
     @Transactional

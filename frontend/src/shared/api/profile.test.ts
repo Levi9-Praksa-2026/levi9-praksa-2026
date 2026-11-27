@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from './errors'
-import { getMyProfileOverview, updateMyName } from './profile'
+import { getMyProfileOverview, getPublicUserProfile, updateMyName } from './profile'
 
 const fetchMock = vi.fn<typeof fetch>()
 
@@ -20,6 +20,11 @@ afterEach(() => {
 })
 
 describe('profile data', () => {
+  it('loads a public profile from the real endpoint with an encoded username', async () => {
+    fetchMock.mockResolvedValue(json(200, { username: 'ana', firstName: 'Ana', lastName: 'User', createdAt: '2026-01-01T00:00:00Z' }))
+    expect((await getPublicUserProfile('ana user')).username).toBe('ana')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/users/public/ana%20user')
+  })
   it('reads the real account and leaves recent posts empty until an overview endpoint exists', async () => {
     fetchMock.mockResolvedValue(json(200, {
       id: 1, username: 'demo_user', email: 'demo@example.com', firstName: 'Demo', lastName: 'User',

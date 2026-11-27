@@ -35,6 +35,8 @@ export const routes = {
   community: (name: string) => `/l/${encodeURIComponent(name)}`,
   /** The logged-in user's own profile. */
   profile: '/profile',
+  /** A user's public profile. */
+  user: (username: string) => `/u/${encodeURIComponent(username)}`,
   /** A new post in a community: `/l/frontend/submit`. */
   submit: (communityName: string) => `/l/${encodeURIComponent(communityName)}/submit`,
   /** A post with its comments: `/posts/42`. `#comments` jumps to the comments. */
@@ -43,6 +45,7 @@ export const routes = {
 
 /** The route pattern for `routes.community`, for the router. */
 export const COMMUNITY_PATTERN = '/l/:name'
+export const USER_PATTERN = '/u/:username'
 /** The route pattern for `routes.post`, for the router. */
 export const POST_PATTERN = '/posts/:id'
 /** The route pattern for `routes.submit`, for the router. */

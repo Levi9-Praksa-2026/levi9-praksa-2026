@@ -2,6 +2,18 @@ import type { ProfileOverviewResponse } from './contracts/profile'
 import type { UserProfileResponse } from './contracts/users'
 import { http } from './http'
 
+/** A public profile excludes the account's email and other private details. */
+export interface PublicUserProfile {
+  username: string
+  firstName: string
+  lastName: string
+  createdAt: string
+}
+
+export function getPublicUserProfile(username: string): Promise<PublicUserProfile> {
+  return http<PublicUserProfile>(`/api/users/public/${encodeURIComponent(username)}`)
+}
+
 /*
   Real requests only: no mock store and no seeded people, posts or communities.
 

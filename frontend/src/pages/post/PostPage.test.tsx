@@ -47,6 +47,7 @@ describe('PostPage', () => {
     expect(html).not.toContain('line-clamp')
     expect(html).toContain('href="/api/posts/2/images/1" target="_blank"')
     expect(html).toContain('href="/l/backend"')
+    expect(html).toContain('href="/u/ana"')
   })
 
   it('treats an id that cannot be a post as gone, without asking', () => {

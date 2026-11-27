@@ -4,6 +4,7 @@ import com.levi9.reddit.auth.dto.ChangePasswordDTO;
 import com.levi9.reddit.auth.dto.DeleteUserDTO;
 import com.levi9.reddit.auth.dto.UpdateUserDTO;
 import com.levi9.reddit.auth.dto.UserProfileDTO;
+import com.levi9.reddit.auth.dto.PublicUserProfileDTO;
 import com.levi9.reddit.auth.exception.ErrorType;
 import com.levi9.reddit.auth.exception.UnauthorizedException;
 import com.levi9.reddit.auth.service.UserService;
@@ -15,6 +16,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +32,11 @@ public class UserController {
     @GetMapping("/me")
     public UserProfileDTO getMe(@AuthenticationPrincipal Jwt jwt) {
         return userService.getProfile(authenticatedUserId(jwt));
+    }
+
+    @GetMapping("/public/{username}")
+    public PublicUserProfileDTO getPublicProfile(@PathVariable String username) {
+        return userService.getPublicProfile(username);
     }
 
     @PatchMapping("/me")

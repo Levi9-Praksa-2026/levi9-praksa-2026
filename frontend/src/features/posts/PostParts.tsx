@@ -29,7 +29,11 @@ export function PostMeta({ post, hideCommunity = false }: PostMetaProps) {
           <span aria-hidden="true">·</span>
         </>
       )}
-      <span className="truncate">u/{post.authorUsername}</span>
+      {post.authorUsername ? (
+        <Link to={routes.user(post.authorUsername)} className="truncate hover:text-accent">u/{post.authorUsername}</Link>
+      ) : (
+        <span className="truncate">[deleted]</span>
+      )}
       <span aria-hidden="true">·</span>
       <time dateTime={post.createdAt} title={new Date(post.createdAt).toLocaleString()}>{relativeTime(post.createdAt)}</time>
       {post.updatedAt && <span title={`Edited ${new Date(post.updatedAt).toLocaleString()}`}>(edited)</span>}
