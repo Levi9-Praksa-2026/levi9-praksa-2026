@@ -55,6 +55,22 @@ class AuthServiceRegisterTests {
     }
 
     @Test
+    void adminCreationPersistsTheChosenRoleWithAHashedPassword() {
+        for (UserRole role : UserRole.values()) {
+            String username = "created_" + role.name();
+            User created = auth.createByAdmin(request(username, username + "@example.test"), role);
+            User saved = users.findById(created.getId()).orElseThrow();
+            assertThat(saved.getRole()).isEqualTo(role);
+            assertThat(saved.getPasswordHash()).isNotEqualTo(PASSWORD);
+            assertThat(passwordEncoder.matches(PASSWORD, saved.getPasswordHash())).isTrue();
+            assertThat(saved.isBanned()).isFalse();
+            assertThat(saved.isDeleted()).isFalse();
+        }
+        auth.register(request("public_user", "public@example.test"));
+        assertThat(users.findByUsernameIgnoringCase("public_user").orElseThrow().getRole()).isEqualTo(UserRole.USER);
+    }
+
+    @Test
     void createsAUserAccountWithTheGivenDetails() {
         auth.register(request("Marko_92", "Marko@Example.test"));
 

@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router'
-import { ChevronDown, Compass, Home, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useCurrentUser } from '@/features/users/useCurrentUser'
+import { ChevronDown, Compass, Home, ChevronLeft, ChevronRight, X, ShieldCheck } from 'lucide-react'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { CommunityResponse } from '@/shared/api/contracts/communities'
 import { CommunityAvatar } from '@/features/communities/CommunityAvatar'
@@ -26,19 +27,20 @@ function SidebarLink({ to, icon, label, rail, end }: { to: string; icon: ReactNo
       end={end}
       title={rail ? label : undefined}
       className={cn(
-        'flex min-h-10 items-center gap-3 rounded-sm px-3 text-small font-medium text-muted hover:bg-surface hover:text-ink',
+        'transition-[padding,gap] duration-240 ease-in-out motion-reduce:transition-none flex min-h-10 items-center gap-3 rounded-sm px-3 text-small font-medium text-muted hover:bg-surface hover:text-ink',
         'aria-[current=page]:bg-surface aria-[current=page]:text-ink',
-        rail && 'justify-center px-0',
+        rail && 'gap-0 px-[10px]',
       )}
     >
       {icon}
-      <span className={cn('truncate', rail && 'sr-only')}>{label}</span>
+      <span className={cn('truncate transition-[max-width,opacity] duration-240 ease-in-out motion-reduce:transition-none', rail ? 'max-w-0 opacity-0' : 'max-w-sidebar opacity-100')}>{label}</span>
     </NavLink>
   )
 }
 
 /** The forum's sidebar: Home and the communities you joined. */
 export function Sidebar({ id, variant, showMyCommunities, communities, onToggle }: SidebarProps) {
+  const { user } = useCurrentUser()
   const rail = variant === 'rail'
   const [mineOpen, setMineOpen] = useState(true)
   const listId = `${id}-mine`
@@ -67,6 +69,7 @@ export function Sidebar({ id, variant, showMyCommunities, communities, onToggle 
         <div className="flex flex-col gap-0.5 px-3 pt-1">
           <SidebarLink to={routes.home} end rail={rail} label="Home" icon={<Home className="size-5 flex-none" aria-hidden="true" />} />
           <SidebarLink to={routes.communities} rail={rail} label="Communities" icon={<Compass className="size-5 flex-none" aria-hidden="true" />} />
+          {user?.roles.includes('ADMIN') && <SidebarLink to={routes.admin} rail={rail} label="Admin dashboard" icon={<ShieldCheck className="size-5 flex-none" aria-hidden="true" />} />}
         </div>
 
         {showMyCommunities && (
@@ -116,7 +119,7 @@ function CommunitySkeleton({ rail }: { rail: boolean }) {
   return (
     <div aria-hidden="true" className="flex flex-col gap-0.5">
       {[0, 1, 2].map(i => (
-        <div key={i} className={cn('flex min-h-10 items-center gap-3 px-3', rail && 'justify-center px-0')}>
+        <div key={i} className={cn('transition-[padding,gap] duration-240 ease-in-out motion-reduce:transition-none flex min-h-10 items-center gap-3 px-3', rail && 'gap-0 px-[10px]')}>
           <span className="size-7 flex-none animate-pulse rounded-full bg-surface" />
           {!rail && <span className={cn('h-3 flex-1 animate-pulse rounded-sm bg-surface', SKELETON_WIDTHS[i])} />}
         </div>

@@ -17,6 +17,13 @@ export const routes = {
   /** "Join now": the registration form. `?email=` fills in the email. */
   signUp: '/signup',
   welcome: '/welcome/',
+  
+  /** Administrator overview. */
+  admin: '/admin',
+  adminCommunities: '/admin/communities',
+  adminUsers: '/admin/users',
+  adminPosts: '/admin/posts',
+
   /** The searchable community directory. */
   communities: communitiesPath,
   /** Where the header search lands: the directory filtered by a (trimmed) name, or all of it if empty. */

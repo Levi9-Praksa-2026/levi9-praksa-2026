@@ -93,7 +93,7 @@ public class User {
         this.passwordChangedAt = Objects.requireNonNull(changedAt, "changedAt");
     }
 
-    /** The only way a role changes; nothing calls it outside the dev profile yet. */
+    /** Grants the admin role during protected admin creation or dev-account initialization. */
     public void grantAdmin() {
         this.role = UserRole.ADMIN;
     }

@@ -6,6 +6,16 @@ import com.levi9.reddit.auth.exception.ForbiddenException;
 import com.levi9.reddit.auth.exception.NotFoundException;
 import com.levi9.reddit.auth.config.UserApiSecurityConfig;
 import com.levi9.reddit.auth.service.UserBanService;
+import com.levi9.reddit.auth.service.UserService;
+import com.levi9.reddit.auth.service.AuthService;
+import com.levi9.reddit.auth.dto.RegisterDTO;
+import com.levi9.reddit.auth.entity.User;
+import com.levi9.reddit.auth.service.UserDirectoryService;
+import com.levi9.reddit.auth.dto.AdminUserDTO;
+import com.levi9.reddit.auth.dto.PageDTO;
+import com.levi9.reddit.auth.entity.UserRole;
+import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -18,6 +28,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -41,7 +53,108 @@ class AdminUserControllerTest {
     private UserBanService bans;
 
     @MockitoBean
+    private UserDirectoryService directory;
+
+    @MockitoBean
+    private AuthService accounts;
+
+    @MockitoBean
+    private UserService profiles;
+
+    @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @Test
+    void adminCreatesRegularUserWithoutCredentialsInResponse() throws Exception {
+        var request = new RegisterDTO("new_user", "new@example.test", "long-demo-password", "New", "User");
+        given(accounts.createByAdmin(request, UserRole.USER)).willReturn(new User(request.username(), request.email(), "private-hash", "New", "User"));
+        mvc.perform(post("/api/admin/users").with(admin()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"new_user\",\"email\":\"new@example.test\",\"password\":\"long-demo-password\",\"firstName\":\"New\",\"lastName\":\"User\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.username").value("new_user"))
+                .andExpect(jsonPath("$.passwordHash").doesNotExist())
+                .andExpect(jsonPath("$.password").doesNotExist());
+        verify(accounts).createByAdmin(request, UserRole.USER);
+    }
+
+    @Test
+    void adminMayExplicitlyChooseEitherRole() throws Exception {
+        var request = new RegisterDTO("new_user", "new@example.test", "long-demo-password", "New", "User");
+        for (UserRole role : UserRole.values()) {
+            given(accounts.createByAdmin(request, role)).willReturn(new User(request.username(), request.email(), "hash", "New", "User"));
+            mvc.perform(post("/api/admin/users").with(admin()).contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"username\":\"new_user\",\"email\":\"new@example.test\",\"password\":\"long-demo-password\",\"firstName\":\"New\",\"lastName\":\"User\",\"role\":\"" + role.name() + "\"}"))
+                    .andExpect(status().isCreated());
+            verify(accounts).createByAdmin(request, role);
+        }
+    }
+
+    @Test
+    void invalidRoleIsRejectedAndRegularUsersCannotCreateAdmins() throws Exception {
+        String body = "{\"username\":\"new_user\",\"email\":\"new@example.test\",\"password\":\"long-demo-password\",\"firstName\":\"New\",\"lastName\":\"User\",\"role\":\"SUPERUSER\"}";
+        mvc.perform(post("/api/admin/users").with(admin()).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/admin/users").with(user()).contentType(MediaType.APPLICATION_JSON).content(body.replace("SUPERUSER", "ADMIN")))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(accounts);
+    }
+
+    @Test
+    void creationIsAdminOnlyAndValidatesTheRegistrationRules() throws Exception {
+        mvc.perform(post("/api/admin/users").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/admin/users").with(user()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/admin/users").with(admin()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(accounts);
+    }
+
+    @Test
+    void adminReadsPaginatedDirectoryWithoutCredentials() throws Exception {
+        given(directory.list("reader", "banned", null, 1, 5)).willReturn(new PageDTO<>(List.of(
+                new AdminUserDTO(42L, "reader", "reader@example.test", "First", "Last", UserRole.USER,
+                        true, false, "Spam", Instant.EPOCH, Instant.EPOCH)), 1, 5, 6, 2));
+        mvc.perform(get("/api/admin/users").with(admin()).param("q", "reader").param("status", "banned")
+                        .param("page", "1").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].username").value("reader"))
+                .andExpect(jsonPath("$.content[0].banned").value(true))
+                .andExpect(jsonPath("$.content[0].passwordHash").doesNotExist())
+                .andExpect(jsonPath("$.content[0].passwordChangedAt").doesNotExist())
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.totalPages").value(2));
+    }
+
+    @Test
+    void directoryAcceptsBothRolesAlongsideOtherFilters() throws Exception {
+        for (UserRole role : UserRole.values()) {
+            given(directory.list("reader", "active", role, 0, 5)).willReturn(new PageDTO<>(List.of(), 0, 5, 0, 0));
+            mvc.perform(get("/api/admin/users").with(admin()).param("q", "reader").param("status", "active")
+                            .param("role", role.name()).param("size", "5"))
+                    .andExpect(status().isOk());
+            verify(directory).list("reader", "active", role, 0, 5);
+        }
+    }
+
+    @Test
+    void directoryIsAdminOnly() throws Exception {
+        mvc.perform(get("/api/admin/users")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/users").with(user())).andExpect(status().isForbidden());
+        verifyNoInteractions(directory);
+    }
+
+    @Test
+    void directoryRejectsInvalidFiltersAndPaging() throws Exception {
+        for (String key : List.of("status", "role", "page", "size")) {
+            mvc.perform(get("/api/admin/users").with(admin()).param(key, "invalid"))
+                    .andExpect(status().isBadRequest());
+        }
+        mvc.perform(get("/api/admin/users").with(admin()).param("page", "-1")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/admin/users").with(admin()).param("size", "101")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/admin/users").with(admin()).param("q", "x".repeat(255))).andExpect(status().isBadRequest());
+        verifyNoInteractions(directory);
+    }
 
     @Test
     void adminBansUser() throws Exception {
