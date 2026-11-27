@@ -8,7 +8,7 @@ import lombok.Getter;
  * the HTTP status (see {@code GlobalExceptionHandler}); unchecked, so {@code @Transactional} rolls back on it.
  */
 public abstract sealed class DomainException extends RuntimeException
-        permits NotFoundException, ForbiddenException, ValidationException, ServiceUnavailableException {
+        permits NotFoundException, ForbiddenException, ValidationException, BadRequestException, ServiceUnavailableException {
     @Getter
     private final ErrorType errorType;
 

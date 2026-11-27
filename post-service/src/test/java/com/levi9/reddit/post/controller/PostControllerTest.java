@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.levi9.reddit.post.dto.CommentDTO;
+import com.levi9.reddit.post.exception.BadRequestException;
+import com.levi9.reddit.post.exception.ErrorType;
 import com.levi9.reddit.post.dto.PageDTO;
 import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.dto.PostImageDTO;
@@ -122,6 +124,17 @@ class PostControllerTest {
                 .andExpect(status().isOk());
 
         verify(postQueryService).findPosts(null, null, 1L, 0, 20);
+    }
+
+    @Test
+    void findPosts_withAuthorAndCommunity_returnsBadRequest() throws Exception {
+        when(postQueryService.findPosts(any(), any(), any(), anyInt(), anyInt()))
+                .thenThrow(new BadRequestException(ErrorType.INVALID_QUERY_PARAMETERS,
+                        "authorId cannot be combined with communityId or q"));
+
+        mockMvc.perform(get("/api/posts").param("authorId", "1").param("communityId", "7"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorType").value("INVALID_QUERY_PARAMETERS"));
     }
 
     @Test

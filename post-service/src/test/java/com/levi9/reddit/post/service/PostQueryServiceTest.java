@@ -14,6 +14,7 @@ import com.levi9.reddit.post.dto.PostDTO;
 import com.levi9.reddit.post.dto.TopPeriod;
 import com.levi9.reddit.post.entity.Comment;
 import com.levi9.reddit.post.entity.Post;
+import com.levi9.reddit.post.exception.BadRequestException;
 import com.levi9.reddit.post.exception.PostNotFoundException;
 import com.levi9.reddit.post.repository.CommentRepository;
 import com.levi9.reddit.post.repository.PostRepository;
@@ -100,6 +101,15 @@ class PostQueryServiceTest {
         service.findPosts(null, null, 2L, 0, 20);
 
         verify(posts).findByAuthorIdAndRemovedAtIsNull(eq(2L), any());
+    }
+
+    @Test
+    void findPosts_withAuthorAndOtherFilters_isRejected() {
+        assertThatThrownBy(() -> service.findPosts(7L, "spring", 2L, 0, 20))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("authorId cannot be combined with communityId or q");
+
+        verify(posts, never()).findByAuthorIdAndRemovedAtIsNull(any(), any());
     }
 
     @Test

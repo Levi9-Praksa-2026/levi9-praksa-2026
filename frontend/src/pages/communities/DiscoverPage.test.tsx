@@ -38,12 +38,15 @@ interface Seed {
 /** Renders with the lists already in the cache, so nothing is fetched. */
 function render(url: string, seed: Seed = {}) {
   const client = new QueryClient()
-  const q = new URL(url, 'http://localhost').searchParams.get('q') ?? ''
+  const params = new URL(url, 'http://localhost').searchParams
+  const q = params.get('q') ?? ''
+  const postsPage = Number(params.get('postsPage') ?? 0)
+  const communitiesPage = Number(params.get('communitiesPage') ?? 0)
   // no-op: primes the same keys the page reads, without touching the network
-  if (seed.searchPosts) client.setQueryData(queryKeys.posts.list({ q, page: 0, size: 5 }), seed.searchPosts)
-  if (seed.searchCommunities) client.setQueryData(queryKeys.communities.list({ name: q, sort: 'new', page: 0, size: 5 }), seed.searchCommunities)
-  if (seed.posts) client.setQueryData(queryKeys.posts.list({ page: 0, size: 5 }), seed.posts)
-  if (seed.communities) client.setQueryData(queryKeys.communities.list({ sort: 'new', page: 0, size: 5 }), seed.communities)
+  if (seed.searchPosts) client.setQueryData(queryKeys.posts.list({ q, page: postsPage, size: 5 }), seed.searchPosts)
+  if (seed.searchCommunities) client.setQueryData(queryKeys.communities.list({ name: q, sort: 'new', page: communitiesPage, size: 5 }), seed.searchCommunities)
+  if (seed.posts) client.setQueryData(queryKeys.posts.list({ page: postsPage, size: 5 }), seed.posts)
+  if (seed.communities) client.setQueryData(queryKeys.communities.list({ sort: 'new', page: communitiesPage, size: 5 }), seed.communities)
   return renderToStaticMarkup(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[url]}>
@@ -101,5 +104,15 @@ describe('DiscoverPage', () => {
       searchPosts: page([post], 11),
     })
     expect(html).toContain('Page 1 of 3 · 11 posts')
+  })
+
+  it('keeps each list on its own page', () => {
+    const html = render('/communities?q=react&postsPage=1', {
+      ...searchSeed,
+      searchPosts: page([post], 11),
+    })
+    expect(html).toContain('Page 2 of 3 · 11 posts')
+    expect(html).toContain('l/react')
+    expect(html).not.toContain('No communities found.')
   })
 })

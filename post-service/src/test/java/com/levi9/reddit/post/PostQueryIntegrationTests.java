@@ -91,6 +91,13 @@ class PostQueryIntegrationTests {
     }
 
     @Test
+    void rejectsAuthorIdCombinedWithAnotherFilter() throws Exception {
+        mockMvc.perform(get("/api/posts").param("authorId", "1").param("communityId", "200"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorType").value("INVALID_QUERY_PARAMETERS"));
+    }
+
+    @Test
     void searchesTitleCaseInsensitivelyAndSkipsRemovedPosts() throws Exception {
         mockMvc.perform(get("/api/posts").param("q", "spring"))
                 .andExpect(status().isOk())

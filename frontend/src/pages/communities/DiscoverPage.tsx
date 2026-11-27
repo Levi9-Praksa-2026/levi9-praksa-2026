@@ -1,7 +1,8 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { useSearchParams } from 'react-router'
 import { CommunityListItem } from '@/features/communities/CommunityListItem'
 import { useCommunityDirectory } from '@/features/communities/hooks'
+import { useStayOnExistingPage } from '@/features/posts/pastLastPage'
 import { usePosts } from '@/features/posts/hooks'
 import { PostCard, PostCardSkeleton } from '@/features/posts/PostCard'
 import type { CommunityListParams } from '@/shared/api/contracts/communities'
@@ -10,6 +11,8 @@ import { Pagination } from '@/shared/ui/Pagination'
 import { Select, type SelectOption } from '@/shared/ui/Select'
 
 const PAGE_SIZE = 5
+const POSTS_PAGE = 'postsPage'
+const COMMUNITIES_PAGE = 'communitiesPage'
 const SORT_OPTIONS: readonly SelectOption<'new' | 'top'>[] = [
   { value: 'new', label: 'Newest' },
   { value: 'top', label: 'Most members' },
@@ -21,9 +24,9 @@ const VIEWS: readonly { value: View; label: string }[] = [
   { value: 'communities', label: 'Communities' },
 ]
 
-/** Read a page number from the URL; anything invalid means the first page. */
-function pageFromParams(params: URLSearchParams): number {
-  const raw = params.get('page')
+/** Read one list's page number from the URL; anything invalid means the first page. */
+function pageFromParams(params: URLSearchParams, key: string): number {
+  const raw = params.get(key)
   if (raw === null) return 0
   const value = Number(raw)
   return Number.isInteger(value) && value >= 0 ? value : 0
@@ -32,23 +35,32 @@ function pageFromParams(params: URLSearchParams): number {
 /**
  * `/communities`: the page the header search lands on. A query shows posts first, then communities;
  * when neither has a match it becomes discovery, with the latest posts and all active communities.
- * The query, view, sort and page all live in the URL, so a view can be shared and survives back/forward.
+ * The query, view, sort and each list's page live in the URL, so a view can be shared and survives back/forward.
  */
 export function DiscoverPage() {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const sort = searchParams.get('sort') === 'top' ? 'top' : 'new'
-  const page = pageFromParams(searchParams)
+  const postsPage = pageFromParams(searchParams, POSTS_PAGE)
+  const communitiesPage = pageFromParams(searchParams, COMMUNITIES_PAGE)
   const queryName = (searchParams.get('q') ?? '').trim()
   const rawView = searchParams.get('view')
   const view: View = rawView === 'posts' || rawView === 'communities' ? rawView : 'all'
   const searching = queryName !== ''
 
-  const setPage = useCallback((next: number) => {
+  const setPostsPage = useCallback((next: number) => {
     setSearchParams(prev => {
       const params = new URLSearchParams(prev)
-      if (next === 0) params.delete('page')
-      else params.set('page', String(next))
+      if (next === 0) params.delete(POSTS_PAGE)
+      else params.set(POSTS_PAGE, String(next))
+      return params
+    })
+  }, [setSearchParams])
+  const setCommunitiesPage = useCallback((next: number) => {
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev)
+      if (next === 0) params.delete(COMMUNITIES_PAGE)
+      else params.set(COMMUNITIES_PAGE, String(next))
       return params
     })
   }, [setSearchParams])
@@ -57,7 +69,8 @@ export function DiscoverPage() {
     setSearchParams(prev => {
       const params = new URLSearchParams(prev)
       params.delete('q')
-      params.delete('page')
+      params.delete(POSTS_PAGE)
+      params.delete(COMMUNITIES_PAGE)
       return params
     })
   }
@@ -76,7 +89,7 @@ export function DiscoverPage() {
       const params = new URLSearchParams(prev)
       if (next === 'new') params.delete('sort')
       else params.set('sort', next)
-      params.delete('page')
+      params.delete(COMMUNITIES_PAGE)
       return params
     })
   }
@@ -84,15 +97,15 @@ export function DiscoverPage() {
   const searchFilters: CommunityListParams = {
     name: queryName || undefined,
     sort,
-    page,
+    page: communitiesPage,
     size: PAGE_SIZE,
   }
   // Both pairs stay mounted: the search pair is disabled without a query, and the discovery pair is ready
   // before the empty search settles, so falling back to it never flashes skeletons or flips a state flag.
-  const searchPosts = usePosts({ q: queryName || undefined, page, size: PAGE_SIZE }, searching)
+  const searchPosts = usePosts({ q: queryName || undefined, page: postsPage, size: PAGE_SIZE }, searching)
   const searchCommunities = useCommunityDirectory(searchFilters, searching)
-  const discoveryPosts = usePosts({ page, size: PAGE_SIZE })
-  const discoveryCommunities = useCommunityDirectory({ sort, page, size: PAGE_SIZE })
+  const discoveryPosts = usePosts({ page: postsPage, size: PAGE_SIZE })
+  const discoveryCommunities = useCommunityDirectory({ sort, page: communitiesPage, size: PAGE_SIZE })
 
   const searchEmpty = searching
     && !searchPosts.isPending && !searchCommunities.isPending
@@ -103,11 +116,9 @@ export function DiscoverPage() {
 
   const posts = discovery ? discoveryPosts : searchPosts
   const communities = discovery ? discoveryCommunities : searchCommunities
-  const totalPages = Math.max(posts.data?.totalPages ?? 0, communities.data?.totalPages ?? 0)
-  // A filter change can leave us past the last page; move back to the end of the new result set.
-  useEffect(() => {
-    if (posts.data && communities.data && totalPages > 0 && page >= totalPages) setPage(totalPages - 1)
-  }, [posts.data, communities.data, totalPages, page, setPage])
+  // Each list moves back on its own when a filter change leaves it past its last page.
+  useStayOnExistingPage(postsPage, posts.data?.totalPages, posts.isPlaceholderData, setPostsPage)
+  useStayOnExistingPage(communitiesPage, communities.data?.totalPages, communities.isPlaceholderData, setCommunitiesPage)
 
   const postResults = posts.data?.content ?? []
   const communityResults = communities.data?.content ?? []
@@ -174,12 +185,12 @@ export function DiscoverPage() {
                 ))}
               </ul>
               <Pagination
-                page={page}
+                page={postsPage}
                 totalPages={posts.data?.totalPages ?? 0}
                 totalElements={posts.data?.totalElements}
                 itemLabel="posts"
                 label="Posts pages"
-                onChange={setPage}
+                onChange={setPostsPage}
               />
             </>
           )}
@@ -226,12 +237,12 @@ export function DiscoverPage() {
                 ))}
               </ul>
               <Pagination
-                page={page}
+                page={communitiesPage}
                 totalPages={communities.data?.totalPages ?? 0}
                 totalElements={communities.data?.totalElements}
                 itemLabel="communities"
                 label="Communities pages"
-                onChange={setPage}
+                onChange={setCommunitiesPage}
               />
             </>
           )}

@@ -54,7 +54,7 @@ export interface PostListParams extends PageParams {
   communityId?: number
   /** Searches titles (contains, any case), up to 300 characters. */
   q?: string
-  /** Only this author's posts; a standalone filter (other filters are ignored when it is present). */
+  /** Only this author's posts; a standalone filter (400 when combined with communityId or q). */
   authorId?: number
 }
 

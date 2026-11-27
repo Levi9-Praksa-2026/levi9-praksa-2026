@@ -7,6 +7,8 @@ import com.levi9.reddit.post.dto.TopPeriod;
 import com.levi9.reddit.post.entity.Comment;
 import com.levi9.reddit.post.entity.Post;
 import com.levi9.reddit.post.entity.PostImage;
+import com.levi9.reddit.post.exception.BadRequestException;
+import com.levi9.reddit.post.exception.ErrorType;
 import com.levi9.reddit.post.exception.ImageNotFoundException;
 import com.levi9.reddit.post.exception.PostNotFoundException;
 import com.levi9.reddit.post.repository.CommentRepository;
@@ -44,15 +46,21 @@ public class PostQueryService {
 
     /**
      * Newest posts first. communityId and query are optional and can be combined; authorId is a standalone
-     * filter for a user's own posts and takes precedence when present.
+     * filter for a user's own posts and cannot be combined with the other two.
      *
      * @param communityId only posts of this community, or {@code null} for all communities
      * @param query       text the title must contain (case-insensitive), or {@code null}/blank for no search
      * @param authorId    only posts by this author, or {@code null} for everyone
+     * @throws BadRequestException when authorId is combined with communityId or query
      */
     public PageDTO<PostDTO> findPosts(Long communityId, String query, Long authorId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, NEWEST_FIRST);
         String title = query == null || query.isBlank() ? null : query.strip();
+
+        if (authorId != null && (communityId != null || title != null)) {
+            throw new BadRequestException(ErrorType.INVALID_QUERY_PARAMETERS,
+                    "authorId cannot be combined with communityId or q");
+        }
 
         Page<Post> result;
         if (authorId != null) {

@@ -69,7 +69,6 @@ export function Sidebar({ id, variant, showMyCommunities, communities, onToggle 
         <div className="flex flex-col gap-0.5 px-3 pt-1">
           <SidebarLink to={routes.home} end rail={rail} label="Home" icon={<Home className="size-5 flex-none" aria-hidden="true" />} />
           <SidebarLink to={routes.communities} rail={rail} label="Discover" icon={<Compass className="size-5 flex-none" aria-hidden="true" />} />
-          <SidebarLink to={routes.communities} rail={rail} label="Communities" icon={<Compass className="size-5 flex-none" aria-hidden="true" />} />
           {user?.roles.includes('ADMIN') && <SidebarLink to={routes.admin} rail={rail} label="Admin dashboard" icon={<ShieldCheck className="size-5 flex-none" aria-hidden="true" />} />}
         </div>
 

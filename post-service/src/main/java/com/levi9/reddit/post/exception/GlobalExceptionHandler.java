@@ -99,6 +99,7 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             case NotFoundException _ -> HttpStatus.NOT_FOUND;
             case ForbiddenException _ -> HttpStatus.FORBIDDEN;
             case ValidationException _ -> HttpStatus.UNPROCESSABLE_CONTENT;
+            case BadRequestException _ -> HttpStatus.BAD_REQUEST;
             case ServiceUnavailableException _ -> HttpStatus.SERVICE_UNAVAILABLE;
         };
     }
