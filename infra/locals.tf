@@ -13,4 +13,21 @@ locals {
     community-service = { port = 8082 }
     post-service      = { port = 8083 }
   }
+  # Paths CloudFront sends to the ALB; everything else comes from the frontend bucket. Keep in step with
+  # frontend/nginx.conf and frontend/vite.config.ts. /api* also covers /api-docs.
+  gateway_paths = [
+    "/api*",
+    "/oauth2*",
+    "/login/oauth2*",
+    "/connect*",
+    "/.well-known*",
+    "/logout",
+  ]
+  # Stable IDs of AWS-managed CloudFront policies (AWS docs: "Use managed cache policies" and
+  # "Use managed origin request policies"). Published and immutable, so no data source lookup is needed.
+  cloudfront_managed_policies = {
+    caching_disabled       = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+    caching_optimized      = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    all_viewer_except_host = "b689b0a8-53d0-40ab-baf2-68738e2966ac"
+  }
 }

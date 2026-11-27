@@ -106,8 +106,25 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
   appends the client's address to `X-Forwarded-For` itself.
 - **With CloudFront in front of the ALB:** the ALB sees CloudFront's address, not the user's. Take the client
   address from `CloudFront-Viewer-Address` or trust CloudFront's ranges, or users behind one edge share a rate limit.
+  The CDN's API behavior uses the managed `AllViewerExceptHostHeader` origin request policy, so it already forwards
+  `CloudFront-Viewer-Address`; reading that header in the gateway/auth-service is not wired up yet.
 - Either way, check with a real request through the whole chain which address reaches auth-service before relying
   on it.
+
+### CloudFront: the public origin
+- **Local:** nginx or the Vite dev server serves React and proxies the gateway paths above to it.
+- **AWS:** one CloudFront distribution is the only public endpoint. Its behaviors send the paths above to the ALB
+  (with the `X-Origin-Verify` header the listener requires) and everything else to a private S3 bucket via OAC.
+- `APP_PUBLIC_URL` on all four services must be `https://<cloudfront-domain>` from the `cloudfront_domain_name`
+  Terraform output. It is also the JWT issuer and the base of the OAuth redirect URI, so set it before deploying
+  rather than changing it later.
+- The API is uncached, except `GET /api/posts/*/images/*`: CloudFront caches those bytes by URL for up to a day,
+  using the `Cache-Control` header post-service already returns.
+- The build has two HTML entry points. A viewer-request function maps `/welcome` and `/welcome/` to
+  `/welcome/index.html` and other extensionless paths to `/index.html`.
+- Deploys: push to `main` runs `frontend.yml`, which uploads the tested `dist/` to the frontend bucket and
+  invalidates `/*`. Set the repository variables `AWS_FRONTEND_DEPLOY_ROLE_ARN`, `FRONTEND_BUCKET` and
+  `CLOUDFRONT_DISTRIBUTION_ID` from the Terraform outputs.
 
 ## Database
 
@@ -145,8 +162,10 @@ Add an entry whenever you introduce a local-only shortcut. Each entry says what 
 
 ### S3
 - **Local:** `APP_S3_ENDPOINT=http://moto:5000` points post-service at Moto, a fake S3.
-- **Production:** remove `APP_S3_ENDPOINT` so the AWS SDK uses real S3, and set `S3_BUCKET` and `AWS_REGION`
-  if they differ from the defaults (`levddit-post-images`, `eu-central-1`).
+- **Production:** remove `APP_S3_ENDPOINT` so the AWS SDK uses real S3, and set `S3_BUCKET` to the
+  `post_images_bucket_name` Terraform output. The `levddit-post-images` default in `application.yml` is only for
+  Moto: real bucket names include the account ID. `AWS_REGION` defaults to `eu-central-1`. The post-service ECS
+  task role must be the `post_service_task_role_arn` output, which grants read/write/delete on that bucket.
 - **Upload size:** `POST /api/posts` accepts up to 3 images of 5 MB each (`spring.servlet.multipart.*`, 16 MB per
   request). Any proxy in front of the gateway (load balancer, ingress, nginx) must allow request bodies of at least
   16 MB, or uploads fail there with 413 before reaching the service.
