@@ -40,6 +40,20 @@ describe('the gateway session', () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/me')
   })
 
+  it('answers null when there is no session', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }))
+    expect(await getMe()).toBeNull()
+  })
+
+  it('propagates gateway and network failures', async () => {
+    fetchMock.mockResolvedValueOnce(json(503, { title: 'Service Unavailable' }))
+    await expect(getMe()).rejects.toMatchObject({ status: 503 })
+
+    const failure = new TypeError('Network error')
+    fetchMock.mockRejectedValueOnce(failure)
+    await expect(getMe()).rejects.toBe(failure)
+  })
+
   it('logs out with the gateway CSRF token and answers where to go next', async () => {
     fetchMock.mockResolvedValue(json(200, { redirectUrl: '/connect/logout?id_token_hint=x' }))
     expect(await logout()).toEqual({ redirectUrl: '/connect/logout?id_token_hint=x' })

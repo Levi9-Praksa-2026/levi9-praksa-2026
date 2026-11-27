@@ -8,9 +8,9 @@ import { http } from './http'
   not a call: `routes.login` (the gateway's OAuth start), which brings the browser to the sign-in page.
 */
 
-/** `GET /api/me`: who is logged in. 401 when nobody is. */
-export function getMe(): Promise<MeResponse> {
-  return http<MeResponse>('/api/me')
+/** `GET /api/me`: who is logged in, or null when nobody is. */
+export async function getMe(): Promise<MeResponse | null> {
+  return (await http<MeResponse | undefined>('/api/me')) ?? null
 }
 
 /**
