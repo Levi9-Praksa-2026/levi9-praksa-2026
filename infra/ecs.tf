@@ -5,20 +5,21 @@
 # The services' environment variables and secrets are in ecs_env.tf.
 
 locals {
-  # Which image each service runs: the pinned var.image_tag if set, otherwise the newest image in its repository.
-  image_tags = {
-    for service, image in data.aws_ecr_image.latest : service => coalesce(var.image_tag, image.image_tags[0])
-  }
+  # All four services, whichever resource created them (schedule.tf scales every one).
+  ecs_services = merge(aws_ecs_service.this, { gateway = aws_ecs_service.gateway })
 }
 
 # ---------- which version to run ----------
-# The newest image the image workflow pushed to each repository. A deploy is: release to main (the workflow pushes
-# new images), then "Terraform apply". Plan and apply both ask ECR, so they always agree on the version.
-data "aws_ecr_image" "latest" {
+# The image each service runs: the one tagged var.image_tag if set (a rollback), otherwise the newest image the image
+# workflow pushed. A deploy is: release to main (the workflow pushes new images), then "Terraform apply".
+# Task definitions point at the image's digest, not a tag: an unchanged service's rebuild only adds another tag to the
+# same image, so its digest, and with it the task definition, stays the same and the service isn't redeployed.
+data "aws_ecr_image" "this" {
   for_each = local.services
 
   repository_name = aws_ecr_repository.this[each.key].name
-  most_recent     = true
+  image_tag       = var.image_tag
+  most_recent     = var.image_tag == null ? true : null
 }
 
 # ---------- cluster + Service Connect ----------
@@ -66,7 +67,7 @@ resource "aws_ecs_task_definition" "this" {
 
   container_definitions = jsonencode([{
     name      = each.key
-    image     = "${aws_ecr_repository.this[each.key].repository_url}:${local.image_tags[each.key]}"
+    image     = "${aws_ecr_repository.this[each.key].repository_url}@${data.aws_ecr_image.this[each.key].image_digest}"
     essential = true
 
     portMappings = [{
@@ -99,8 +100,12 @@ resource "aws_ecs_task_definition" "this" {
 }
 
 # ---------- services: the supervisor ----------
+# Two resources instead of one: the gateway is created after the other three. Service Connect gives a client the names
+# that exist when its deployment is created; created in parallel, the gateway once missed post-service's name.
+
+# auth-service, community-service and post-service: internal only, each publishes its name through Service Connect.
 resource "aws_ecs_service" "this" {
-  for_each = local.services
+  for_each = { for service, settings in local.services : service => settings if service != "gateway" }
 
   name            = each.key
   cluster         = aws_ecs_cluster.this.id
@@ -115,7 +120,7 @@ resource "aws_ecs_service" "this" {
 
   network_configuration {
     subnets          = data.aws_subnets.default.ids
-    security_groups  = [each.value.behind_alb ? aws_security_group.gateway.id : aws_security_group.internal.id]
+    security_groups  = [aws_security_group.internal.id]
     assign_public_ip = true # no NAT gateway: the public IP is how tasks reach ECR and other AWS APIs
   }
 
@@ -123,32 +128,16 @@ resource "aws_ecs_service" "this" {
     enabled   = true
     namespace = aws_service_discovery_http_namespace.this.arn
 
-    # The gateway only calls others, so it joins as a client without a name of its own.
-    dynamic "service" {
-      for_each = each.value.discoverable ? [1] : []
-      content {
-        port_name      = "http"
-        discovery_name = each.key
-        client_alias {
-          dns_name = each.key
-          port     = each.value.port
-        }
+    # Publish this service as http://<name>:<port> for the others.
+    service {
+      port_name      = "http"
+      discovery_name = each.key
+      client_alias {
+        dns_name = each.key
+        port     = each.value.port
       }
     }
   }
-
-  # Only the gateway is registered in the ALB's target group.
-  dynamic "load_balancer" {
-    for_each = each.value.behind_alb ? [1] : []
-    content {
-      target_group_arn = aws_lb_target_group.gateway.arn
-      container_name   = each.key
-      container_port   = each.value.port
-    }
-  }
-
-  # Spring Boot needs time to start; the ALB's verdict is ignored for the first 2 minutes.
-  health_check_grace_period_seconds = each.value.behind_alb ? 120 : null
 
   # A deployment that keeps failing is rolled back to the last working task definition.
   deployment_circuit_breaker {
@@ -159,7 +148,57 @@ resource "aws_ecs_service" "this" {
   lifecycle {
     ignore_changes = [desired_count]
   }
+}
 
-  # The target group must be attached to the ALB (through the listener rule) before a service can use it.
-  depends_on = [aws_lb_listener_rule.from_cloudfront]
+# The gateway: the only service behind the ALB. It calls the others by name but has no name of its own.
+resource "aws_ecs_service" "gateway" {
+  name            = "gateway"
+  cluster         = aws_ecs_cluster.this.id
+  task_definition = aws_ecs_task_definition.this["gateway"].arn
+  launch_type     = "FARGATE"
+  propagate_tags  = "SERVICE"
+  tags            = { Owner = local.owners.ecs }
+
+  desired_count = 0 # same as above: the schedule owns it after creation
+
+  network_configuration {
+    subnets          = data.aws_subnets.default.ids
+    security_groups  = [aws_security_group.gateway.id]
+    assign_public_ip = true
+  }
+
+  # Client only: no service block, so the gateway can reach the names but publishes none.
+  service_connect_configuration {
+    enabled   = true
+    namespace = aws_service_discovery_http_namespace.this.arn
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.gateway.arn
+    container_name   = "gateway"
+    container_port   = local.services.gateway.port
+  }
+
+  # Spring Boot needs time to start; the ALB's verdict is ignored for the first 2 minutes.
+  health_check_grace_period_seconds = 120
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+
+  depends_on = [
+    aws_ecs_service.this,                 # the names it calls exist before its first deployment
+    aws_lb_listener_rule.from_cloudfront, # the target group must be attached to the ALB before a service can use it
+  ]
+}
+
+# The gateway used to be this["gateway"]: rename it in state instead of destroying and recreating it.
+moved {
+  from = aws_ecs_service.this["gateway"]
+  to   = aws_ecs_service.gateway
 }

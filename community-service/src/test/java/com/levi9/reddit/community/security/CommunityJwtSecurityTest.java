@@ -4,7 +4,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -66,6 +68,25 @@ class CommunityJwtSecurityTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.detail").value("Access is denied"));
         verifyNoInteractions(communityService);
+    }
+
+    @Test
+    void membership_withoutToken_isUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/communities/backend/members/me"))
+                .andExpect(status().isUnauthorized());
+        verifyNoInteractions(membershipService);
+    }
+
+    @Test
+    void membership_withUserToken_usesThatUser() throws Exception {
+        given(membershipService.isMember("backend", 6L)).willReturn(true);
+
+        mockMvc.perform(get("/api/communities/backend/members/me")
+                        .header("Authorization", "Bearer " + TestTokens.token(6, "regular", "USER")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.joined").value(true));
+
+        verify(membershipService).isMember("backend", 6L);
     }
 
     @Test
