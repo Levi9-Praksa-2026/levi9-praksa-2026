@@ -8,7 +8,7 @@ export type Role = 'USER' | 'ADMIN'
 
 /**
  * `GET /api/me` (gateway, `MeController.MeResponse`): who is logged in, from the session, as of the last
- * login. 401 when nobody is.
+ * login. The gateway returns 204 when nobody is logged in.
  */
 export interface MeResponse {
   id: number

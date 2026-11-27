@@ -44,7 +44,7 @@ data "aws_iam_policy_document" "scheduler" {
   statement {
     sid       = "ScaleEcsServices"
     actions   = ["ecs:UpdateService"]
-    resources = [for service in aws_ecs_service.this : service.id] # the id is the service ARN
+    resources = [for service in local.ecs_services : service.id] # the id is the service ARN
   }
 }
 
@@ -118,7 +118,7 @@ resource "aws_scheduler_schedule" "ecs" {
     role_arn = aws_iam_role.scheduler.arn
     input = jsonencode({
       Cluster      = aws_ecs_cluster.this.name
-      Service      = aws_ecs_service.this[each.value.service].name
+      Service      = local.ecs_services[each.value.service].name
       DesiredCount = each.value.count
     })
 

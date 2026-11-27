@@ -46,12 +46,12 @@ variable "db_allocated_storage_gb" {
 
 variable "image_tag" {
   type        = string
-  description = "Git SHA of the images to run, for all four services. Leave null to run the newest image in each ECR repository; set it only to pin a version, e.g. for a rollback."
+  description = "Full git SHA of the images to run, for all four services. Leave null to run the newest image in each ECR repository; set it only to pin a version, e.g. for a rollback."
   default     = null
 
   validation {
-    condition     = var.image_tag == null || can(regex("^[0-9a-f]{7,40}$", var.image_tag))
-    error_message = "image_tag must be a git SHA (7 to 40 lowercase hex characters), never 'latest'."
+    condition     = var.image_tag == null || can(regex("^[0-9a-f]{40}$", var.image_tag))
+    error_message = "image_tag must be a full git SHA (40 lowercase hex characters, as the image workflow tags images), never 'latest'."
   }
 }
 

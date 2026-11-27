@@ -28,16 +28,24 @@ export const queryKeys = {
     adminList: (filters: AdminCommunityFilters) => ['communities', 'admin', filters] as const,
     /** The sidebar's list: one per user, so switching accounts never shows the last one's. */
     mine: (userId: number) => ['communities', 'mine', userId] as const,
+    /** The caller's own membership: one per viewer, never shared between accounts. */
+    membership: (name: string, userId: number) => ['communities', 'membership', name.toLowerCase(), userId] as const,
     search: (name: string, limit: number) => ['communities', 'search', name, limit] as const,
     /** The search page: every filter is part of the key, so results never get mixed up. */
     list: (filters: CommunityListParams) => ['communities', 'list', filters] as const,
     /** Names are unique ignoring case, so `Frontend` and `frontend` share one entry. */
     detail: (name: string) => ['communities', 'detail', name.toLowerCase()] as const,
+    /** ADMIN: a shut-down community found through the admin list (there is no inactive detail endpoint). */
+    inactive: (name: string) => ['communities', 'inactive', name.toLowerCase()] as const,
   },
   posts: {
     all: ['posts'] as const,
     /** One feed page: the community, search and page are all part of the key. */
     list: (params: PostListParams) => ['posts', 'list', params] as const,
+    /** The top bar's title suggestions: fewer than a page, keyed by the typed text. */
+    search: (q: string, limit: number) => ['posts', 'search', q, limit] as const,
+    /** The profile's short list of the logged-in user's posts. */
+    byAuthor: (authorId: number, limit: number) => ['posts', 'byAuthor', authorId, limit] as const,
     detail: (id: number) => ['posts', 'detail', id] as const,
     /** One page of a post's comments, under the post so removing the post can clear both. */
     comments: (postId: number, page: number) => ['posts', 'detail', postId, 'comments', page] as const,

@@ -31,10 +31,10 @@ describe('profile data', () => {
     }))
 
     expect(await getMyProfileOverview()).toEqual({
+      id: 1,
       username: 'demo_user',
       firstName: 'Demo',
       lastName: 'User',
-      recentPosts: [],
     })
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/users/me')
   })

@@ -1,26 +1,12 @@
-import type { Instant } from './common'
-
 /*
-  There is no profile overview endpoint yet. These are the fields the Profile page needs; the shape is a
-  proposal, like the other "contract gap" fields. Until a service exposes it, identity comes from the real
-  /api/users/me and recentPosts stays empty — no mock rows, and no "my communities" section.
+  There is no profile overview endpoint yet: identity comes from the real GET /api/users/me and the user's
+  posts from the real GET /api/posts?authorId=. Keeping them as two requests lets the posts fail on their own.
 */
 
-/** One of the caller's posts, in the plain-text list on the profile. No PostCard needed. */
-export interface ProfilePostSummary {
-  id: number
-  title: string
-  communityName: string
-  createdAt: Instant
-  score: number
-  commentCount: number
-}
-
-/** `GET /api/profile/overview` (proposed): the logged-in user's profile. */
+/** `GET /api/users/me`, narrowed to the fields the profile shows. The id is the post author id (the token's sub). */
 export interface ProfileOverviewResponse {
+  id: number
   username: string
   firstName: string
   lastName: string
-  /** Newest first; capped by the service so the page stays a summary. */
-  recentPosts: ProfilePostSummary[]
 }

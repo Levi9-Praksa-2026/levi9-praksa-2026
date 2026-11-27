@@ -59,6 +59,10 @@ tokens; the page then logs in as above.
 
 ## How an API request travels
 
+Public pages check the gateway session with `GET /api/me`: it returns `200` with the current user's
+`id`, `username` and `roles`, or `204` with no body when signed out. It reads the session without
+calling auth-service. An anonymous session check is successful; protected API calls still require authentication.
+
 1. The browser calls `/api/...` on the gateway, with its session cookie.
 2. The gateway finds the session and attaches `Authorization: Bearer <access token>`, refreshing it first if it
    has expired. Any `Authorization` header the browser sends is removed first: a token only ever comes from the

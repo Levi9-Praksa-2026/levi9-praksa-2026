@@ -5,10 +5,10 @@ import { Brand } from '@/shared/ui/Brand'
 import { Button } from '@/shared/ui/Button'
 import { cn } from '@/shared/lib/cn'
 import { AccountMenu } from './AccountMenu'
-import { CommunitySearch } from './CommunitySearch'
+import { SearchCombobox } from './SearchCombobox'
 
 export interface TopBarProps {
-  /** Logged in, logged out (null), or still asking (undefined: the account area stays empty). */
+  /** Logged in, or logged out/unknown (null or undefined: the login actions stay visible). */
   user: MeResponse | null | undefined
   /** Under 1024px: the button that opens the sidebar drawer. */
   drawerOpen: boolean
@@ -18,7 +18,7 @@ export interface TopBarProps {
   sidebar: 'open' | 'rail'
 }
 
-/** The forum's fixed top bar: the menu (small screens), the brand, the community search and the account. */
+/** The forum's fixed top bar: the menu (small screens), the brand, the search and the account. */
 export function TopBar({ user, drawerOpen, drawerId, onOpenDrawer, sidebar }: TopBarProps) {
   return (
     <header className="fixed inset-x-0 top-0 z-40 h-app-bar border-b border-line bg-bg">
@@ -48,10 +48,10 @@ export function TopBar({ user, drawerOpen, drawerId, onOpenDrawer, sidebar }: To
           className="lg:absolute lg:top-1/2 lg:left-4 lg:-translate-y-1/2"
         />
         <div className={cn('transition-[margin-left] duration-240 ease-in-out motion-reduce:transition-none order-last col-span-full flex min-w-0 self-start pb-2 sm:order-none sm:flex-1 sm:self-auto sm:pb-0 sm:justify-center lg:px-52', sidebar === 'open' ? 'lg:ml-sidebar' : 'lg:ml-rail')}>
-          <CommunitySearch className="w-full max-w-[560px]" />
+          <SearchCombobox className="w-full max-w-[560px]" />
         </div>
         <div className="ml-auto flex flex-none items-center gap-2 lg:absolute lg:top-1/2 lg:right-4 lg:-translate-y-1/2">
-          {user === null && (
+          {!user && (
             <>
               {/* a plain link on purpose: the login is a chain of redirects through the gateway, a full page load */}
               <a href={routes.login} className="inline-flex rounded-btn px-3 py-2 text-small font-medium text-accent hover:bg-surface">

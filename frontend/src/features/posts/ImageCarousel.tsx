@@ -4,10 +4,11 @@ import type { PostImage } from '@/shared/api/contracts/posts'
 import { useReducedMotion } from '@/shared/hooks/useMediaQuery'
 import { cn } from '@/shared/lib/cn'
 import { slideIndex } from './slideIndex'
+import { ImageViewer } from './ImageViewer'
 
 export interface ImageCarouselProps {
   images: readonly PostImage[]
-  /** card: a fixed height in the feed. page: taller, and each image links to its file at full size. */
+  /** card: a fixed height in the feed. page: taller. */
   variant: 'card' | 'page'
 }
 
@@ -18,6 +19,7 @@ export interface ImageCarouselProps {
 export function ImageCarousel({ images, variant }: ImageCarouselProps) {
   const strip = useRef<HTMLDivElement>(null)
   const [current, setCurrent] = useState(0)
+  const [openImage, setOpenImage] = useState<string | null>(null)
   const reducedMotion = useReducedMotion()
   const count = images.length
 
@@ -52,7 +54,7 @@ export function ImageCarousel({ images, variant }: ImageCarouselProps) {
           role="group"
           onScroll={onScroll}
           onKeyDown={onKeyDown}
-          // Focusable so the arrow keys work; the slides inside are not links on the card.
+          // Focusable so the arrow keys work.
           // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           tabIndex={0}
           aria-label={`Image ${current + 1} of ${count}. Use the arrow keys to move.`}
@@ -82,11 +84,9 @@ export function ImageCarousel({ images, variant }: ImageCarouselProps) {
                 aria-hidden={index !== current}
                 className="h-full w-full flex-none snap-center"
               >
-                {variant === 'page' ? (
-                  <a href={image.url} target="_blank" rel="noreferrer" tabIndex={index === current ? 0 : -1} className="block size-full">
-                    {picture}
-                  </a>
-                ) : picture}
+                <button type="button" aria-label={`Enlarge image ${index + 1}`} onClick={() => setOpenImage(image.url)} tabIndex={index === current ? 0 : -1} className="block size-full cursor-zoom-in">
+                  {picture}
+                </button>
               </div>
             )
           })}
@@ -107,6 +107,7 @@ export function ImageCarousel({ images, variant }: ImageCarouselProps) {
         )}
       </div>
 
+      {openImage && <ImageViewer url={openImage} onClose={() => setOpenImage(null)} />}
       <div className="flex justify-center gap-1.5">
         {images.map((image, index) => (
           <button
