@@ -6,7 +6,7 @@ import type { CommunityListParams } from '@/shared/api/contracts/communities'
 import { Pagination } from '@/shared/ui/Pagination'
 import { Select, type SelectOption } from '@/shared/ui/Select'
 
-const PAGE_SIZE = 5
+const PAGE_SIZE = 10
 const SORT_OPTIONS: readonly SelectOption<'new' | 'top'>[] = [
   { value: 'new', label: 'Newest' },
   { value: 'top', label: 'Most members' },

@@ -27,11 +27,15 @@ export const queryKeys = {
     adminList: (filters: AdminCommunityFilters) => ['communities', 'admin', filters] as const,
     /** The sidebar's list: one per user, so switching accounts never shows the last one's. */
     mine: (userId: number) => ['communities', 'mine', userId] as const,
+    /** The caller's own membership: one per viewer, never shared between accounts. */
+    membership: (name: string, userId: number) => ['communities', 'membership', name.toLowerCase(), userId] as const,
     search: (name: string, limit: number) => ['communities', 'search', name, limit] as const,
     /** The search page: every filter is part of the key, so results never get mixed up. */
     list: (filters: CommunityListParams) => ['communities', 'list', filters] as const,
     /** Names are unique ignoring case, so `Frontend` and `frontend` share one entry. */
     detail: (name: string) => ['communities', 'detail', name.toLowerCase()] as const,
+    /** ADMIN: a shut-down community found through the admin list (there is no inactive detail endpoint). */
+    inactive: (name: string) => ['communities', 'inactive', name.toLowerCase()] as const,
   },
   posts: {
     all: ['posts'] as const,
