@@ -3,6 +3,11 @@ server:
   # Behind the gateway, the client's address arrives in X-Forwarded-For. Tomcat reads it from the right, skips
   # private-network hops (the gateway) and uses the first public one as the remote address (rate limits use it).
   forward-headers-strategy: native
+  tomcat:
+    # Keep a relative Location (/signin) so the browser stays on the origin it is on. An absolute one is built from
+    # the scheme and host this service sees, which behind CloudFront, the ALB and the gateway is http:// and can be
+    # the ALB's own name, a host the browser can't reach. SignInRedirectTests.
+    use-relative-redirects: true
   servlet:
     session:
       # The login session (it lets /oauth2/authorize see who logged in). Not readable by scripts, not sent on
