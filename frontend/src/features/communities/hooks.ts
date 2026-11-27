@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { getCommunity, listCommunities } from '@/shared/api/communities'
 import type { CommunityListParams } from '@/shared/api/contracts/communities'
 import { queryKeys } from '@/shared/api/queryKeys'
@@ -14,10 +14,12 @@ export function useMyCommunities(userId: number | null) {
 }
 
 /** The directory's results, including the page metadata. */
-export function useCommunityDirectory(filters: CommunityListParams) {
+export function useCommunityDirectory(filters: CommunityListParams, enabled = true) {
   return useQuery({
     queryKey: queryKeys.communities.list(filters),
     queryFn: () => listCommunities(filters),
+    placeholderData: keepPreviousData,
+    enabled,
   })
 }
 

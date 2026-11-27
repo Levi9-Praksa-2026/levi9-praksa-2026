@@ -48,3 +48,12 @@ themselves live in `src/shared/styles/theme.css` (see the README's Styling secti
 | Account | the user's initials on the `surface` tint plus the username (initials only on phones) | Tinted, so a person never looks like a community |
 | Icons | `lucide-react`, 16 to 20px, inheriting the text colour | One consistent icon set |
 | Active link | `aria-current="page"` gets the `surface` tint and `ink` text | The state is in the markup, so it is announced as well as seen |
+
+## Search and discovery (2026-11-26)
+
+| Decision | Value | Why |
+|---|---|---|
+| Dropdown groups | Small muted `text-label` labels "Posts" then "Communities"; up to four of each, continuous arrow-key navigation across both | Matches the existing option metadata style, and posts come first as on the page |
+| Page sections | `<h2>` "Posts" then "Communities", each with its own loading/error/empty state and pagination | The page mirrors the dropdown's order and keeps each list independently readable |
+| Section filter | Three plain buttons "All / Posts / Communities" using theme tokens, active one `bg-surface`, state in `aria-pressed` | "All" restores the stacked default after filtering; no new component or palette needed |
+| No matches | Keep `<h1>Discover</h1>` with a muted note naming the query and a Clear button, then show unfiltered posts and active communities | The user still gets a useful page instead of two empty lists; the URL stays shareable |

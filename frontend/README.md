@@ -12,8 +12,8 @@ npm run build   # type check + production build into dist/
 
 ## Layout
 
-- `src/app/`: entry point, router and layouts. `app/shell/` is the forum frame (top bar, sidebar, community
-  search) every forum screen renders in; sign-in and sign-up (`pages/auth`) render outside it.
+- `src/app/`: entry point, router and layouts. `app/shell/` is the forum frame (top bar, sidebar, search)
+  every forum screen renders in; sign-in and sign-up (`pages/auth`) render outside it.
 - `src/pages/`: one folder per route (`home`, `community`, `auth`, `not-found`).
 - `src/pages/welcome/` + `welcome/index.html`: the welcome page at `/welcome/`. It is a separate document,
   not a React Router route, so links to it reload the page. The 3D globe (three.js) loads lazily and only there.

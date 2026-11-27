@@ -66,7 +66,7 @@ export function Sidebar({ id, variant, showMyCommunities, communities, onToggle 
       <nav id={id} aria-label="Forum" className={cn('flex h-full flex-col overflow-y-auto', variant === 'drawer' ? 'pt-16' : 'pt-3')}>
         <div className="flex flex-col gap-0.5 px-3 pt-1">
           <SidebarLink to={routes.home} end rail={rail} label="Home" icon={<Home className="size-5 flex-none" aria-hidden="true" />} />
-          <SidebarLink to={routes.communities} rail={rail} label="Communities" icon={<Compass className="size-5 flex-none" aria-hidden="true" />} />
+          <SidebarLink to={routes.communities} rail={rail} label="Discover" icon={<Compass className="size-5 flex-none" aria-hidden="true" />} />
         </div>
 
         {showMyCommunities && (
