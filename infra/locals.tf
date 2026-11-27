@@ -8,6 +8,8 @@ locals {
     ecs      = "i.radojicic-int@levi9.com"
     schedule = "i.radojicic-int@levi9.com"
     rds      = "ma.ivanovic-int@levi9.com"
+    # The first admin account's secret and auth-service's permission to read it.
+    bootstrap_admin = "i.radojicic-int@levi9.com"
     # Other resource owners are added as each part lands.
   }
   # The backend services: the list every per-service resource loops over. Names match the module folders and

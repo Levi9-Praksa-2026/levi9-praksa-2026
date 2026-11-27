@@ -14,3 +14,13 @@ resource "aws_secretsmanager_secret" "jwt_private_key" {
   description             = "APP_JWT_PRIVATE_KEY for auth-service: the PEM of the token signing key"
   recovery_window_in_days = 7
 }
+
+# Production's first ADMIN account (issue #166): JSON {"username", "email", "password"}, put in by hand like the two
+# above. auth-service imports it itself as optional, so it starts whether the secret is empty, filled or gone, and
+# creates the admin only while no admin exists (BootstrapAdminAccount). Steps in docs/production-changes.md.
+resource "aws_secretsmanager_secret" "bootstrap_admin" {
+  name                    = "${local.name}/bootstrap-admin"
+  description             = "app.bootstrap-admin.* for auth-service: the first ADMIN account, created at startup"
+  recovery_window_in_days = 7
+  tags                    = { Owner = local.owners.bootstrap_admin }
+}

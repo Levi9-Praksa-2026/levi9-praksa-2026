@@ -56,6 +56,9 @@ app:
       cron: "0 0 0 * * *" # Daily at midnight UTC; expired tokens get a five-minute grace period.
     gateway-client:
       secret: ${APP_OAUTH_GATEWAY_CLIENT_SECRET:}   # required; startup fails without it
+  # bootstrap-admin (username, email, password): production's first ADMIN, created at startup when no admin exists
+  # (BootstrapAdminAccount). On AWS it is imported from the levddit/bootstrap-admin secret; unset here on purpose.
+
   # Per client IP, refilled gradually (10 per minute = one back every 6 s). DECISIONS.md 2026-11-18.
   # Generous on purpose: everyone in one office shares one IP.
   rate-limit:
