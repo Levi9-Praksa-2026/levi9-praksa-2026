@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
 import { Outlet } from 'react-router'
-import { Menu } from 'lucide-react'
 import { useMyCommunities } from '@/features/communities/hooks'
 import { useCurrentUser } from '@/features/users/useCurrentUser'
 import { cn } from '@/shared/lib/cn'
@@ -52,16 +51,6 @@ export function ForumLayout() {
 
       {desktop && (
         <aside className={cn('transition-[width] duration-240 ease-in-out motion-reduce:transition-none fixed top-app-bar bottom-0 left-0 z-30 border-r border-line bg-bg', expanded ? 'w-sidebar' : 'w-rail')}>
-          <button
-            type="button"
-            className="absolute right-0 bottom-8 z-10 grid size-8 translate-x-1/2 cursor-pointer place-items-center rounded-full border border-line-strong bg-bg text-muted hover:bg-surface hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
-            aria-expanded={expanded}
-            aria-controls={sidebarId}
-            onClick={toggleExpanded}
-          >
-            <Menu className="size-4" aria-hidden="true" />
-          </button>
           {sidebar(expanded ? 'open' : 'rail')}
         </aside>
       )}
