@@ -21,6 +21,7 @@ export const queryKeys = {
   /** The logged-in user's profile Overview (communities and recent posts). */
   profile: {
     overview: ['profile', 'overview'] as const,
+    public: (username: string) => ['profile', 'public', username.toLowerCase()] as const,
   },
   communities: {
     all: ['communities'] as const,

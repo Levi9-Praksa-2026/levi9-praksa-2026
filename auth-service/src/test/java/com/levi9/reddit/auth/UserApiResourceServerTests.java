@@ -87,6 +87,24 @@ class UserApiResourceServerTests {
     }
 
     @Test
+    void publicProfileIsAnonymousAndContainsNoPrivateAccountData() throws Exception {
+        mvc.perform(get("/api/users/public/MARKO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("marko"))
+                .andExpect(jsonPath("$.firstName").value("Marko"))
+                .andExpect(jsonPath("$.lastName").value("Markovic"))
+                .andExpect(jsonPath("$.createdAt").exists())
+                .andExpect(jsonPath("$.email").doesNotExist())
+                .andExpect(jsonPath("$.role").doesNotExist())
+                .andExpect(jsonPath("$.banReason").doesNotExist());
+        mvc.perform(get("/api/users/me")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/users/public/missing")).andExpect(status().isNotFound());
+        marko.delete();
+        users.saveAndFlush(marko);
+        mvc.perform(get("/api/users/public/marko")).andExpect(status().isNotFound());
+    }
+
+    @Test
     void aTokenSignedByAnyOtherKeyIs401() throws Exception {
         RSAKey otherKey = new RSAKeyGenerator(2048).keyID("not-ours").generate();
         JwtEncoder forger = new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(otherKey)));
